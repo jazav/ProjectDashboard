@@ -5,6 +5,7 @@ import pandas as pd
 from pylab import *
 
 TOTAL_NAME = 'Total:'
+DECIMALS = 0
 
 
 def unique(list1):
@@ -160,14 +161,14 @@ def get_dict_from_df(plan_df, fact_series, filter_list, plan_prefix, fact_prefix
                         new_plan_est = plan_dict[plan_feature][row_component] + plan_est
                         new_fact_est = fact_dict[fact_feature][row_component] + fact_est
 
-                        plan_dict[plan_feature][row_component] = new_plan_est
-                        fact_dict[fact_feature][row_component] = new_fact_est
+                        plan_dict[plan_feature][row_component] = round(new_plan_est, DECIMALS)
+                        fact_dict[fact_feature][row_component] = round(new_fact_est, DECIMALS)
                     else:
-                        plan_dict[plan_feature][row_component] = plan_est
-                        fact_dict[fact_feature][row_component] = fact_est
+                        plan_dict[plan_feature][row_component] = round(plan_est, DECIMALS)
+                        fact_dict[fact_feature][row_component] = round(fact_est, DECIMALS)
                 else:
-                    plan_dict[plan_feature] = {row_component: plan_est}
-                    fact_dict[fact_feature] = {row_component: fact_est}
+                    plan_dict[plan_feature] = {row_component: round(plan_est, DECIMALS)}
+                    fact_dict[fact_feature] = {row_component: round(fact_est, DECIMALS)}
 
                 if with_total:
                     if TOTAL_NAME in plan_dict[plan_feature]:

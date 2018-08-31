@@ -161,5 +161,7 @@ class DashboardController:
         dashboard.plan = plan
         dashboard.fact = fact
         dashboard.filter_list = fg_list
+
+
         dashboard.prepare(data=data)
         dashboard.export_to_plot()

@@ -14,7 +14,7 @@ class JSQLBuilder(AbstractQueryBuilder):
             'DFE': 'project in (BSS_CRMP, UIKIT, BSS_SCP, BSS_DAPI) or project = "RnD BSS Box" and component in ("Admin UI", "CSR Portal", Common)',
             'NWM': 'project in (NWM, NWM_PCRF, PCCM, NWM_AAA, NWM_NMS, NWM_OCS, NWM_UDR) or project = "RnD BSS Box" and component in (NWM)',
             'INFRA': 'project = BSS_INFRA or (project = SSO and component = "Security") or (project = CNC and component = Notification) or project = "RnD BSS Box" and component in (Notification, "Report Engine", Security)',
-            'PSC': 'project = PSC-PSC and component = PSC or project = "RnD BSS Box" and component in (PSC, "Ref. Data", RefData)',
+            'PSC': 'project = PSC-PSC and component = PSC or project = BSS_PSC or project = "RnD BSS Box" and component in (PSC, "Ref. Data", RefData)',
             'QC': 'project = "R&D_QС" ',
             'ARCH': 'project =  "BSS Box ARBA" and component = Architecture',
             'BA': 'project =  "BSS Box ARBA" and component in (Analytics, DFE, Billing, Infra, "Product, Resource Instances & OMS")',

@@ -64,14 +64,18 @@ class FeatureProgressDashboard(AbstractDashboard):
 
             for component_idx in range(0, len(data_part)):
                 clrs = [clrred if x%2 else clrgrn for x in range(data_part.iloc[component_idx].size)]
+                total = str(data_part.iloc[component_idx].values.sum())
+
                 bar_plan = go.Bar(
                     y=data_part.columns,
-                    x=data_part.iloc[component_idx],  # one row as a Series:
+                    x=data_part.iloc[component_idx],
                     name=data_part.index[component_idx],
                     textposition='auto',
                     orientation='h',
                     legendgroup=data_part.index[component_idx],
-                    marker=dict(color=clrs)
+                    hoverinfo='name',
+                    text=data_part.iloc[component_idx]
+                    #marker=dict(color=clrs)
                 )
                 traces.append(bar_plan)
             plan_fact_str = ''
