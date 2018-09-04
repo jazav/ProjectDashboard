@@ -28,7 +28,8 @@ class FileCache():
                     json_file.close()
                     raise
         else:
-            logging.error("file %s not found", data_path)
+            logging.error("cache not found")
+            raise FileExistsError("file %s not found", data_path)
         return issue_dict
 
     @staticmethod

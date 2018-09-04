@@ -1,8 +1,9 @@
 import logging
 import re
-
+from config_controller import DETAIL_ARR
 import pandas as pd
 from pylab import *
+import adapters.issue_utils as iu
 
 TOTAL_NAME = 'Total:'
 DECIMALS = 0
@@ -11,13 +12,6 @@ DECIMALS = 0
 def unique(list1):
     x = np.array(list1)
     return np.unique(x)
-
-
-def calc_fact_estimates(plan_df, all_data_df):
-    for row in plan_df.itertuples():
-        fact_data = pd.DataFrame()
-
-    return fact_data
 
 
 def list_from_string(source_str, reg_filter_list, del_substring):
@@ -106,7 +100,7 @@ def get_fact_data(epic_df, issue_df):
     return sum_series
 
 
-def get_dict_from_df(plan_df, fact_series, filter_list, plan_prefix, fact_prefix, with_total):
+def get_dict_from_df(plan_df, fact_series, filter_list, plan_prefix, fact_prefix, with_total, details):
     plan_dict = dict()
     fact_dict = dict()
 
@@ -132,6 +126,7 @@ def get_dict_from_df(plan_df, fact_series, filter_list, plan_prefix, fact_prefix
         total = 0.0
 
         # we should divide total estimate for every feature
+
         for num_item in feature_list:
 
             # feature = f_name
@@ -156,6 +151,15 @@ def get_dict_from_df(plan_df, fact_series, filter_list, plan_prefix, fact_prefix
                 if row_component == 'BOX':
                     row_component = 'Documentation'
 
+                if details == DETAIL_ARR[0]:
+                    try:
+                        domain = iu.get_domain(row_component)
+                    except KeyError:
+                        domain = None
+
+                    if domain is not None:
+                        row_component = domain
+
                 if plan_feature in plan_dict:
                     if row_component in plan_dict[plan_feature]:
                         new_plan_est = plan_dict[plan_feature][row_component] + plan_est
@@ -174,18 +178,18 @@ def get_dict_from_df(plan_df, fact_series, filter_list, plan_prefix, fact_prefix
                     if TOTAL_NAME in plan_dict[plan_feature]:
                         plan_dict[plan_feature][TOTAL_NAME] = plan_dict[plan_feature][TOTAL_NAME] + \
                                                               plan_dict[plan_feature][
-                                                                  row_components]
+                                                                  row_component]
                         fact_dict[fact_feature][TOTAL_NAME] = fact_dict[fact_feature][TOTAL_NAME] + \
                                                               fact_dict[fact_feature][
-                                                                  row_components]
+                                                                  row_component]
                     else:
-                        plan_dict[plan_feature][TOTAL_NAME] = plan_dict[plan_feature][row_components]
-                        fact_dict[fact_feature][TOTAL_NAME] = fact_dict[fact_feature][row_components]
+                        plan_dict[plan_feature][TOTAL_NAME] = plan_dict[plan_feature][row_component]
+                        fact_dict[fact_feature][TOTAL_NAME] = fact_dict[fact_feature][row_component]
 
     return plan_dict, fact_dict
 
 
-def prepare(epic_data, issue_data, or_filter_list, and_filter_list, plan_prefix, fact_prefix, with_total):
+def prepare(epic_data, issue_data, or_filter_list, and_filter_list, plan_prefix, fact_prefix, with_total, details):
     # filter on Epic&Doc only
 
     # applying "OR" filter (features, feature group etc.)
@@ -201,8 +205,10 @@ def prepare(epic_data, issue_data, or_filter_list, and_filter_list, plan_prefix,
                                             filter_list=or_filter_list,
                                             plan_prefix=plan_prefix,
                                             fact_prefix=fact_prefix,
-                                            with_total=with_total)
+                                            with_total=with_total,
+                                            details=details)
 
     plan_epic_df = pd.DataFrame.from_dict(plan_dict)
     fact_epic_df = pd.DataFrame.from_dict(fact_dict)
+
     return plan_epic_df, fact_epic_df

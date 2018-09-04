@@ -11,6 +11,7 @@ class AbstractDashboard():
     min_tailor = 4
     plan = None
     fact = None
+    details = None
 
     def __init__(self):
         config = cc.ConfigController()

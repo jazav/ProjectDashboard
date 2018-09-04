@@ -36,6 +36,6 @@ class AbstractAdapter:
     def save_all(self, data):
         raise NotImplementedError()
 
-    def create_issue(self):
+    def create_issue(self, issues):
         raise NotImplementedError()
         return None

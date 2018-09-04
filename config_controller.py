@@ -11,10 +11,26 @@ FEATURE_PROGRESS_FILE = "feature_progress"
 DATA_FILE = "data_file"
 INTERVAL = "interval"
 FILE_DIR = 'file_dir'
+DETAIL_ARR = ['domain', 'component']
+
+
+# Singleton/SingletonDecorator.py
+class ConfigControllerDecorator:
+
+    def __init__(self, klass):
+        self.klass = klass
+        self.instance = None
+
+    def __call__(self, *args, **kwds):
+        if self.instance is None:
+            self.instance = self.klass(*args, **kwds)
+        return self.instance
 
 
 class ConfigController:
-    config_controller = None
+
+    login = None
+    password = None
 
     def __init__(self):
         ini_path = ConfigController.get_ini_path()
@@ -39,13 +55,18 @@ class ConfigController:
         if self.config_controller is None:
             return None
 
-        options = {'user_name': self.config_controller[JIRA_SECTION]['user_name'],
-                   'password': self.config_controller[JIRA_SECTION]['password'],
+        options = {'user_name': self.login,
+                   'password': self.password,
                    'server': self.config_controller[JIRA_SECTION]['server'],
                    'max_results': self.config_controller[JIRA_SECTION]['max_results'],
                    }
 
         return options
+
+    def set_login(self, login):
+        log_list = login.split('/')
+        self.login = log_list[0]
+        self.password = log_list[1]
 
     def read_cache_config(self):
 
@@ -77,3 +98,6 @@ class ConfigController:
                    }
 
         return options
+
+cc_klass = ConfigControllerDecorator(ConfigController)
+

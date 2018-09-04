@@ -10,6 +10,49 @@ def nat_check(nat):
             isinstance(nat, (int, float)) and math.isnan(nat))
 
 
+def get_domain(component):
+    return {
+        'Analytics': 'ARBA',
+        'Architecture': 'ARBA',
+        'B2C Self-service': 'DFE',
+        'BFAM': 'Billing',
+        'Billing': 'Billing',
+        'CES': 'Billing',
+        'CRM': 'CRM',
+        'CRM Processes': 'CRM',
+        'Case management': 'CRM',
+        'Case Management': 'CRM',
+        'Collection': 'Billing',
+        'CustomerOrder': 'Ordering',
+        'DFE': 'DFE',
+        'Fin account': 'Billing',
+        'Interactions': 'CRM',
+        'Inventory': 'Billing',
+        'Marketplace': 'CRM',
+        'Notification': 'Infra',
+        'Party Management': 'CRM',
+        'Payments': 'Billing',
+        'Pays': 'Billing',
+        'Processes': 'CRM',
+        'Product Instances': 'CRM',
+        'Product Processes': 'CRM',
+        'ProductProcess': 'CRM',
+        'Report Engine': 'Infra',
+        'SSO': 'Infra',
+        'Searching': 'CRM',
+        'Security': 'Infra',
+        'configuration': 'Comp Arch',
+        'logical inventory': 'CRM',
+        'notification_managment': 'Infra',
+        'oredring': 'Ordering',
+        'payment': 'Billing',
+        'report engine': 'Infra',
+        'service activator': 'Comp Arch',
+
+        None: None
+    }[component]
+
+
 def clear_issues(issues):
     for issue in issues:
         issue_keys = list(issue.keys())

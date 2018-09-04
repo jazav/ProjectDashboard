@@ -17,7 +17,7 @@ class CacheAdapter(AbstractAdapter):
         return self._cache
 
     def load_by_query(self, query_str, expand):
-        cc = config_controller.ConfigController()
+        cc = config_controller.cc_klass()
         data_path = cc.read_cache_config()[config_controller.DATA_FILE]
 
         issue_dict = self.get_cache().read(data_path=data_path)
@@ -32,7 +32,7 @@ class CacheAdapter(AbstractAdapter):
         return issue
 
     def save_all(self, data):
-        cc = config_controller.ConfigController()
+        cc = config_controller.cc_klass()
         data_path = cc.read_cache_config()[config_controller.DATA_FILE]
 
         self.get_cache().save(data=data, data_path=data_path)

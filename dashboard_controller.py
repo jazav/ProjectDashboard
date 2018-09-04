@@ -5,7 +5,7 @@ from threading import Timer
 import adapters.issue_utils as iu
 import config_controller
 from adapters.file_cache import FileCache
-from config_controller import ConfigController
+from config_controller import *
 from dashboards.feature_heatmap_dashboard import FeatureHeatmapDashboard
 from dashboards.feature_progress_dashboard import FeatureProgressDashboard
 from dashboards.prepare_feature_data import *
@@ -51,7 +51,7 @@ class DashboardController:
         initialize_logger(output_dir='./log')
 
     def start_updater(self):
-        options = ConfigController().read_scheluler_config()
+        options = cc_klass().read_scheluler_config()
         interval = options[config_controller.INTERVAL]
 
         t = Timer(interval, self.update())
@@ -99,7 +99,7 @@ class DashboardController:
         dc = DataController()
         data = dc.get_issue_pandas(query=None)
 
-        options = ConfigController().read_dashboards_config()
+        options = cc_klass().read_dashboards_config()
         data_path = options[config_controller.FEATURE_PROGRESS_FILE]
 
         data_dict = data.to_dict(orient='index')
@@ -124,7 +124,7 @@ class DashboardController:
             dashboard.prepare(data=df2)
             dashboard.export_to_plot()
 
-    def dashboard_feature_progress(self, plan, fact):
+    def dashboard_feature_progress(self, plan, fact, details):
         dc = DataController()
         data = dc.get_issue_pandas(query=None, expand='')
 
@@ -145,10 +145,12 @@ class DashboardController:
             dashboard.min_tailor = 6
             dashboard.plan = plan
             dashboard.fact = fact
+            dashboard.details = details
+
             dashboard.prepare(data=df2)
             dashboard.export_to_plot()
 
-    def dashboard_feature_group_progress(self, plan, fact):
+    def dashboard_feature_group_progress(self, plan, fact, details):
         dc = DataController()
         data = dc.get_issue_pandas(query=None, expand=None)
 
@@ -161,6 +163,7 @@ class DashboardController:
         dashboard.plan = plan
         dashboard.fact = fact
         dashboard.filter_list = fg_list
+        dashboard.details = details
 
 
         dashboard.prepare(data=data)

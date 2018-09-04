@@ -1,7 +1,7 @@
 from jira import JIRA
 from adapters.abstract_adapter import AbstractAdapter
 from adapters.jsql_builder import JSQLBuilder
-from config_controller import ConfigController
+from config_controller import *
 import urllib3
 import logging
 
@@ -28,7 +28,6 @@ class JiraAdapter(AbstractAdapter):
     _password = None
     _server = None
     _max_results = 0
-
     _jira = None
 
     def __init__(self):
@@ -40,8 +39,7 @@ class JiraAdapter(AbstractAdapter):
 
     @staticmethod
     def read_jira_config():
-        cc = ConfigController()
-
+        cc = cc_klass()
         options = cc.read_jira_config()
 
         if options is None:
@@ -50,7 +48,6 @@ class JiraAdapter(AbstractAdapter):
                        'server': 'https://jira.billing.ru',
                        'max_results': 0,
                        }
-
         return options
 
     @staticmethod
