@@ -13,10 +13,12 @@ def get_command_namespace(argv):
 
     ini_parser = subparsers.add_parser('ini', help='Initialize data. This command without params.')
 
-    update_parser = subparsers.add_parser('update', help='Update data ([-start] is date and/or time to start update). For example: update -start 2018-08-31T14:25:21')
+    update_parser = subparsers.add_parser('update',
+                                          help='Update data ([-start] is date and/or time to start update). For example: update -start 2018-08-31T14:25:21')
     update_parser.add_argument('-start', action="store", help='First time data initialization', required=False)
 
-    issue_parser = subparsers.add_parser('issue', help='Get issue info (- key is issue key for search, -history is used if update details are needed). For example: issue -key=BSSARBA-670 -history=True')
+    issue_parser = subparsers.add_parser('issue',
+                                         help='Get issue info (- key is issue key for search, -history is used if update details are needed). For example: issue -key=BSSARBA-670 -history=True')
     issue_parser.add_argument('-key', action="store", help='Key to get issue', required=True)
     issue_parser.add_argument('-history', action="store", help='Update history of issue', required=False, type=bool,
                               default=False)
@@ -25,7 +27,8 @@ def get_command_namespace(argv):
         subparser.add_argument('-user', action="store", required=True)
         subparser.add_argument('-password', action="store", required=True)
 
-    dashboard_parser = subparsers.add_parser('dashboard', help='Show dashboard (-name is name of dashboard, -mode is plan/fact, -details can be domain or component level). For example: dashboard -name=fgp -mode=plan,fact -details=domain')
+    dashboard_parser = subparsers.add_parser('dashboard',
+                                             help='Show dashboard (-name is name of dashboard, -mode is plan/fact, -details can be domain or component level). For example: dashboard -name=fgp -mode=plan,fact -details=domain')
     dashboard_parser.add_argument('-name', action="store", help="Name of dashboard")
     dashboard_parser.add_argument('-mode', action="store", help="Mode to show: plan,fact", required=False,
                                   default="plan,fact")
