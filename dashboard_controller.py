@@ -125,8 +125,11 @@ class DashboardController:
             dashboard.export_to_plot()
 
     def dashboard_feature_progress(self, plan, fact, details):
+        if not (plan and fact):
+            raise ValueError('both of plan and fact parameters are false')
+
         dc = DataController()
-        data = dc.get_issue_pandas(query=None, expand='')
+        data = dc.get_issue_pandas(query=None, expand=None)
 
         df1 = data[(data.issuetype == "Epic") | (data.issuetype == "Documentation")]
         df2 = df1[df1["labels"].str.contains(pat="num")]
@@ -151,6 +154,9 @@ class DashboardController:
             dashboard.export_to_plot()
 
     def dashboard_feature_group_progress(self, plan, fact, details):
+        if not (plan and fact):
+            raise ValueError('both of plan and fact parameters are false')
+
         dc = DataController()
         data = dc.get_issue_pandas(query=None, expand=None)
 
@@ -160,11 +166,11 @@ class DashboardController:
         dashboard.dashboard_name = "Feature Group Dashboard"
         dashboard.feature_lst_on_chart = 30
         dashboard.min_tailor = 6
+
         dashboard.plan = plan
         dashboard.fact = fact
         dashboard.filter_list = fg_list
         dashboard.details = details
-
 
         dashboard.prepare(data=data)
         dashboard.export_to_plot()

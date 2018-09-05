@@ -1,9 +1,11 @@
 import logging
 import re
-from config_controller import DETAIL_ARR
+
 import pandas as pd
 from pylab import *
+
 import adapters.issue_utils as iu
+from config_controller import DETAIL_ARR
 
 TOTAL_NAME = 'Total:'
 DECIMALS = 0
@@ -177,11 +179,9 @@ def get_dict_from_df(plan_df, fact_series, filter_list, plan_prefix, fact_prefix
                 if with_total:
                     if TOTAL_NAME in plan_dict[plan_feature]:
                         plan_dict[plan_feature][TOTAL_NAME] = plan_dict[plan_feature][TOTAL_NAME] + \
-                                                              plan_dict[plan_feature][
-                                                                  row_component]
+                                                              plan_dict[plan_feature][row_component]
                         fact_dict[fact_feature][TOTAL_NAME] = fact_dict[fact_feature][TOTAL_NAME] + \
-                                                              fact_dict[fact_feature][
-                                                                  row_component]
+                                                              fact_dict[fact_feature][row_component]
                     else:
                         plan_dict[plan_feature][TOTAL_NAME] = plan_dict[plan_feature][row_component]
                         fact_dict[fact_feature][TOTAL_NAME] = fact_dict[fact_feature][row_component]

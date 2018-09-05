@@ -41,7 +41,7 @@ def get_domain(component):
         'SSO': 'Infra',
         'Searching': 'CRM',
         'Security': 'Infra',
-        'configuration': 'Comp Arch',
+        'configuration': 'Component Architecture',
         'logical inventory': 'CRM',
         'notification_managment': 'Infra',
         'oredring': 'Ordering',
