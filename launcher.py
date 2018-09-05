@@ -19,11 +19,14 @@ def get_command(argv):
 
     args = parser.parse_args(args=argv)
 
+
     command = args.command
+
     parameter = args.parameter
     login = args.login
 
-    if command == "":
+    if command is None or command == "":
+        print('use command to launch')
         sys.exit(2)
 
     return command, parameter, login
