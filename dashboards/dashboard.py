@@ -7,8 +7,11 @@ class AbstractDashboard():
     png_dir = './files/'
     dashboard_name = None
     filter_list = None
-    feature_lst_on_chart = 0
-    min_tailor = 4
+
+    items_on_chart = 0
+    #if we have tail less then its param the system adds their to the last chart
+    min_item_tail = 4
+
     plan = None
     fact = None
     details = None

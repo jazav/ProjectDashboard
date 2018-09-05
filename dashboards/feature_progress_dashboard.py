@@ -53,10 +53,10 @@ class FeatureProgressDashboard(AbstractDashboard):
         loop_exit = False
 
         # screen loop
-        for current_feature in range(first_feature, last_feature, self.feature_lst_on_chart):
+        for current_feature in range(first_feature, last_feature, self.items_on_chart):
 
-            final_feature = current_feature + self.feature_lst_on_chart
-            if last_feature - final_feature <= self.min_tailor:
+            final_feature = current_feature + self.items_on_chart
+            if last_feature - final_feature <= self.min_item_tail:
                 final_feature = last_feature
                 loop_exit = True
 
@@ -98,7 +98,7 @@ class FeatureProgressDashboard(AbstractDashboard):
             if self.fact:
                 plan_fact_str = plan_fact_str + 'fact'
 
-            if last_feature > self.feature_lst_on_chart:
+            if last_feature > self.items_on_chart:
                 title = "{0} \nPart #{1} <br>{2}".format(self.dashboard_name.replace('num', ''), str(ind),
                                                          plan_fact_str)
             else:

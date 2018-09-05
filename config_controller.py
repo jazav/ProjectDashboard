@@ -63,10 +63,9 @@ class ConfigController:
 
         return options
 
-    def set_login(self, login):
-        log_list = login.split('/')
-        self.login = log_list[0]
-        self.password = log_list[1]
+    def set_login(self, user, password):
+        self.login = user
+        self.password = password
 
     def read_cache_config(self):
 

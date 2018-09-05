@@ -144,8 +144,8 @@ class DashboardController:
         for i in range(0, len(fser)):
             dashboard.dashboard_name = 'Feature F-{0}'.format(i)  # str(i).zfill(1)
             dashboard.filter_list = ['num{0}'.format(i)]
-            dashboard.feature_lst_on_chart = 40
-            dashboard.min_tailor = 6
+            dashboard.items_on_chart = 40
+            dashboard.min_item_tail = 6
             dashboard.plan = plan
             dashboard.fact = fact
             dashboard.details = details
@@ -162,14 +162,17 @@ class DashboardController:
 
         dashboard = FeatureProgressDashboard()
 
-        fg_list = FEATURE_GROUP_LIST.split(sep=';')
-        dashboard.dashboard_name = "Feature Group Dashboard"
-        dashboard.feature_lst_on_chart = 30
-        dashboard.min_tailor = 6
+        #Dashbord parameters
 
+        #filter to search epics (feature group)
+        fg_list = FEATURE_GROUP_LIST.split(sep=';')
+        dashboard.filter_list = fg_list
+
+        dashboard.dashboard_name = "Feature Group Dashboard"
+        dashboard.items_on_chart = 30
+        dashboard.min_item_tail = 6
         dashboard.plan = plan
         dashboard.fact = fact
-        dashboard.filter_list = fg_list
         dashboard.details = details
 
         dashboard.prepare(data=data)
