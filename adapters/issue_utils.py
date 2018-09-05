@@ -47,7 +47,7 @@ def get_domain(component):
         'oredring': 'Ordering',
         'payment': 'Billing',
         'report engine': 'Infra',
-        'service activator': 'Comp Arch',
+        'service activator': 'Component Architecture',
 
         None: None
     }[component]
