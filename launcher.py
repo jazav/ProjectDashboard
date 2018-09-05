@@ -11,7 +11,7 @@ def get_command_namespace(argv):
 
     subparsers = parser.add_subparsers(help='List of commands', dest='command')
 
-    ini_parser = subparsers.add_parser('ini', help='Initialize data. This command without params.')
+    ini_parser = subparsers.add_parser('ini', help='Initialize data. This command has no params.')
 
     update_parser = subparsers.add_parser('update', help='Update data ([-start] is date and/or time to start update). For example: update -start 2018-08-31T14:25:21')
     update_parser.add_argument('-start', action="store", help='First time data initialization', required=False)
