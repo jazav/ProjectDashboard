@@ -48,10 +48,28 @@ def get_domain(component):
         'payment': 'Billing',
         'report engine': 'Infra',
         'service activator': 'Component Architecture',
-
+        'Product': 'Ordering',
+        'Resource Instances & OMS': 'Ordering',
+        'BOX': 'Documentation',
         None: None
     }[component]
 
+def get_domains(components):
+    component_list = components.split(',')
+    domains = ""
+    for component in component_list:
+        component = component.strip()
+        try:
+            domain = get_domain(component)
+        except KeyError:
+            domain = component
+
+        if len(domains) > 0:
+            if domain not in domains:
+                domains = domains + ',' + domain
+        else:
+            domains = domain
+    return domains
 
 def clear_issues(issues):
     for issue in issues:
@@ -117,6 +135,7 @@ PROJECT_FIELD = 'project'
 TYPE_FIELD = 'issuetype'
 STATUS_FIELD = 'status'
 COMPONENTS_FIELD = 'components'
+DOMAINS_FIELD = 'domains'
 TIMEORIGINALESTIMATE_FIELD = 'timeoriginalestimate'
 TIMEESTIMATE_FIELD = 'timeestimate'
 TIMESPENT_FIELD = 'timespent'
@@ -227,6 +246,8 @@ def issues_to_dict(issues):
         else:
             components = ''
 
+        domains = get_domains(components)
+
         if ISSUELINKS_FIELD in issue[FIELDS_FIELD]:
             outwards = ''
             inwards = ''
@@ -327,6 +348,7 @@ def issues_to_dict(issues):
             STATUS_FIELD: status,
             PROJECT_FIELD: project,
             COMPONENTS_FIELD: components,
+            DOMAINS_FIELD: domains,
             'labels': labels,
             'epiclink': epiclink,
             PARENT_FIELD: parent,

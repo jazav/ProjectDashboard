@@ -48,7 +48,9 @@ class DashboardController:
     """This class controls all dashboards (data refresh, data preparing and etc.) """
 
     def __init__(self):
-        initialize_logger(output_dir='./log')
+        cc = cc_klass()
+        log_dir = cc.read_log_config()[LOG_DIR]
+        initialize_logger(output_dir=log_dir)
 
     def start_updater(self):
         options = cc_klass().read_scheluler_config()

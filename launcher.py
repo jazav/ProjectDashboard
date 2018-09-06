@@ -11,9 +11,9 @@ def get_command_namespace(argv):
 
     subparsers = parser.add_subparsers(help='list of commands:', dest='command')
 
-    ini_parser = subparsers.add_parser('ini', help='initialize data')
+    ini_parser = subparsers.add_parser('ini', help='initialize data cache')
 
-    update_parser = subparsers.add_parser('update', help='update data')
+    update_parser = subparsers.add_parser('update', help='update data cache')
     update_parser.add_argument('--start', '-s', action="store", help='point to start of changes (format: 2018-08-31T14:25:21)', required=False)
 
     issue_parser = subparsers.add_parser('issue', help='get issue info')
@@ -54,12 +54,13 @@ def get_plan_fact(parameters):
 
 
 def main(argv):
-    name_space = get_command_namespace(argv)
+    cc = cc_klass()
+    cc.prepare_dirs()
 
+    name_space = get_command_namespace(argv)
     dshc = DashboardController()
 
     if name_space.command in ("ini", "update", "issue"):
-        cc = cc_klass()
         cc.set_login(user=name_space.user, password=name_space.password)
 
         if name_space.command == "ini":

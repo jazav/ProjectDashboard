@@ -1,5 +1,6 @@
 import configparser
 from pathlib import Path
+import os
 
 JIRA_INI_PATH = "./"
 INI_FILE = "config.ini"
@@ -7,11 +8,15 @@ JIRA_SECTION = "JIRA"
 DASHBOARDS_SECTION = "DASHBOARDS"
 SCHEDULER_SECTION = "SCHEDULER"
 CACHE_SECTION = "CACHE"
+LOG_SECTION= "LOGS"
 FEATURE_PROGRESS_FILE = "feature_progress"
 DATA_FILE = "data_file"
 INTERVAL = "interval"
 FILE_DIR = 'file_dir'
+DOMAIN_IDX = 0
+COMPONENT_IDX = 1
 DETAIL_ARR = ['domain', 'component']
+LOG_DIR='log_dir'
 
 
 # Singleton/SingletonDecorator.py
@@ -41,6 +46,23 @@ class ConfigController:
         self.config_controller = configparser.ConfigParser()
         self.config_controller.sections()
         self.config_controller.read(ini_path)
+
+    @staticmethod
+    def create_dir(directory):
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+    def prepare_dirs(self):
+        dir_list = list()
+        #logs
+        dir_list.append(self.read_log_config()[LOG_DIR])
+        #data
+        dir_list.append(Path(self.read_cache_config()[DATA_FILE]))
+        #files
+        dir_list.append(self.read_dashboards_config()[FILE_DIR])
+
+        for dir in dir_list:
+            self.create_dir(dir)
 
     @staticmethod
     def get_ini_path():
@@ -84,6 +106,17 @@ class ConfigController:
 
         options = {FEATURE_PROGRESS_FILE: self.config_controller[DASHBOARDS_SECTION][FEATURE_PROGRESS_FILE],
                    FILE_DIR: self.config_controller[DASHBOARDS_SECTION][FILE_DIR],
+                   }
+
+        return options
+
+    def read_log_config(self):
+
+        if self.config_controller is None:
+            return None
+
+        options = {
+                   LOG_DIR: self.config_controller[LOG_SECTION][LOG_DIR],
                    }
 
         return options

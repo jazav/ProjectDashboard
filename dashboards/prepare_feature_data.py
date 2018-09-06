@@ -1,11 +1,8 @@
 import logging
 import re
-
 import pandas as pd
 from pylab import *
-
-import adapters.issue_utils as iu
-from config_controller import DETAIL_ARR
+from config_controller import *
 
 TOTAL_NAME = 'Total:'
 DECIMALS = 0
@@ -137,54 +134,48 @@ def get_dict_from_df(plan_df, fact_series, filter_list, plan_prefix, fact_prefix
 
             # Tech writers have different issue type and use BOX as a component
 
-            row_components = row.components
+            if details == DETAIL_ARR[DOMAIN_IDX]:
+                items = row.domains
+            else:
+                items = row.components
 
-            if row_components is None or row_components == "":
+            if items is None or items == "":
                 logging.warning('component is None: %s for %s', row.key, num_item)
-                row_components = 'None [' + row.project + ']'
+                items = 'None [' + row.project + ']'
 
-            row_component_list = row_components.split(',')
+            item_list = items.split(',')
 
-            plan_est = float(plan_est / len(row_component_list))
-            fact_est = float(fact_est / len(row_component_list))
+            plan_est = float(plan_est / len(item_list))
+            fact_est = float(fact_est / len(item_list))
 
-            for row_component in row_component_list:
+            for item in item_list:
 
-                if row_component == 'BOX':
-                    row_component = 'Documentation'
-
-                if details == DETAIL_ARR[0]:
-                    try:
-                        domain = iu.get_domain(row_component)
-                    except KeyError:
-                        domain = None
-
-                    if domain is not None:
-                        row_component = domain
+                if item == 'BOX':
+                    item = 'Documentation'
 
                 if plan_feature in plan_dict:
-                    if row_component in plan_dict[plan_feature]:
-                        new_plan_est = plan_dict[plan_feature][row_component] + plan_est
-                        new_fact_est = fact_dict[fact_feature][row_component] + fact_est
+                    if item in plan_dict[plan_feature]:
+                        new_plan_est = plan_dict[plan_feature][item] + plan_est
+                        new_fact_est = fact_dict[fact_feature][item] + fact_est
 
-                        plan_dict[plan_feature][row_component] = round(new_plan_est, DECIMALS)
-                        fact_dict[fact_feature][row_component] = round(new_fact_est, DECIMALS)
+                        plan_dict[plan_feature][item] = round(new_plan_est, DECIMALS)
+                        fact_dict[fact_feature][item] = round(new_fact_est, DECIMALS)
                     else:
-                        plan_dict[plan_feature][row_component] = round(plan_est, DECIMALS)
-                        fact_dict[fact_feature][row_component] = round(fact_est, DECIMALS)
+                        plan_dict[plan_feature][item] = round(plan_est, DECIMALS)
+                        fact_dict[fact_feature][item] = round(fact_est, DECIMALS)
                 else:
-                    plan_dict[plan_feature] = {row_component: round(plan_est, DECIMALS)}
-                    fact_dict[fact_feature] = {row_component: round(fact_est, DECIMALS)}
+                    plan_dict[plan_feature] = {item: round(plan_est, DECIMALS)}
+                    fact_dict[fact_feature] = {item: round(fact_est, DECIMALS)}
 
                 if with_total:
                     if TOTAL_NAME in plan_dict[plan_feature]:
                         plan_dict[plan_feature][TOTAL_NAME] = plan_dict[plan_feature][TOTAL_NAME] + \
-                                                              plan_dict[plan_feature][row_component]
+                                                              plan_dict[plan_feature][item]
                         fact_dict[fact_feature][TOTAL_NAME] = fact_dict[fact_feature][TOTAL_NAME] + \
-                                                              fact_dict[fact_feature][row_component]
+                                                              fact_dict[fact_feature][item]
                     else:
-                        plan_dict[plan_feature][TOTAL_NAME] = plan_dict[plan_feature][row_component]
-                        fact_dict[fact_feature][TOTAL_NAME] = fact_dict[fact_feature][row_component]
+                        plan_dict[plan_feature][TOTAL_NAME] = plan_dict[plan_feature][item]
+                        fact_dict[fact_feature][TOTAL_NAME] = fact_dict[fact_feature][item]
 
     return plan_dict, fact_dict
 
