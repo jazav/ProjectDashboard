@@ -54,6 +54,7 @@ def get_plan_fact(parameters):
 
 
 def main(argv):
+
     cc = cc_klass()
     cc.prepare_dirs()
 
