@@ -60,9 +60,6 @@ class FeatureProgressDashboard(AbstractDashboard):
                 final_feature = last_feature
                 loop_exit = True
 
-                #
-            # data_frame[row1:row2, column1:column2]
-            #
             data_part = self.data.iloc[:, current_feature:final_feature]
             # reverse sorting due to go from top to down
             data_part = data_part.reindex(

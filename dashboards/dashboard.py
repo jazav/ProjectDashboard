@@ -23,7 +23,7 @@ class AbstractDashboard():
     def prepare(self, data):
         self.data = data
         raise NotImplementedError('prepare')
-        return data
+        return self.data
 
     def export_to_plot(self):
         raise NotImplementedError('export_to_plot')
