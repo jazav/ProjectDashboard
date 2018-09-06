@@ -14,11 +14,13 @@ def get_command_namespace(argv):
     ini_parser = subparsers.add_parser('ini', help='initialize data')
 
     update_parser = subparsers.add_parser('update', help='update data')
-    update_parser.add_argument('--start', '-s', action="store", help='point to start of changes (format: 2018-08-31T14:25:21)', required=False)
+    update_parser.add_argument('--start', '-s', action="store",
+                               help='point to start of changes (format: 2018-08-31T14:25:21)', required=False)
 
     issue_parser = subparsers.add_parser('issue', help='get issue info')
     issue_parser.add_argument('--key', '-k', action="store", help='key of issue like BSSARBA-1203', required=True)
-    issue_parser.add_argument('--expand', '-e', action="store", help='get data with history of changes', required=False, type=bool,
+    issue_parser.add_argument('--expand', '-e', action="store", help='get data with history of changes', required=False,
+                              type=bool,
                               default=False)
 
     for subparser in [ini_parser, update_parser, issue_parser]:
@@ -29,7 +31,8 @@ def get_command_namespace(argv):
     dashboard_parser.add_argument('--name', '-n', action="store", help="name of dashboard", required=True)
     dashboard_parser.add_argument('--mode', '-m', action="store", help="mode to show: plan,fact", required=False,
                                   default="plan,fact")
-    dashboard_parser.add_argument('--details', '-d', action="store", help="mode to show: domain,component", required=False,
+    dashboard_parser.add_argument('--details', '-d', action="store", help="mode to show: domain,component",
+                                  required=False,
                                   default="domain")
 
     name_space = parser.parse_args(args=argv)
