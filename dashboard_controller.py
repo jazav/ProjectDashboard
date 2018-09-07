@@ -1,13 +1,12 @@
 import logging
 from os import path
 from threading import Timer
-
 import adapters.issue_utils as iu
 import config_controller
 from adapters.file_cache import FileCache
-from config_controller import *
 from dashboards.feature_heatmap_dashboard import FeatureHeatmapDashboard
 from dashboards.feature_progress_dashboard import FeatureProgressDashboard
+from dashboards.issue_detail_dashboard import IssueDetailDashboard
 from dashboards.prepare_feature_data import *
 from data_controller import DataController
 
@@ -92,10 +91,18 @@ class DashboardController:
         cache = FileCache()
         cache.save(data=data, data_path=file_path)
 
-    def dashbord_issue_info(self, key, with_history):
+    def dashbord_issue_detail(self, key, expand, export):
+
+
         mng = DataController()
-        issue = mng.get_issue(key=key, expand=with_history)
-        logging.info(issue)
+        issue = mng.get_issue(key=key, expand=expand)
+        dashboard = IssueDetailDashboard()
+        dashboard.dashboard_name = "{0}".format(key)
+        dashboard.items_on_chart = 30
+        dashboard.min_item_tail = 6
+
+        dashboard.prepare(data=issue)
+        dashboard.export_to_json()
 
     def dashboard_reference_implementation(self):
         dc = DataController()
