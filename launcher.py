@@ -2,7 +2,7 @@ import argparse
 import sys
 from config_controller import *
 from dashboard_controller import DashboardController
-from adapters.jira_adapter import EXPAND_LIST
+from adapters.jira_adapter import *
 from dashboards.dashboard import *
 
 LOG_FORMAT = "%(asctime)s - %(levelname)s - %(module)s.%(funcName)s: %(message)s"
@@ -13,21 +13,17 @@ def get_command_namespace(argv):
 
     subparsers = parser.add_subparsers(help='list of commands:', dest='command')
 
-    ini_parser = subparsers.add_parser('init', help='initialize data cache')
-
+    init_parser = subparsers.add_parser('init', help='initialize data cache')
     update_parser = subparsers.add_parser('update', help='update data cache')
     update_parser.add_argument('-start', '-s', action="store",
                                help='point to start of changes (format: 2018-08-31T14:25:21)', required=False)
 
     issue_parser = subparsers.add_parser('issue', help='get issue info')
     issue_parser.add_argument('-key', '-k', action="store", help='key of issue like BSSARBA-1203', required=True)
-    issue_parser.add_argument('-expand', '-e', action="store",
-                              help='get any extra info about issue ' + str(EXPAND_LIST),
-                              required=False, type=str)
-    issue_parser.add_argument('-export', action="store", help='export to txt, json', required=False,
+    issue_parser.add_argument('-export', '-e', action="store", help='export to txt,json', required=False,
                               default=EXPORT_MODE[TXT_IDX])
 
-    for subparser in [ini_parser, update_parser, issue_parser]:
+    for subparser in [init_parser, update_parser, issue_parser]:
         subparser.add_argument('-user', '-u', action="store", help='user name of Jira account', required=True)
         subparser.add_argument('-password', '-p', action="store", help='password of Jira account', required=True)
 
@@ -38,7 +34,7 @@ def get_command_namespace(argv):
     dashboard_parser.add_argument('-details', '-d', action="store", help="mode to show: domain|component",
                                   required=False,
                                   default="domain")
-    dashboard_parser.add_argument('-export', action="store", help='export to plot', required=False,
+    dashboard_parser.add_argument('-export', '-e', action="store", help='export to plot', required=False,
                                   default=EXPORT_MODE[PLOT_IDX])
 
     name_space = parser.parse_args(args=argv)
@@ -69,18 +65,18 @@ def main(argv):
     name_space = get_command_namespace(argv)
     dshc = DashboardController()
 
-    if name_space.command in ("ini", "update", "issue"):
+    if name_space.command in ("init", "update", "issue"):
         cc.set_login(user=name_space.user, password=name_space.password)
 
-        if name_space.command == "ini":
-            dshc.initialize_cache()
+        if name_space.command == "init":
+            dshc.initialize_cache(query=None)
 
         if name_space.command == "update":
             # sample: 2018-08-31T14:25:21.748515
             dshc.update(query=None, start=name_space.start)
 
         if name_space.command == "issue":
-            dshc.dashbord_issue_detail(key=name_space.key, expand=name_space.expand)
+            dshc.dashbord_issue_detail(key=name_space.key, export=name_space.export)
 
     if name_space.command == "dashboard":
         if name_space.name == "fgp":
@@ -90,6 +86,9 @@ def main(argv):
         if name_space.name == "fp":
             plan, fact = get_plan_fact(parameters=name_space.mode)
             dshc.dashboard_feature_progress(plan=plan, fact=fact, details=name_space.details)
+
+        if name_space.name == "hm":
+            dshc.dashboard_heatmap()
 
         if name_space.name == "hm":
             dshc.dashboard_heatmap()

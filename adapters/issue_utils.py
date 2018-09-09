@@ -121,14 +121,21 @@ def clear_issues(issues):
 ID_FIELD = 'id'
 KEY_FIELD = 'key'
 FIELDS_FIELD = 'fields'
+VERSIONED_REPR ='versionedRepresentations'
 NAME_FIELD = 'name'
 CREATOR_FIELD = 'creator'
 DUEDATE_FIELD = 'duedate'
 RESOLUTIONDATE_FIELD = 'resolutiondate'
 RESOLUTION_FIELD = 'resolution'
 ASSIGNEE_FIELD = 'assignee'
+DEVELOPER_FIELD = 'customfield_10002'
+TESTER_FIELD = 'customfield_10003'
+SPRINT_FIELD = 'customfield_10200'
 EPICLINK_FIELD = 'customfield_10201'
-LABEL_FIELD = 'customfield_11100'
+EPICNAME_FIELD = 'customfield_10204'
+STORYPOINTS_FIELD = 'customfield_10208'
+RNDLABELS_FIELD = 'customfield_11100'
+CLM_FIELD = 'customfield_13200'
 UPDATED_FIELD = 'updated'
 CREATED_FIELD = 'created'
 PROJECT_FIELD = 'project'
@@ -150,7 +157,7 @@ REPORTER_FIELD = 'reporter'
 PRIORITY_FIELD = 'priority'
 AGGREGATEPROGRESS_FIELD = 'aggregateprogress'
 PROGRESS_FIELD = 'progress'
-STORYPOINTS_FIELD = 'customfield_10208'
+
 
 DATETIME_WRITE_FORMAT = "{0:%Y-%m-%d %X.%f%z}"
 DATETIME_READ_FORMAT = "%Y-%m-%d %X.%f%z"
@@ -160,249 +167,473 @@ DATETIME_FORMAT = '%Y-%m-%dT%X.%f%z'
 DATE_FORMAT = '%Y-%m-%d'
 
 
-def issues_to_dict(issues):
-    issue_dict = dict()
+# def add_fields(issue, issue_dict):
+#     if FIELDS_FIELD not in issue:
+#         return issue_dict
+#
+#     if CREATOR_FIELD in issue[FIELDS_FIELD]:
+#         creator = issue[FIELDS_FIELD][CREATOR_FIELD][NAME_FIELD]
+#     else:
+#         creator = ''
+#
+#     if ASSIGNEE_FIELD in issue[FIELDS_FIELD]:
+#         assignee = issue[FIELDS_FIELD][ASSIGNEE_FIELD][NAME_FIELD]
+#     else:
+#         assignee = ''
+#
+#     if REPORTER_FIELD in issue[FIELDS_FIELD]:
+#         reporter = issue[FIELDS_FIELD][REPORTER_FIELD][NAME_FIELD]
+#     else:
+#         reporter = ''
+#
+#     if RESOLUTIONDATE_FIELD in issue[FIELDS_FIELD]:
+#         resolutiondate = datetime.strptime(issue[FIELDS_FIELD][RESOLUTIONDATE_FIELD], DATETIME_FORMAT)
+#     else:
+#         resolutiondate = None
+#
+#     if RESOLUTION_FIELD in issue[FIELDS_FIELD]:
+#         resolution = issue[FIELDS_FIELD][RESOLUTION_FIELD][NAME_FIELD]
+#     else:
+#         resolution = ''
+#
+#     if DUEDATE_FIELD in issue[FIELDS_FIELD]:
+#
+#         duedate = datetime.strptime(issue[FIELDS_FIELD][DUEDATE_FIELD], DATE_FORMAT)
+#         # it's timezone unaware
+#
+#         duedate = pytz.utc.localize(duedate)
+#         # noew it's TZ aware
+#     else:
+#         duedate = None
+#
+#     if UPDATED_FIELD in issue[FIELDS_FIELD]:
+#         updated = datetime.strptime(issue[FIELDS_FIELD][UPDATED_FIELD], DATETIME_FORMAT)
+#     else:
+#         updated = None
+#
+#     if CREATED_FIELD in issue[FIELDS_FIELD]:
+#         created = datetime.strptime(issue[FIELDS_FIELD][CREATED_FIELD], DATETIME_FORMAT)
+#     else:
+#         created = None
+#
+#     if PROJECT_FIELD in issue[FIELDS_FIELD]:
+#         project = issue[FIELDS_FIELD][PROJECT_FIELD][KEY_FIELD]
+#     else:
+#         project = ''
+#
+#     if PARENT_FIELD in issue[FIELDS_FIELD]:
+#         parent = issue[FIELDS_FIELD][PARENT_FIELD][KEY_FIELD]
+#     else:
+#         parent = ''
+#
+#     if TYPE_FIELD in issue[FIELDS_FIELD]:
+#         issuetype = issue[FIELDS_FIELD][TYPE_FIELD][NAME_FIELD]
+#     else:
+#         issuetype = ''
+#
+#     if STATUS_FIELD in issue[FIELDS_FIELD]:
+#         status = issue[FIELDS_FIELD][STATUS_FIELD][NAME_FIELD]
+#     else:
+#         status = ''
+#
+#     if COMPONENTS_FIELD in issue[FIELDS_FIELD]:
+#         components = ''
+#         lenght = len(issue[FIELDS_FIELD][COMPONENTS_FIELD])
+#         for i in range(lenght):
+#             components = components + issue[FIELDS_FIELD][COMPONENTS_FIELD][i][NAME_FIELD]
+#             if i < lenght - 1:
+#                 components = components + ','
+#     else:
+#         components = ''
+#
+#     domains = get_domains(components)
+#
+#     if ISSUELINKS_FIELD in issue[FIELDS_FIELD]:
+#         outwards = ''
+#         inwards = ''
+#         lenght = len(issue[FIELDS_FIELD][ISSUELINKS_FIELD])
+#         for i in range(lenght):
+#             if 'outwardIssue' in issue[FIELDS_FIELD][ISSUELINKS_FIELD][i]:
+#                 if len(outwards) > 0:
+#                     outwards = outwards + ','
+#                 outwards = outwards + issue[FIELDS_FIELD][ISSUELINKS_FIELD][i]['outwardIssue'][KEY_FIELD]
+#             else:
+#                 if len(inwards) > 0:
+#                     inwards = inwards + ','
+#                 inwards = inwards + issue[FIELDS_FIELD][ISSUELINKS_FIELD][i]['inwardIssue'][KEY_FIELD]
+#     else:
+#         outwards = ''
+#         inwards = ''
+#
+#     if PRIORITY_FIELD in issue[FIELDS_FIELD]:
+#         priority = issue[FIELDS_FIELD][PRIORITY_FIELD][NAME_FIELD]
+#     else:
+#         priority = ''
+#
+#     if LABEL_FIELD in issue[FIELDS_FIELD]:
+#         labels = ','.join(issue[FIELDS_FIELD][LABEL_FIELD])
+#     else:
+#         labels = ''
+#
+#     if SUBTASKS_FIELD in issue[FIELDS_FIELD]:
+#         subtasks = ''
+#         lenght = len(issue[FIELDS_FIELD][SUBTASKS_FIELD])
+#         for i in range(lenght):
+#             subtasks = subtasks + issue[FIELDS_FIELD][SUBTASKS_FIELD][i][KEY_FIELD]
+#             if i < lenght - 1:
+#                 subtasks = subtasks + ','
+#     else:
+#         subtasks = ''
+#
+#     if TIMEORIGINALESTIMATE_FIELD in issue[FIELDS_FIELD]:
+#         timeoriginalestimate = float(issue[FIELDS_FIELD][TIMEORIGINALESTIMATE_FIELD] / 60 / 60 / 8)  # sec->man-days
+#     else:
+#         timeoriginalestimate = 0.00
+#
+#     if STORYPOINTS_FIELD in issue[FIELDS_FIELD]:
+#         storypoints = float(issue[FIELDS_FIELD][STORYPOINTS_FIELD])
+#     else:
+#         storypoints = 0.00
+#
+#     if EPICLINK_FIELD in issue[FIELDS_FIELD]:
+#         epiclink = issue[FIELDS_FIELD][EPICLINK_FIELD]
+#     else:
+#         epiclink = ''
+#
+#     if TIMEESTIMATE_FIELD in issue[FIELDS_FIELD]:
+#         timeestimate = issue[FIELDS_FIELD][TIMEESTIMATE_FIELD] / 60 / 60 / 8  # sec->man-days
+#     else:
+#         timeestimate = 0.00
+#
+#     if TIMESPENT_FIELD in issue[FIELDS_FIELD]:
+#         timespent = float(issue[FIELDS_FIELD][TIMESPENT_FIELD] / 60 / 60 / 8)  # sec->man-days
+#     else:
+#         timespent = 0.00
+#
+#     if AGGREGATETIMEESTIMATE_FIELD in issue[FIELDS_FIELD]:
+#         aggregatetimeestimate = float(
+#             issue[FIELDS_FIELD][AGGREGATETIMEESTIMATE_FIELD] / 60 / 60 / 8)  # sec->man-days
+#     else:
+#         aggregatetimeestimate = 0.00
+#
+#     if AGGREGATEPROGRESS_FIELD in issue[FIELDS_FIELD] and 'percent' in issue[FIELDS_FIELD][AGGREGATEPROGRESS_FIELD]:
+#         aggregateprogress = float(issue[FIELDS_FIELD][AGGREGATEPROGRESS_FIELD]['percent'])
+#     else:
+#         aggregateprogress = 0.00
+#
+#     if PROGRESS_FIELD in issue[FIELDS_FIELD] and 'percent' in issue[FIELDS_FIELD][PROGRESS_FIELD]:
+#         progress = float(issue[FIELDS_FIELD][PROGRESS_FIELD]['percent'])
+#     else:
+#         progress = 0.00
+#
+#     if AGGREGATETIMEORIGINALESTIMATE_FIELD in issue[FIELDS_FIELD]:
+#         aggregatetimeoriginalestimate = float(issue[FIELDS_FIELD][
+#                                                   AGGREGATETIMEORIGINALESTIMATE_FIELD] / 60 / 60 / 8)  # sec->man-days
+#     else:
+#         aggregatetimeoriginalestimate = 0.00
+#
+#     if SUMMARY_FIELD in issue[FIELDS_FIELD]:
+#         summary = issue[FIELDS_FIELD][SUMMARY_FIELD]
+#     else:
+#         summary = ''
+#
+#     if DESCRIPTION_FIELD in issue[FIELDS_FIELD]:
+#         description = issue[FIELDS_FIELD][DESCRIPTION_FIELD]
+#     else:
+#         description = ''
+#
+#     issue_dict = {
+#         TYPE_FIELD: issuetype,
+#         STATUS_FIELD: status,
+#         PROJECT_FIELD: project,
+#         COMPONENTS_FIELD: components,
+#         DOMAINS_FIELD: domains,
+#         'labels': labels,
+#         'epiclink': epiclink,
+#         PARENT_FIELD: parent,
+#         SUBTASKS_FIELD: subtasks,
+#         'outwards': outwards,
+#         'inwards': inwards,
+#         SUMMARY_FIELD: summary,
+#         DESCRIPTION_FIELD: description,
+#         RESOLUTION_FIELD: resolution,
+#         RESOLUTIONDATE_FIELD: resolutiondate,
+#         TIMEORIGINALESTIMATE_FIELD: timeoriginalestimate,
+#         TIMEESTIMATE_FIELD: timeestimate,
+#         TIMESPENT_FIELD: timespent,
+#         'storypoints': storypoints,
+#         CREATOR_FIELD: creator,
+#         ASSIGNEE_FIELD: assignee,
+#         REPORTER_FIELD: reporter,
+#         DUEDATE_FIELD: duedate,
+#         AGGREGATETIMEESTIMATE_FIELD: aggregatetimeestimate,
+#         AGGREGATETIMEORIGINALESTIMATE_FIELD: aggregatetimeoriginalestimate,
+#         UPDATED_FIELD: updated,
+#         CREATED_FIELD: created,
+#         PROGRESS_FIELD: progress,
+#         AGGREGATEPROGRESS_FIELD: aggregateprogress,
+#         PRIORITY_FIELD: priority}
+#
+#     return issue_dict
 
-    if issues is None or len(issues) == 0:
+def add_fields(fields, issue_dict):
+    if fields is None:
         return issue_dict
 
-    for issue in issues:
+    if CREATOR_FIELD in fields:
+        creator = fields[CREATOR_FIELD][NAME_FIELD]
+    else:
+        creator = ''
 
-        id = int(issue[ID_FIELD])
-        key = issue[KEY_FIELD]
+    if ASSIGNEE_FIELD in fields:
+        assignee = fields[ASSIGNEE_FIELD][NAME_FIELD]
+    else:
+        assignee = ''
 
-        if CREATOR_FIELD in issue[FIELDS_FIELD]:
-            creator = issue[FIELDS_FIELD][CREATOR_FIELD][NAME_FIELD]
-        else:
-            creator = ''
+    if REPORTER_FIELD in fields:
+        reporter = fields[REPORTER_FIELD][NAME_FIELD]
+    else:
+        reporter = ''
 
-        if ASSIGNEE_FIELD in issue[FIELDS_FIELD]:
-            assignee = issue[FIELDS_FIELD][ASSIGNEE_FIELD][NAME_FIELD]
-        else:
-            assignee = ''
+    if RESOLUTIONDATE_FIELD in fields:
+        resolutiondate = datetime.strptime(fields[RESOLUTIONDATE_FIELD], DATETIME_FORMAT)
+    else:
+        resolutiondate = None
 
-        if REPORTER_FIELD in issue[FIELDS_FIELD]:
-            reporter = issue[FIELDS_FIELD][REPORTER_FIELD][NAME_FIELD]
-        else:
-            reporter = ''
+    if RESOLUTION_FIELD in fields:
+        resolution = fields[RESOLUTION_FIELD][NAME_FIELD]
+    else:
+        resolution = ''
 
-        if RESOLUTIONDATE_FIELD in issue[FIELDS_FIELD]:
-            resolutiondate = datetime.strptime(issue[FIELDS_FIELD][RESOLUTIONDATE_FIELD], DATETIME_FORMAT)
-        else:
-            resolutiondate = None
+    if DUEDATE_FIELD in fields:
+        duedate = datetime.strptime(fields[DUEDATE_FIELD], DATE_FORMAT)
+        # it's timezone unaware
 
-        if RESOLUTION_FIELD in issue[FIELDS_FIELD]:
-            resolution = issue[FIELDS_FIELD][RESOLUTION_FIELD][NAME_FIELD]
-        else:
-            resolution = ''
+        duedate = pytz.utc.localize(duedate)
+        # now it's TZ aware
+    else:
+        duedate = None
 
-        if DUEDATE_FIELD in issue[FIELDS_FIELD]:
+    if UPDATED_FIELD in fields:
+        updated = datetime.strptime(fields[UPDATED_FIELD], DATETIME_FORMAT)
+    else:
+        updated = None
 
-            duedate = datetime.strptime(issue[FIELDS_FIELD][DUEDATE_FIELD], DATE_FORMAT)
-            # it's timezone unaware
+    if CREATED_FIELD in fields:
+        created = datetime.strptime(fields[CREATED_FIELD], DATETIME_FORMAT)
+    else:
+        created = None
 
-            duedate = pytz.utc.localize(duedate)
-            # noew it's TZ aware
-        else:
-            duedate = None
+    if PROJECT_FIELD in fields:
+        project = fields[PROJECT_FIELD][KEY_FIELD]
+    else:
+        project = ''
 
-        if UPDATED_FIELD in issue[FIELDS_FIELD]:
-            updated = datetime.strptime(issue[FIELDS_FIELD][UPDATED_FIELD], DATETIME_FORMAT)
-        else:
-            updated = None
+    if PARENT_FIELD in fields:
+        parent = fields[PARENT_FIELD][KEY_FIELD]
+    else:
+        parent = ''
 
-        if CREATED_FIELD in issue[FIELDS_FIELD]:
-            created = datetime.strptime(issue[FIELDS_FIELD][CREATED_FIELD], DATETIME_FORMAT)
-        else:
-            created = None
+    if TYPE_FIELD in fields:
+        issuetype = fields[TYPE_FIELD][NAME_FIELD]
+    else:
+        issuetype = ''
 
-        if PROJECT_FIELD in issue[FIELDS_FIELD]:
-            project = issue[FIELDS_FIELD][PROJECT_FIELD][KEY_FIELD]
-        else:
-            project = ''
+    if STATUS_FIELD in fields:
+        status = fields[STATUS_FIELD][NAME_FIELD]
+    else:
+        status = ''
 
-        if PARENT_FIELD in issue[FIELDS_FIELD]:
-            parent = issue[FIELDS_FIELD][PARENT_FIELD][KEY_FIELD]
-        else:
-            parent = ''
+    if COMPONENTS_FIELD in fields:
+        components = ''
+        lenght = len(fields[COMPONENTS_FIELD])
+        for i in range(lenght):
+            components = components + fields[COMPONENTS_FIELD][i][NAME_FIELD]
+            if i < lenght - 1:
+                components = components + ','
+    else:
+        components = ''
 
-        if TYPE_FIELD in issue[FIELDS_FIELD]:
-            issuetype = issue[FIELDS_FIELD][TYPE_FIELD][NAME_FIELD]
-        else:
-            issuetype = ''
+    domains = get_domains(components)
 
-        if STATUS_FIELD in issue[FIELDS_FIELD]:
-            status = issue[FIELDS_FIELD][STATUS_FIELD][NAME_FIELD]
-        else:
-            status = ''
+    if ISSUELINKS_FIELD in fields:
+        outwards = ''
+        inwards = ''
+        lenght = len(fields[ISSUELINKS_FIELD])
+        for i in range(lenght):
+            if 'outwardIssue' in fields[ISSUELINKS_FIELD][i]:
+                if len(outwards) > 0:
+                    outwards = outwards + ','
+                outwards = outwards + fields[ISSUELINKS_FIELD][i]['outwardIssue'][KEY_FIELD]
+            else:
+                if len(inwards) > 0:
+                    inwards = inwards + ','
+                inwards = inwards + fields[ISSUELINKS_FIELD][i]['inwardIssue'][KEY_FIELD]
+    else:
+        outwards = ''
+        inwards = ''
 
-        if COMPONENTS_FIELD in issue[FIELDS_FIELD]:
-            components = ''
-            lenght = len(issue[FIELDS_FIELD][COMPONENTS_FIELD])
-            for i in range(lenght):
-                components = components + issue[FIELDS_FIELD][COMPONENTS_FIELD][i][NAME_FIELD]
-                if i < lenght - 1:
-                    components = components + ','
-        else:
-            components = ''
+    if PRIORITY_FIELD in fields:
+        priority = fields[PRIORITY_FIELD][NAME_FIELD]
+    else:
+        priority = ''
 
-        domains = get_domains(components)
+    if RNDLABELS_FIELD in fields:
+        labels = ','.join(fields[RNDLABELS_FIELD])
+    else:
+        labels = ''
 
-        if ISSUELINKS_FIELD in issue[FIELDS_FIELD]:
-            outwards = ''
-            inwards = ''
-            lenght = len(issue[FIELDS_FIELD][ISSUELINKS_FIELD])
-            for i in range(lenght):
-                if 'outwardIssue' in issue[FIELDS_FIELD][ISSUELINKS_FIELD][i]:
-                    if len(outwards) > 0:
-                        outwards = outwards + ','
-                    outwards = outwards + issue[FIELDS_FIELD][ISSUELINKS_FIELD][i]['outwardIssue'][KEY_FIELD]
-                else:
-                    if len(inwards) > 0:
-                        inwards = inwards + ','
-                    inwards = inwards + issue[FIELDS_FIELD][ISSUELINKS_FIELD][i]['inwardIssue'][KEY_FIELD]
-        else:
-            outwards = ''
-            inwards = ''
+    if SUBTASKS_FIELD in fields:
+        subtasks = ''
+        lenght = len(fields[SUBTASKS_FIELD])
+        for i in range(lenght):
+            subtasks = subtasks + fields[SUBTASKS_FIELD][i][KEY_FIELD]
+            if i < lenght - 1:
+                subtasks = subtasks + ','
+    else:
+        subtasks = ''
 
-        if PRIORITY_FIELD in issue[FIELDS_FIELD]:
-            priority = issue[FIELDS_FIELD][PRIORITY_FIELD][NAME_FIELD]
-        else:
-            priority = ''
+    if TIMEORIGINALESTIMATE_FIELD in fields:
+        timeoriginalestimate = float(fields[TIMEORIGINALESTIMATE_FIELD] / 60 / 60 / 8)  # sec->man-days
+    else:
+        timeoriginalestimate = 0.00
 
-        if LABEL_FIELD in issue[FIELDS_FIELD]:
-            labels = ','.join(issue[FIELDS_FIELD][LABEL_FIELD])
-        else:
-            labels = ''
+    if STORYPOINTS_FIELD in fields:
+        storypoints = float(fields[STORYPOINTS_FIELD])
+    else:
+        storypoints = 0.00
 
-        if SUBTASKS_FIELD in issue[FIELDS_FIELD]:
-            subtasks = ''
-            lenght = len(issue[FIELDS_FIELD][SUBTASKS_FIELD])
-            for i in range(lenght):
-                subtasks = subtasks + issue[FIELDS_FIELD][SUBTASKS_FIELD][i][KEY_FIELD]
-                if i < lenght - 1:
-                    subtasks = subtasks + ','
-        else:
-            subtasks = ''
+    if EPICLINK_FIELD in fields:
+        epiclink = fields[EPICLINK_FIELD]
+    else:
+        epiclink = ''
 
-        if TIMEORIGINALESTIMATE_FIELD in issue[FIELDS_FIELD]:
-            timeoriginalestimate = float(issue[FIELDS_FIELD][TIMEORIGINALESTIMATE_FIELD] / 60 / 60 / 8)  # sec->man-days
-        else:
-            timeoriginalestimate = 0.00
+    if TIMEESTIMATE_FIELD in fields:
+        timeestimate = fields[TIMEESTIMATE_FIELD] / 60 / 60 / 8  # sec->man-days
+    else:
+        timeestimate = 0.00
 
-        if STORYPOINTS_FIELD in issue[FIELDS_FIELD]:
-            storypoints = float(issue[FIELDS_FIELD][STORYPOINTS_FIELD])
-        else:
-            storypoints = 0.00
+    if TIMESPENT_FIELD in fields:
+        timespent = float(fields[TIMESPENT_FIELD] / 60 / 60 / 8)  # sec->man-days
+    else:
+        timespent = 0.00
 
-        if EPICLINK_FIELD in issue[FIELDS_FIELD]:
-            epiclink = issue[FIELDS_FIELD][EPICLINK_FIELD]
-        else:
-            epiclink = ''
+    if AGGREGATETIMEESTIMATE_FIELD in fields:
+        aggregatetimeestimate = float(
+            fields[AGGREGATETIMEESTIMATE_FIELD] / 60 / 60 / 8)  # sec->man-days
+    else:
+        aggregatetimeestimate = 0.00
 
-        if TIMEESTIMATE_FIELD in issue[FIELDS_FIELD]:
-            timeestimate = issue[FIELDS_FIELD][TIMEESTIMATE_FIELD] / 60 / 60 / 8  # sec->man-days
-        else:
-            timeestimate = 0.00
+    if AGGREGATEPROGRESS_FIELD in fields and 'percent' in fields[AGGREGATEPROGRESS_FIELD]:
+        aggregateprogress = float(fields[AGGREGATEPROGRESS_FIELD]['percent'])
+    else:
+        aggregateprogress = 0.00
 
-        if TIMESPENT_FIELD in issue[FIELDS_FIELD]:
-            timespent = float(issue[FIELDS_FIELD][TIMESPENT_FIELD] / 60 / 60 / 8)  # sec->man-days
-        else:
-            timespent = 0.00
+    if PROGRESS_FIELD in fields and 'percent' in fields[PROGRESS_FIELD]:
+        progress = float(fields[PROGRESS_FIELD]['percent'])
+    else:
+        progress = 0.00
 
-        if AGGREGATETIMEESTIMATE_FIELD in issue[FIELDS_FIELD]:
-            aggregatetimeestimate = float(
-                issue[FIELDS_FIELD][AGGREGATETIMEESTIMATE_FIELD] / 60 / 60 / 8)  # sec->man-days
-        else:
-            aggregatetimeestimate = 0.00
+    if AGGREGATETIMEORIGINALESTIMATE_FIELD in fields:
+        aggregatetimeoriginalestimate = float(fields[
+                                                  AGGREGATETIMEORIGINALESTIMATE_FIELD] / 60 / 60 / 8)  # sec->man-days
+    else:
+        aggregatetimeoriginalestimate = 0.00
 
-        if AGGREGATEPROGRESS_FIELD in issue[FIELDS_FIELD] and 'percent' in issue[FIELDS_FIELD][AGGREGATEPROGRESS_FIELD]:
-            aggregateprogress = float(issue[FIELDS_FIELD][AGGREGATEPROGRESS_FIELD]['percent'])
-        else:
-            aggregateprogress = 0.00
+    if SUMMARY_FIELD in fields:
+        summary = fields[SUMMARY_FIELD]
+    else:
+        summary = ''
 
-        if PROGRESS_FIELD in issue[FIELDS_FIELD] and 'percent' in issue[FIELDS_FIELD][PROGRESS_FIELD]:
-            progress = float(issue[FIELDS_FIELD][PROGRESS_FIELD]['percent'])
-        else:
-            progress = 0.00
+    if DESCRIPTION_FIELD in fields:
+        description = fields[DESCRIPTION_FIELD]
+    else:
+        description = ''
 
-        if AGGREGATETIMEORIGINALESTIMATE_FIELD in issue[FIELDS_FIELD]:
-            aggregatetimeoriginalestimate = float(issue[FIELDS_FIELD][
-                                                      AGGREGATETIMEORIGINALESTIMATE_FIELD] / 60 / 60 / 8)  # sec->man-days
-        else:
-            aggregatetimeoriginalestimate = 0.00
-
-        if SUMMARY_FIELD in issue[FIELDS_FIELD]:
-            summary = issue[FIELDS_FIELD][SUMMARY_FIELD]
-        else:
-            summary = ''
-
-        if DESCRIPTION_FIELD in issue[FIELDS_FIELD]:
-            description = issue[FIELDS_FIELD][DESCRIPTION_FIELD]
-        else:
-            description = ''
-
-        issue = {
-            KEY_FIELD: key,
-            TYPE_FIELD: issuetype,
-            STATUS_FIELD: status,
-            PROJECT_FIELD: project,
-            COMPONENTS_FIELD: components,
-            DOMAINS_FIELD: domains,
-            'labels': labels,
-            'epiclink': epiclink,
-            PARENT_FIELD: parent,
-            SUBTASKS_FIELD: subtasks,
-            'outwards': outwards,
-            'inwards': inwards,
-            SUMMARY_FIELD: summary,
-            DESCRIPTION_FIELD: description,
-            RESOLUTION_FIELD: resolution,
-            RESOLUTIONDATE_FIELD: resolutiondate,
-            TIMEORIGINALESTIMATE_FIELD: timeoriginalestimate,
-            TIMEESTIMATE_FIELD: timeestimate,
-            TIMESPENT_FIELD: timespent,
-            'storypoints': storypoints,
-            CREATOR_FIELD: creator,
-            ASSIGNEE_FIELD: assignee,
-            REPORTER_FIELD: reporter,
-            DUEDATE_FIELD: duedate,
-            AGGREGATETIMEESTIMATE_FIELD: aggregatetimeestimate,
-            AGGREGATETIMEORIGINALESTIMATE_FIELD: aggregatetimeoriginalestimate,
-            UPDATED_FIELD: updated,
-            CREATED_FIELD: created,
-            PROGRESS_FIELD: progress,
-            AGGREGATEPROGRESS_FIELD: aggregateprogress,
-            PRIORITY_FIELD: priority,
-            ID_FIELD: id}
-
-        issue_dict[key] = issue
+    issue_dict[TYPE_FIELD] = issuetype
+    issue_dict[STATUS_FIELD] = status
+    issue_dict[PROJECT_FIELD] = project
+    issue_dict[COMPONENTS_FIELD] = components
+    issue_dict[DOMAINS_FIELD] = domains
+    issue_dict['labels'] = labels
+    issue_dict['epiclink'] = epiclink
+    issue_dict[PARENT_FIELD] = parent
+    issue_dict[SUBTASKS_FIELD] = subtasks
+    issue_dict['outwards'] = outwards
+    issue_dict['inwards'] = inwards
+    issue_dict[SUMMARY_FIELD] = summary
+    issue_dict[DESCRIPTION_FIELD] = description
+    issue_dict[RESOLUTION_FIELD] = resolution
+    issue_dict[RESOLUTIONDATE_FIELD] = resolutiondate
+    issue_dict[TIMEORIGINALESTIMATE_FIELD] = timeoriginalestimate
+    issue_dict[TIMEESTIMATE_FIELD] = timeestimate
+    issue_dict[TIMESPENT_FIELD] = timespent
+    issue_dict['storypoints'] = storypoints
+    issue_dict[CREATOR_FIELD] = creator
+    issue_dict[ASSIGNEE_FIELD] = assignee
+    issue_dict[REPORTER_FIELD] = reporter
+    issue_dict[DUEDATE_FIELD] = duedate
+    issue_dict[AGGREGATETIMEESTIMATE_FIELD] = aggregatetimeestimate,
+    issue_dict[AGGREGATETIMEORIGINALESTIMATE_FIELD] = aggregatetimeoriginalestimate
+    issue_dict[UPDATED_FIELD] = updated
+    issue_dict[CREATED_FIELD] = created
+    issue_dict[PROGRESS_FIELD] = progress
+    issue_dict[AGGREGATEPROGRESS_FIELD] = aggregateprogress
+    issue_dict[PRIORITY_FIELD] = priority
 
     return issue_dict
 
 
+def issues_to_dict(issues):
+    issues_dict = dict()
+
+    if issues is None or len(issues) == 0:
+        return issues_dict
+
+    for issue in issues:
+        id = int(issue[ID_FIELD])
+        key = issue[KEY_FIELD]
+
+        issue_dict = {
+            KEY_FIELD: key,
+            ID_FIELD: id}
+
+        if FIELDS_FIELD in issue:
+            issue_dict = add_fields(fields=issue[FIELDS_FIELD], issue_dict=issue_dict)
+
+        if VERSIONED_REPR in issue:
+            issue_dict = add_fields(fields=issue[VERSIONED_REPR], issue_dict=issue_dict)
+
+        issues_dict[key] = issue_dict
+
+    return issues_dict
+
+
 def serialize(issue_dict):
     for issue in issue_dict.values():
-        if nat_check(issue[RESOLUTIONDATE_FIELD]):
+        if RESOLUTIONDATE_FIELD in issue:
+            if nat_check(issue[RESOLUTIONDATE_FIELD]):
+                issue[RESOLUTIONDATE_FIELD] = None
+            else:
+                issue[RESOLUTIONDATE_FIELD] = DATETIME_WRITE_FORMAT.format(issue[RESOLUTIONDATE_FIELD])
 
-            issue[RESOLUTIONDATE_FIELD] = None
-        else:
-            issue[RESOLUTIONDATE_FIELD] = DATETIME_WRITE_FORMAT.format(issue[RESOLUTIONDATE_FIELD])
+        if DUEDATE_FIELD in issue:
+            if nat_check(issue[DUEDATE_FIELD]):
+                issue[DUEDATE_FIELD] = None
+            else:
+                issue[DUEDATE_FIELD] = DATETIME_WRITE_FORMAT.format(issue[DUEDATE_FIELD])
 
-        if nat_check(issue[DUEDATE_FIELD]):
-            issue[DUEDATE_FIELD] = None
-        else:
-            issue[DUEDATE_FIELD] = DATETIME_WRITE_FORMAT.format(issue[DUEDATE_FIELD])
+        if UPDATED_FIELD in issue:
+            if nat_check(issue[UPDATED_FIELD]):
+                issue[UPDATED_FIELD] = None
+            else:
+                issue[UPDATED_FIELD] = DATETIME_WRITE_FORMAT.format(issue[UPDATED_FIELD])
 
-        if nat_check(issue[UPDATED_FIELD]):
-            issue[UPDATED_FIELD] = None
-        else:
-            issue[UPDATED_FIELD] = DATETIME_WRITE_FORMAT.format(issue[UPDATED_FIELD])
-
-        if nat_check(issue[CREATED_FIELD]):
-            issue[CREATED_FIELD] = None
-        else:
-            issue[CREATED_FIELD] = DATETIME_WRITE_FORMAT.format(issue[CREATED_FIELD])
+        if CREATED_FIELD in issue:
+            if nat_check(issue[CREATED_FIELD]):
+                issue[CREATED_FIELD] = None
+            else:
+                issue[CREATED_FIELD] = DATETIME_WRITE_FORMAT.format(issue[CREATED_FIELD])
 
         #
         # if something is missed, we are trying to cast datetime fields

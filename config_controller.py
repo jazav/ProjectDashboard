@@ -56,7 +56,8 @@ class ConfigController:
         # logs
         dir_list.append(self.read_log_config()[LOG_DIR])
         # data
-        dir_list.append(Path(self.read_cache_config()[DATA_FILE]))
+        path, filename = os.path.split(self.read_cache_config()[DATA_FILE])
+        dir_list.append(path)
         # files
         dir_list.append(self.read_dashboards_config()[FILE_DIR])
 

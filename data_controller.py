@@ -1,4 +1,4 @@
-from adapters.jira_adapter import JiraAdapter
+from adapters.jira_adapter import *
 from adapters.cache_adapter import CacheAdapter
 import logging
 import adapters.issue_utils as iu
@@ -58,7 +58,7 @@ class DataController:
 
     def initialize_cache_from_jira(self, query):
         if self._cacheable:
-            issues = self.get_issues_by_query(query=query, expand='')
+            issues = self.get_issues_by_query(query=query, expand=None)
             issue_dict = iu.issues_to_dict(issues)
             self.save_to_cache(issue_dict)
         else:
@@ -71,21 +71,16 @@ class DataController:
         issues = jira.load_all(query=query, expand=expand)
         return issues
 
-    def get_issue(self, key, expand):
+    def get_issue(self, key):
         adapter = self._get_jira_adapter()
+        #this list is a most complete information
+        #renderedFields,names,schema,editmeta,changelog
+        expand = EXPAND_LIST[RENDER_FIELDS_IDX] + ',' + EXPAND_LIST[NAMES_IDX] + ',' + EXPAND_LIST[SCHEMA_IDX] + ',' + \
+                 EXPAND_LIST[EDITMETA_IDX] + ',' + EXPAND_LIST[CHANGELOG_IDX]
+
         issue = adapter.load_by_key(key=key, expand=expand)
         print(issue.raw)
         return issue
-
-    def get_issue_history(self, key):
-        issue = self.get_issue(key=key, expand=HISTORY_EXPAND)
-        changelog = issue.changelog
-
-        for history in changelog.histories:
-            for item in history.items:
-                if item.field == 'status':
-                    print(
-                        'Date:' + history.created + ' From:' + item.fromString + ' To:' + item.toString)
 
     def get_updated_issues_by_query(self, query, expand, start):
         jira = self._get_jira_adapter()
@@ -107,6 +102,7 @@ class DataController:
             issues = jira.load_updated(query=query, age=age, expand=expand)
         else:
             issues = self.get_issues_by_query(query, expand=expand)
+
         logging.debug('len(issues) == %s', len(issues))
         return issues
 

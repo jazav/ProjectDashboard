@@ -8,7 +8,17 @@ import logging
 from adapters.issue_utils import clear_issues
 
 HISTORY_EXPAND = "changelog"
-EXPAND_LIST = ['renderedFields', 'names', 'schema', 'operations', 'editmeta', 'changelog', 'versionedRepresentations']
+EXPAND_LIST = ['all', 'renderedFields', 'names', 'schema', 'operations', 'editmeta', 'changelog', 'versionedRepresentations']
+# renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations
+ALL_IDX = 0
+RENDER_FIELDS_IDX = 1
+NAMES_IDX = 2
+SCHEMA_IDX = 3
+OPERATIONS_IDX = 4
+EDITMETA_IDX = 5
+CHANGELOG_IDX = 6
+VERS_REPRESENTATIONS_IDX = 7
+
 
 
 def internet_on():
@@ -99,12 +109,8 @@ class JiraAdapter(AbstractAdapter):
 
     def load_by_key(self, key, expand):
         if expand is not None:
-            if ',' in expand:
-                espand_list = expand.split(',')
-            else:
-                espand_list = [expand]
-
-            for item in espand_list:
+            expands = expand.split(',') if ',' in expand else [expand]
+            for item in expands:
                 if item not in EXPAND_LIST:
                     raise ValueError(item + ' is not correct. Valid values: ' + str(EXPAND_LIST))
 

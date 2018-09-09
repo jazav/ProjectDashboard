@@ -9,6 +9,7 @@ from dashboards.feature_progress_dashboard import FeatureProgressDashboard
 from dashboards.issue_detail_dashboard import IssueDetailDashboard
 from dashboards.prepare_feature_data import *
 from data_controller import DataController
+from dashboards.dashboard import *
 
 LOG_FORMAT = "%(asctime)s - %(levelname)s - %(module)s.%(funcName)s: %(message)s"
 FEATURE_GROUP_LIST = "Reference_data;Product_configuration;Inventory;User_management\security_(telco_operator's_employees,_dealers'_employees);Notification_core&configuration;Notification_management;Payment_configuration;Scratch-cards_management;Document_formatting_and_printing;(Reporting_configuration_+_Mass_printing);CRM_configuration;Client_management;Customer_360_view;Client_products_management;Financial_information_management;Mass_operations;Payments_acceptance_and_management;Order_ fullfilment;Omni-channels;Interactions;Case_management;Telco_operator_organizational_structure_management;Reporting_(preparing documents_for_printing_and_mass_printing);Policy_control;Network_integration_(mediation,_HEX);Charging&Rating;Billing_configuration;Billing;Tax;GL_Integration;Dealer_management;Interconnect&Roaming;Digital_API;Products_supported;Architecture;Miscellaneous;UI_infrastructure;SelfService;SelfService_B2B;Multibalance;OTT;Collection;Thresholds;Mediation;CTI_integration;Loyalty_management;Lifecycle"
@@ -63,10 +64,10 @@ class DashboardController:
         t.cancel()
 
     @staticmethod
-    def initialize_cache(query=None):
+    def initialize_cache(query):
         """update data in cache"""
         mng = DataController()
-        mng.initialize_cache_from_jira(query)
+        mng.initialize_cache_from_jira(query=query)
 
     @staticmethod
     def update(query, start):
@@ -91,18 +92,17 @@ class DashboardController:
         cache = FileCache()
         cache.save(data=data, data_path=file_path)
 
-    def dashbord_issue_detail(self, key, expand, export):
-
-
+    def dashbord_issue_detail(self, key, export):
         mng = DataController()
-        issue = mng.get_issue(key=key, expand=expand)
+        issue = mng.get_issue(key=key)
         dashboard = IssueDetailDashboard()
         dashboard.dashboard_name = "{0}".format(key)
         dashboard.items_on_chart = 30
         dashboard.min_item_tail = 6
 
         dashboard.prepare(data=issue)
-        dashboard.export_to_json()
+        dashboard.export_to_file(export_type=export)
+
 
     def dashboard_reference_implementation(self):
         dc = DataController()

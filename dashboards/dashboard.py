@@ -32,8 +32,9 @@ class AbstractDashboard():
         raise NotImplementedError('prepare')
         return self.data
 
+    def export_to_file(self, export_type):
+        raise NotImplementedError('export_to_file')
+
     def export_to_plot(self):
         raise NotImplementedError('export_to_plot')
 
-    def export_to_json(self):
-        raise NotImplementedError('export_to_json')
