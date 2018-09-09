@@ -1,5 +1,12 @@
 import config_controller as cc
 
+EXPORT_MODE = ['txt', 'csv', 'json', 'plot']
+TXT_IDX = 0
+CSV_IDX = 1
+JSON_IDX = 2
+PLOT_IDX = 3
+
+#TO-DO: Add export ability
 
 class AbstractDashboard():
     data = None

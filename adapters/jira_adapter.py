@@ -8,6 +8,7 @@ import logging
 from adapters.issue_utils import clear_issues
 
 HISTORY_EXPAND = "changelog"
+EXPAND_LIST = ['renderedFields', 'names', 'schema', 'operations', 'editmeta', 'changelog', 'versionedRepresentations']
 
 
 def internet_on():
@@ -97,10 +98,18 @@ class JiraAdapter(AbstractAdapter):
         return issues
 
     def load_by_key(self, key, expand):
-        if expand is None:
-            expand = ''
+        if expand is not None:
+            if ',' in expand:
+                espand_list = expand.split(',')
+            else:
+                espand_list = [expand]
+
+            for item in espand_list:
+                if item not in EXPAND_LIST:
+                    raise ValueError(item + ' is not correct. Valid values: ' + str(EXPAND_LIST))
+
         if self._connect():
-            issue = self._jira.issue(key, expand)
+            issue = self._jira.issue(key, expand = expand)
             logging.debug('loaded issue: %s', issue)
         return issue
 

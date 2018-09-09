@@ -8,7 +8,7 @@ JIRA_SECTION = "JIRA"
 DASHBOARDS_SECTION = "DASHBOARDS"
 SCHEDULER_SECTION = "SCHEDULER"
 CACHE_SECTION = "CACHE"
-LOG_SECTION= "LOGS"
+LOG_SECTION = "LOGS"
 FEATURE_PROGRESS_FILE = "feature_progress"
 DATA_FILE = "data_file"
 INTERVAL = "interval"
@@ -16,7 +16,7 @@ FILE_DIR = 'file_dir'
 DOMAIN_IDX = 0
 COMPONENT_IDX = 1
 DETAIL_ARR = ['domain', 'component']
-LOG_DIR='log_dir'
+LOG_DIR = 'log_dir'
 
 
 # Singleton/SingletonDecorator.py
@@ -33,7 +33,6 @@ class ConfigControllerDecorator:
 
 
 class ConfigController:
-
     login = None
     password = None
 
@@ -54,11 +53,11 @@ class ConfigController:
 
     def prepare_dirs(self):
         dir_list = list()
-        #logs
+        # logs
         dir_list.append(self.read_log_config()[LOG_DIR])
-        #data
+        # data
         dir_list.append(Path(self.read_cache_config()[DATA_FILE]))
-        #files
+        # files
         dir_list.append(self.read_dashboards_config()[FILE_DIR])
 
         for dir in dir_list:
@@ -72,6 +71,13 @@ class ConfigController:
     def get_info_from_data(data_str):
         return data_str.replace(".json", ".info")
 
+    def set_login(self, user, password):
+        self.login = user
+        self.password = password
+
+    #
+    # readers
+    #
     def read_jira_config(self):
 
         if self.config_controller is None:
@@ -84,10 +90,6 @@ class ConfigController:
                    }
 
         return options
-
-    def set_login(self, user, password):
-        self.login = user
-        self.password = password
 
     def read_cache_config(self):
 
@@ -116,8 +118,8 @@ class ConfigController:
             return None
 
         options = {
-                   LOG_DIR: self.config_controller[LOG_SECTION][LOG_DIR],
-                   }
+            LOG_DIR: self.config_controller[LOG_SECTION][LOG_DIR],
+        }
 
         return options
 
@@ -131,5 +133,5 @@ class ConfigController:
 
         return options
 
-cc_klass = ConfigControllerDecorator(ConfigController)
 
+cc_klass = ConfigControllerDecorator(ConfigController)
