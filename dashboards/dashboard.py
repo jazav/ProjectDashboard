@@ -6,7 +6,7 @@ CSV_IDX = 1
 JSON_IDX = 2
 PLOT_IDX = 3
 
-#TO-DO: Add export ability
+#TODO: Add export ability
 
 class AbstractDashboard():
     data = None

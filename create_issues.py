@@ -19,8 +19,6 @@ def get_project_list(sheet, project_row, start_col):
     projects = list()
     capacities = dict()
 
-    # capacities = dict({'project':'capacity'})
-
     for cell in sheet[project_row]:
         if cell.col_idx >= start_col:
             if cell.value is not None:
