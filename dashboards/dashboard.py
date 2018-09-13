@@ -19,10 +19,6 @@ class AbstractDashboard():
     #if we have tail less then its param the system adds their to the last chart
     min_item_tail = 4
 
-    plan = None
-    fact = None
-    details = None
-
     def __init__(self):
         config = cc.ConfigController()
         self.png_dir = config.read_dashboards_config()[cc.FILE_DIR]

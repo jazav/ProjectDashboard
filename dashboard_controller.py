@@ -92,14 +92,15 @@ class DashboardController:
         cache = FileCache()
         cache.save(data=data, data_path=file_path)
 
-    def dashbord_issue_detail(self, key, export):
+    def dashbord_issue_detail(self, key, field_mode, export):
         mng = DataController()
         issue = mng.get_issue(key=key)
         dashboard = IssueDetailDashboard()
         dashboard.dashboard_name = "{0}".format(key)
         dashboard.items_on_chart = 30
         dashboard.min_item_tail = 6
-
+        if field_mode is not None:
+            dashboard.field_mode = field_mode
         dashboard.prepare(data=issue)
         dashboard.export_to_file(export_type=export)
 

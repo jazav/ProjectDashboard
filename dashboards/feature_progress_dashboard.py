@@ -12,6 +12,10 @@ FACT_PREFIX = '<b>Fact: </b>'
 class FeatureProgressDashboard(AbstractDashboard):
     '''Plotly Bar Stacked Chart'''
 
+    plan = None
+    fact = None
+    details = None
+
     def prepare(self, data):
 
         columns_size = 0
@@ -32,8 +36,9 @@ class FeatureProgressDashboard(AbstractDashboard):
             if self.plan:
                 self.data[plan_df.columns[idx]] = plan_df[plan_df.columns[idx]]
 
-        self.data = self.data.reindex(sorted(self.data.columns, key=lambda x: x[len(PLAN_PREFIX):], reverse=False),
+        sorted_data = self.data.reindex(sorted(self.data.columns, key=lambda x: x[len(PLAN_PREFIX):], reverse=False),
                                       axis=1)
+        self.data = sorted_data
 
         #self.data = self.data.assign(tmp=self.data.sum(axis=1)).sort_values('tmp', ascending=False)
         #self.data = self.data.sort_values(by=, ascending=False)

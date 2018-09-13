@@ -19,6 +19,7 @@ def get_command_namespace(argv):
                                help='point to start of changes (format: 2018-08-31T14:25:21)', required=False)
 
     issue_parser = subparsers.add_parser('issue', help='get issue info')
+    issue_parser.add_argument('-mode', '-m', action="store", help='witch fields to show: view, tech, empty', required=False)
     issue_parser.add_argument('-key', '-k', action="store", help='key of issue like BSSARBA-1203', required=True)
     issue_parser.add_argument('-export', '-e', action="store", help='export to txt,json', required=False,
                               default=EXPORT_MODE[TXT_IDX])
@@ -76,7 +77,7 @@ def main(argv):
             dshc.update(query=None, start=name_space.start)
 
         if name_space.command == "issue":
-            dshc.dashbord_issue_detail(key=name_space.key, export=name_space.export)
+            dshc.dashbord_issue_detail(key=name_space.key, field_mode=name_space.mode, export=name_space.export)
 
     if name_space.command == "dashboard":
         if name_space.name == "fgp":
@@ -86,9 +87,6 @@ def main(argv):
         if name_space.name == "fp":
             plan, fact = get_plan_fact(parameters=name_space.mode)
             dshc.dashboard_feature_progress(plan=plan, fact=fact, details=name_space.details)
-
-        if name_space.name == "hm":
-            dshc.dashboard_heatmap()
 
         if name_space.name == "hm":
             dshc.dashboard_heatmap()
