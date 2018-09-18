@@ -1,11 +1,14 @@
 import logging
 from os import path
 from threading import Timer
+
 import adapters.issue_utils as iu
 import config_controller
 from adapters.file_cache import FileCache
+from config_controller import *
 from dashboards.feature_heatmap_dashboard import FeatureHeatmapDashboard
 from dashboards.feature_progress_dashboard import FeatureProgressDashboard
+from dashboards.feature_progress_domain_dashboard import FeatureProgressDomainDashboard
 from dashboards.issue_detail_dashboard import IssueDetailDashboard
 from dashboards.prepare_feature_data import *
 from data_controller import DataController

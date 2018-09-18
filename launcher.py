@@ -88,6 +88,10 @@ def main(argv):
             plan, fact = get_plan_fact(parameters=name_space.mode)
             dshc.dashboard_feature_progress(plan=plan, fact=fact, details=name_space.details)
 
+        if name_space.name == "domain":
+            plan, fact = get_plan_fact(parameters=name_space.mode)
+            dshc.dashboard_feature_domain_progress(plan=plan, fact=fact, details=name_space.details)
+
         if name_space.name == "hm":
             dshc.dashboard_heatmap()
 

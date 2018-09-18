@@ -10,7 +10,7 @@ class JSQLBuilder(AbstractQueryBuilder):
             'CRM': 'project in (BSS_CRM, BSS_CAM, BSS_CPM, BSS_CCM) or project = "RnD BSS Box" and component in ("Searching and DataMarts", Loyalty)',
             'ORDERING': 'project in (BSS_ORDERING) or project = "RnD BSS Box" and component in (Inventory, InventoryGAP,Marketplace, "Marketplace CORE") or project = CRAB-CRAB and component in (CRAB_AKKA)',
             'PRM': 'project in (BSS_PRM, BSS_RSS, BSS_ITC)',
-            'BILLING': 'project in (BSS_GUS, BSS_BFAM, BSS_UFM, GUS) or project = "RnD BSS Box"  and component in (Payments) or project = BSS_PAY and component in (Payments)',
+            'BILLING': 'project in (BSS_GUS, BSS_BFAM, BSS_UFM, GUS) or project = "RnD BSS Box"  and component in (Payments) or project = BSS_PAY',
             'DFE': 'project in (BSS_CRMP, UIKIT, BSS_SCP, BSS_DAPI) or project = "RnD BSS Box" and component in ("Admin UI", "CSR Portal", Common)',
             'NWM': 'project in (NWM, NWM_PCRF, PCCM, NWM_AAA, NWM_NMS, NWM_OCS, NWM_UDR) or project = "RnD BSS Box" and component in (NWM)',
             'INFRA': 'project = BSS_INFRA or (project = SSO and component = "Security") or (project = CNC and component = Notification) or project = "RnD BSS Box" and component in (Notification, "Report Engine", Security)',

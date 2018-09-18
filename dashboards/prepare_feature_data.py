@@ -56,12 +56,12 @@ def get_feature_series(data_lst, char_cnt):
     return fgl
 
 
-def applying_OR_filter(issue_df, or_filter_list):
+def applying_OR_filter(issue_df, or_filter_list, column_name):
     or_issue_df = None
     if or_filter_list is None:
         or_issue_df = issue_df
     for or_filter in or_filter_list:
-        tmp_df = issue_df[issue_df["labels"].str.contains(or_filter)]
+        tmp_df = issue_df[issue_df[column_name].str.contains(or_filter)]
         if or_issue_df is None or len(or_issue_df) == 0:
             or_issue_df = tmp_df
         else:
@@ -184,10 +184,37 @@ def prepare(epic_data, issue_data, or_filter_list, and_filter_list, plan_prefix,
     # filter on Epic&Doc only
 
     # applying "OR" filter (features, feature group etc.)
-    filtered_epic_df = applying_OR_filter(issue_df=epic_data, or_filter_list=or_filter_list)
+    filtered_epic_df = applying_OR_filter(issue_df=epic_data, or_filter_list=or_filter_list, column_name="labels")
 
     # applying "AND" filter
     filtered_epic_df = applying_AND_filter(issue_df=filtered_epic_df, and_filter_list=and_filter_list)
+
+    # here should be fact calculation
+    fact_series = get_fact_data(epic_df=epic_data, issue_df=issue_data)
+
+    plan_dict, fact_dict = get_dict_from_df(plan_df=filtered_epic_df, fact_series=fact_series,
+                                            filter_list=or_filter_list,
+                                            plan_prefix=plan_prefix,
+                                            fact_prefix=fact_prefix,
+                                            with_total=with_total,
+                                            details=details)
+
+    plan_epic_df = pd.DataFrame.from_dict(plan_dict)
+    fact_epic_df = pd.DataFrame.from_dict(fact_dict)
+
+    return plan_epic_df, fact_epic_df
+
+def prepare_domain(epic_data, issue_data, or_filter_list, and_filter_list, plan_prefix, fact_prefix, with_total, details, project_fiter_list):
+    # filter on Epic&Doc only
+
+    # applying "OR" filter (features, feature group etc.)
+    filtered_epic_df = applying_OR_filter(issue_df=epic_data, or_filter_list=or_filter_list, column_name="labels")
+
+    # applying "OR" filter by project()
+    filtered_project_df = applying_OR_filter(issue_df=filtered_epic_df, or_filter_list=project_fiter_list, column_name="project")
+
+    # applying "AND" filter
+    filtered_epic_df = applying_AND_filter(issue_df=filtered_project_df, and_filter_list=and_filter_list)
 
     # here should be fact calculation
     fact_series = get_fact_data(epic_df=epic_data, issue_df=issue_data)
