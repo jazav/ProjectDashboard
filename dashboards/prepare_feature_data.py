@@ -93,7 +93,9 @@ def applying_AND_filter(issue_df, and_filter_list):
 
 
 def get_fact_data(epic_df, issue_df):
-    sum_series = issue_df.groupby(['epiclink'])['timeoriginalestimate'].sum()
+    # need only closed tasks
+    closed_df= applying_OR_filter(issue_df, ["Closed","Resolved"], "status")
+    sum_series = closed_df.groupby(['epiclink'])['timeoriginalestimate'].sum()
     # if we ned data frame
     # epic_df = epic_df.set_index('key').join(issue_sum_df, on='key', rsuffix='_fact', how='inner')
     return sum_series

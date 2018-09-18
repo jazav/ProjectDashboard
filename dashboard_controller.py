@@ -190,3 +190,33 @@ class DashboardController:
 
         dashboard.prepare(data=data)
         dashboard.export_to_plot()
+
+    def dashboard_feature_domain_progress(self, plan, fact, details):
+        if not (plan and fact):
+            raise ValueError('both of plan and fact parameters are false')
+
+        dc = DataController()
+        data = dc.get_issue_pandas(query=None, expand=None)
+
+        df1 = data[(data.issuetype == "Epic") | (data.issuetype == "Documentation")]
+        df2 = df1[df1["labels"].str.contains(pat="num")]
+        d = df2['labels'].to_dict()
+
+        fl = get_feature_list(d)
+        # fg = get_group_list(d)
+        fser = get_feature_series(fl, 2)
+
+        dashboard = FeatureProgressDomainDashboard()
+        project_list = ["BSSPAY", "BSSUFM", "BSSBFAM", "BSSLIS"]
+        for project in project_list:
+            dashboard.dashboard_name = 'All features in '+ project  # str(i).zfill(1)
+            dashboard.filter_list = ["num"]
+            dashboard.project_list=[project]
+            dashboard.items_on_chart = 40
+            dashboard.min_item_tail = 6
+            dashboard.plan = plan
+            dashboard.fact = fact
+            dashboard.details = details
+
+            dashboard.prepare(data=data)
+            dashboard.export_to_plot()

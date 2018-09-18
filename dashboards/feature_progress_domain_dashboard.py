@@ -16,8 +16,8 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
 
         columns_size = 0
         epic_df = data[(data.issuetype == "Epic")]
-        epic_df = epic_df[epic_df["labels"].str.contains(pat="num34.01")]
-        #epic_df = epic_df[epic_df["labels"].str.contains(pat="num")]
+        #epic_df = epic_df[epic_df["labels"].str.contains(pat="num34.01")]
+        epic_df = epic_df[epic_df["labels"].str.contains(pat="num")]
         plan_df, fact_df = pfd.prepare_domain(epic_data=epic_df, issue_data=data, or_filter_list=self.filter_list,
                                        and_filter_list=["SuperSprint6"],
                                        plan_prefix=PLAN_PREFIX, fact_prefix=FACT_PREFIX, with_total=False,
