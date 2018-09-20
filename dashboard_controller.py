@@ -191,7 +191,7 @@ class DashboardController:
         dashboard.prepare(data=data)
         dashboard.export_to_plot()
 
-    def dashboard_feature_domain_progress(self, plan, fact, details):
+    def dashboard_feature_domain_progress(self, plan, fact, details, projects):
         if not (plan and fact):
             raise ValueError('both of plan and fact parameters are false')
 
@@ -203,11 +203,9 @@ class DashboardController:
         d = df2['labels'].to_dict()
 
         fl = get_feature_list(d)
-        # fg = get_group_list(d)
-        fser = get_feature_series(fl, 2)
 
         dashboard = FeatureProgressDomainDashboard()
-        project_list = ["BSSPAY", "BSSUFM", "BSSBFAM", "BSSLIS"]
+        project_list = projects#["BSSPAY", "BSSUFM", "BSSBFAM", "BSSLIS"]
         for project in project_list:
             dashboard.dashboard_name = 'All features in '+ project  # str(i).zfill(1)
             dashboard.filter_list = ["num"]

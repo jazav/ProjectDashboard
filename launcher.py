@@ -37,6 +37,8 @@ def get_command_namespace(argv):
                                   default="domain")
     dashboard_parser.add_argument('-export', '-e', action="store", help='export to plot', required=False,
                                   default=EXPORT_MODE[PLOT_IDX])
+    dashboard_parser.add_argument('-projects', '-p', action="store", help="list of projects, to show progress (divide by ,) : BSSPAY,BSSBFAM", required=False,
+                                  default="BSSPAY,BSSUFM,BSSBFAM,BSSLIS")
 
     name_space = parser.parse_args(args=argv)
     return name_space
@@ -90,7 +92,7 @@ def main(argv):
 
         if name_space.name == "domain":
             plan, fact = get_plan_fact(parameters=name_space.mode)
-            dshc.dashboard_feature_domain_progress(plan=plan, fact=fact, details=name_space.details)
+            dshc.dashboard_feature_domain_progress(plan=plan, fact=fact, details=name_space.details, projects = name_space.projects.split(","))
 
         if name_space.name == "hm":
             dshc.dashboard_heatmap()

@@ -100,17 +100,23 @@ def get_fact_data(epic_df, issue_df):
     # epic_df = epic_df.set_index('key').join(issue_sum_df, on='key', rsuffix='_fact', how='inner')
     return sum_series
 
+def get_open_data(epic_df, issue_df):
+    # need only closed tasks
+    opened_df= applying_OR_filter(issue_df, ["Open"], "status")
+    sum_series = opened_df.groupby(['epiclink'])['timeoriginalestimate'].sum()
+    # if we ned data frame
+    # epic_df = epic_df.set_index('key').join(issue_sum_df, on='key', rsuffix='_fact', how='inner')
+    return sum_series
 
-def get_dict_from_df(plan_df, fact_series, filter_list, plan_prefix, fact_prefix, with_total, details):
+
+def get_dict_from_df(plan_df, fact_series, filter_list, plan_prefix, fact_prefix, with_total, details, open_series, open_prefix):
     plan_dict = dict()
     fact_dict = dict()
+    open_dict = dict()
 
     for row in plan_df.itertuples():
         # issue can have several nums (features) in labels field
         feature_list = list_from_string(source_str=row.labels, reg_filter_list=filter_list, del_substring='num')
-
-        f_name = row.description
-        fg_name = row.summary
 
         count_of_features = len(feature_list)
         if count_of_features == 0:
@@ -124,7 +130,10 @@ def get_dict_from_df(plan_df, fact_series, filter_list, plan_prefix, fact_prefix
         else:
             fact_est = 0.0
 
-        total = 0.0
+        if row.key in open_series:
+            open_est = float(open_series[row.key] / count_of_features)
+        else:
+            open_est = 0.0
 
         # we should divide total estimate for every feature
 
@@ -133,6 +142,7 @@ def get_dict_from_df(plan_df, fact_series, filter_list, plan_prefix, fact_prefix
             # feature = f_name
             plan_feature = plan_prefix + num_item.replace("_", " ")
             fact_feature = fact_prefix + num_item.replace("_", " ")
+            open_feature = open_prefix + num_item.replace("_", " ")
 
             # Tech writers have different issue type and use BOX as a component
 
@@ -149,6 +159,7 @@ def get_dict_from_df(plan_df, fact_series, filter_list, plan_prefix, fact_prefix
 
             plan_est = float(plan_est / len(item_list))
             fact_est = float(fact_est / len(item_list))
+            open_est = float(open_est / len(item_list))
 
             for item in item_list:
 
@@ -159,15 +170,19 @@ def get_dict_from_df(plan_df, fact_series, filter_list, plan_prefix, fact_prefix
                     if item in plan_dict[plan_feature]:
                         new_plan_est = plan_dict[plan_feature][item] + plan_est
                         new_fact_est = fact_dict[fact_feature][item] + fact_est
+                        new_open_est = open_dict[open_feature][item] + open_est
 
                         plan_dict[plan_feature][item] = round(new_plan_est, DECIMALS)
                         fact_dict[fact_feature][item] = round(new_fact_est, DECIMALS)
+                        open_dict[open_feature][item] = round(new_open_est, DECIMALS)
                     else:
                         plan_dict[plan_feature][item] = round(plan_est, DECIMALS)
                         fact_dict[fact_feature][item] = round(fact_est, DECIMALS)
+                        open_dict[open_feature][item] = round(open_est, DECIMALS)
                 else:
                     plan_dict[plan_feature] = {item: round(plan_est, DECIMALS)}
                     fact_dict[fact_feature] = {item: round(fact_est, DECIMALS)}
+                    open_dict[open_feature] = {item: round(open_est, DECIMALS)}
 
                 if with_total:
                     if TOTAL_NAME in plan_dict[plan_feature]:
@@ -175,11 +190,14 @@ def get_dict_from_df(plan_df, fact_series, filter_list, plan_prefix, fact_prefix
                                                               plan_dict[plan_feature][item]
                         fact_dict[fact_feature][TOTAL_NAME] = fact_dict[fact_feature][TOTAL_NAME] + \
                                                               fact_dict[fact_feature][item]
+                        open_dict[open_feature][TOTAL_NAME] = open_dict[open_feature][TOTAL_NAME] + \
+                                                              open_dict[open_feature][item]
                     else:
                         plan_dict[plan_feature][TOTAL_NAME] = plan_dict[plan_feature][item]
                         fact_dict[fact_feature][TOTAL_NAME] = fact_dict[fact_feature][item]
+                        open_dict[open_feature][TOTAL_NAME] = open_dict[open_feature][item]
 
-    return plan_dict, fact_dict
+    return plan_dict, fact_dict, open_dict
 
 
 def prepare(epic_data, issue_data, or_filter_list, and_filter_list, plan_prefix, fact_prefix, with_total, details):
@@ -220,15 +238,19 @@ def prepare_domain(epic_data, issue_data, or_filter_list, and_filter_list, plan_
 
     # here should be fact calculation
     fact_series = get_fact_data(epic_df=epic_data, issue_df=issue_data)
+    open_series = get_open_data(epic_df=epic_data, issue_df=issue_data)
 
-    plan_dict, fact_dict = get_dict_from_df(plan_df=filtered_epic_df, fact_series=fact_series,
+    plan_dict, fact_dict, open_dict = get_dict_from_df(plan_df=filtered_epic_df, fact_series=fact_series,
                                             filter_list=or_filter_list,
-                                            plan_prefix=plan_prefix,
-                                            fact_prefix=fact_prefix,
+                                            plan_prefix='',
+                                            fact_prefix='',
                                             with_total=with_total,
-                                            details=details)
+                                            details=details,
+                                            open_series = open_series,
+                                            open_prefix='')
 
     plan_epic_df = pd.DataFrame.from_dict(plan_dict)
     fact_epic_df = pd.DataFrame.from_dict(fact_dict)
+    open_epic_df = pd.DataFrame.from_dict(open_dict)
 
-    return plan_epic_df, fact_epic_df
+    return plan_epic_df, fact_epic_df, open_epic_df
