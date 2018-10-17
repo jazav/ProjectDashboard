@@ -67,16 +67,16 @@ class DashboardController:
         t.cancel()
 
     @staticmethod
-    def initialize_cache(query):
+    def initialize_cache(query, url):
         """update data in cache"""
         mng = DataController()
-        mng.initialize_cache_from_jira(query=query)
+        mng.initialize_cache_from_jira(query=query, url=url)
 
     @staticmethod
-    def update(query, start):
+    def update(query, start, jira_url):
         """update data in cache"""
         mng = DataController()
-        mng.update_cache_from_jira(query=query, start=start)
+        mng.update_cache_from_jira(query=query, start=start, url=jira_url)
 
     @staticmethod
     def get_all(query=None):
@@ -95,9 +95,10 @@ class DashboardController:
         cache = FileCache()
         cache.save(data=data, data_path=file_path)
 
-    def dashbord_issue_detail(self, key, field_mode, export):
+    def dashbord_issue_detail(self, key, field_mode, export, jira_url):
         mng = DataController()
-        issue = mng.get_issue(key=key)
+        issue = mng.get_issue(key=key, jira_url=jira_url)
+
         dashboard = IssueDetailDashboard()
         dashboard.dashboard_name = "{0}".format(key)
         dashboard.items_on_chart = 30
@@ -110,7 +111,7 @@ class DashboardController:
 
     def dashboard_reference_implementation(self):
         dc = DataController()
-        data = dc.get_issue_pandas(query=None)
+        data = dc.get_pandas_issues(query=None)
 
         options = cc_klass().read_dashboards_config()
         data_path = options[config_controller.FEATURE_PROGRESS_FILE]
@@ -121,7 +122,7 @@ class DashboardController:
 
     def dashboard_heatmap(self):
         dc = DataController()
-        data = dc.get_issue_pandas(query=None, expand='')
+        data = dc.get_pandas_issues(query=None, expand='')
 
         df1 = data[data.issuetype == "Epic"]
         df2 = df1[df1["labels"].str.contains(pat="num")]
@@ -142,7 +143,7 @@ class DashboardController:
             raise ValueError('both of plan and fact parameters are false')
 
         dc = DataController()
-        data = dc.get_issue_pandas(query=None, expand=None)
+        data = dc.get_pandas_issues(query=None, expand=None)
 
         df1 = data[(data.issuetype == "Epic") | (data.issuetype == "Documentation")]
         df2 = df1[df1["labels"].str.contains(pat="num")]
@@ -163,7 +164,7 @@ class DashboardController:
             dashboard.fact = fact
             dashboard.details = details
 
-            dashboard.prepare(data=df2)
+            dashboard.prepare(data=data)
             dashboard.export_to_plot()
 
     def dashboard_feature_group_progress(self, plan, fact, details):
@@ -171,7 +172,7 @@ class DashboardController:
             raise ValueError('both of plan and fact parameters are false')
 
         dc = DataController()
-        data = dc.get_issue_pandas(query=None, expand=None)
+        data = dc.get_pandas_issues(query=None, expand=None)
 
         dashboard = FeatureProgressDashboard()
 
@@ -196,7 +197,7 @@ class DashboardController:
             raise ValueError('both of plan and fact parameters are false')
 
         dc = DataController()
-        data = dc.get_issue_pandas(query=None, expand=None)
+        data = dc.get_pandas_issues(query=None, expand=None)
 
         df1 = data[(data.issuetype == "Epic") | (data.issuetype == "Documentation")]
         df2 = df1[df1["labels"].str.contains(pat="num")]
@@ -207,9 +208,9 @@ class DashboardController:
         dashboard = FeatureProgressDomainDashboard()
         project_list = projects#["BSSPAY", "BSSUFM", "BSSBFAM", "BSSLIS"]
         for project in project_list:
-            dashboard.dashboard_name = 'All features in '+ project  # str(i).zfill(1)
+            dashboard.dashboard_name = 'All features in ' + project  # str(i).zfill(1)
             dashboard.filter_list = ["num"]
-            dashboard.project_list=[project]
+            dashboard.project_list = [project]
             dashboard.items_on_chart = 40
             dashboard.min_item_tail = 6
             dashboard.plan = plan

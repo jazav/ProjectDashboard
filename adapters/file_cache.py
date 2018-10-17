@@ -24,12 +24,13 @@ class FileCache():
                 try:
                     issue_dict = json.load(json_file)
                     json_file.close()
+                    logging.info("{0} issues are loaded".format(len(issue_dict)))
                 except FileExistsError:
                     json_file.close()
                     raise
         else:
-            logging.error("cache not found")
-            raise FileExistsError("file %s not found", data_path)
+            logging.warning("cache not found")
+            #raise FileExistsError("file {0} not found".format(data_path))
         return issue_dict
 
     @staticmethod

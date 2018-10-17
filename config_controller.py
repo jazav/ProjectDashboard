@@ -33,14 +33,14 @@ class ConfigControllerDecorator:
 
 
 class ConfigController:
-    login = None
-    password = None
+    _login = None
+    _password = None
 
     def __init__(self):
         ini_path = ConfigController.get_ini_path()
         file = Path(ini_path)
         if not file.exists():
-            raise FileExistsError("file %s found", ini_path)
+            raise FileExistsError("file {0} not found".format(ini_path))
 
         self.config_controller = configparser.ConfigParser()
         self.config_controller.sections()
@@ -61,8 +61,8 @@ class ConfigController:
         # files
         dir_list.append(self.read_dashboards_config()[FILE_DIR])
 
-        for dir in dir_list:
-            self.create_dir(dir)
+        for dir_item in dir_list:
+            self.create_dir(dir_item)
 
     @staticmethod
     def get_ini_path():
@@ -73,8 +73,8 @@ class ConfigController:
         return data_str.replace(".json", ".info")
 
     def set_login(self, user, password):
-        self.login = user
-        self.password = password
+        self._login = user
+        self._password = password
 
     #
     # readers
@@ -84,9 +84,16 @@ class ConfigController:
         if self.config_controller is None:
             return None
 
-        options = {'user_name': self.login,
-                   'password': self.password,
-                   'server': self.config_controller[JIRA_SECTION]['server'],
+        item_list = list(self.config_controller._sections[JIRA_SECTION])
+        servers = dict()
+
+        for item in item_list:
+            if 'jira' in item:
+                servers[item] = self.config_controller[JIRA_SECTION][item]
+
+        options = {'user_name': self._login,
+                   'password': self._password,
+                   'servers': servers,
                    'max_results': self.config_controller[JIRA_SECTION]['max_results'],
                    }
 

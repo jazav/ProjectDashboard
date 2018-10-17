@@ -16,7 +16,7 @@ class CacheAdapter(AbstractAdapter):
             self._cache = FileCache()
         return self._cache
 
-    def load_by_query(self, query_str, expand):
+    def load_by_query(self, query_str, expand, url):
         cc = config_controller.cc_klass()
         data_path = cc.read_cache_config()[config_controller.DATA_FILE]
 
@@ -25,7 +25,7 @@ class CacheAdapter(AbstractAdapter):
 
         return issue_dict
 
-    def load_by_key(self, key, expand):
+    def load_by_key(self, key, expand, url):
         # read from file
         raise NotImplementedError()
 

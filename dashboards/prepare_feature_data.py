@@ -125,12 +125,12 @@ def get_dict_from_df(plan_df, fact_series, filter_list, plan_prefix, fact_prefix
         # if component has several nums, we devide it by nums count
         plan_est = float(row.timeoriginalestimate / count_of_features)
 
-        if row.key in fact_series:
+        if fact_series is not None and  row.key in fact_series:
             fact_est = float(fact_series[row.key] / count_of_features)
         else:
             fact_est = 0.0
 
-        if row.key in open_series:
+        if open_series is not None and row.key in open_series:
             open_est = float(open_series[row.key] / count_of_features)
         else:
             open_est = 0.0
@@ -211,16 +211,18 @@ def prepare(epic_data, issue_data, or_filter_list, and_filter_list, plan_prefix,
 
     # here should be fact calculation
     fact_series = get_fact_data(epic_df=epic_data, issue_df=issue_data)
+    open_series = get_open_data(epic_df=epic_data, issue_df=issue_data)
 
-    plan_dict, fact_dict = get_dict_from_df(plan_df=filtered_epic_df, fact_series=fact_series,
+    plan_dict, fact_dict, open_dict = get_dict_from_df(plan_df=filtered_epic_df, fact_series=fact_series,
                                             filter_list=or_filter_list,
                                             plan_prefix=plan_prefix,
                                             fact_prefix=fact_prefix,
                                             with_total=with_total,
-                                            details=details)
+                                            details=details, open_series=open_series, open_prefix='')
 
     plan_epic_df = pd.DataFrame.from_dict(plan_dict)
     fact_epic_df = pd.DataFrame.from_dict(fact_dict)
+    open_epic_df = pd.DataFrame.from_dict(open_dict)
 
     return plan_epic_df, fact_epic_df
 

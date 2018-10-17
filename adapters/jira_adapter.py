@@ -20,7 +20,6 @@ CHANGELOG_IDX = 6
 VERS_REPRESENTATIONS_IDX = 7
 
 
-
 def internet_on():
     try:
         http = urllib3.HTTPConnectionPool('www.google.com')
@@ -37,7 +36,7 @@ class JiraAdapter(AbstractAdapter):
 
     _user_name = None
     _password = None
-    _server = None
+    _servers = None
     _max_results = 0
     _jira = None
 
@@ -45,7 +44,7 @@ class JiraAdapter(AbstractAdapter):
         options = JiraAdapter.read_jira_config()
         self._user_name = options['user_name']
         self._password = options['password']
-        self._server = options['server']
+        self._servers = options['servers']
         self._max_results = int(options['max_results'])
 
     @staticmethod
@@ -62,61 +61,66 @@ class JiraAdapter(AbstractAdapter):
         return options
 
     @staticmethod
-    def issues_to_dict(issues, clear=True):
-        issues_dict = []
+    def issues_to_list(issues, clear=True):
+        issues_list = []
 
         if issues is None:
             logging.warning('issues is None')
-            return issues_dict
+            return issues_list
 
         for issue in issues:
-            issues_dict.append(issue.raw)
+            issues_list.append(issue.raw)
 
         if clear:
-            issues_dict = clear_issues(issues_dict)
-        return issues_dict
+            issues_list = clear_issues(issues_list)
+        return issues_list
 
-    def _connect(self):
-        if not self._connected:
-            if self._jira is None:
-                if internet_on():
-                    self._jira = JIRA(server=self._server, basic_auth=(self._user_name, self._password))
-                    self._connected = True
-                else:
-                    logging.warning('working OFFLINE')
+    def _connect(self, url):
+        self._connected = False
+        if internet_on():
+            try:
+                self._jira = JIRA(server=url, basic_auth=(self._user_name, self._password))
+                self._connected = True
 
-                    self._connected = False
-
+            except Exception as e:
+                logging.error("invalid server connection: %s", url)
+        else:
+            logging.warning('working OFFLINE')
         return self._connected
 
-    def load_by_query(self, query_str, expand):
+    def load_by_query(self, query_str, expand, url):
+        issue_list = []
 
         if query_str is None:
             raise ValueError('nothing to load')
 
         issue_objs = None
-        if self._connect():
+        if self._connect(url=url):
             issue_objs = self._jira.search_issues(query_str, maxResults=self._max_results, expand=expand,
-                                                  json_result=False)
+                                              json_result=False)
 
             # for i in range(1,total, 200):
             #  issues.append(jira.search_issues(search_query, maxResults=200, startAt=i))
 
-        issues = JiraAdapter.issues_to_dict(issue_objs)
-        logging.debug('total issues: %s', len(issues))
+            new_issues = JiraAdapter.issues_to_list(issue_objs)
+            logging.debug('total issues: %s', len(new_issues))
 
-        return issues
+        return new_issues
 
-    def load_by_key(self, key, expand):
+    def load_by_key(self, key, expand, url):
         if expand is not None:
             expands = expand.split(',') if ',' in expand else [expand]
             for item in expands:
                 if item not in EXPAND_LIST:
                     raise ValueError(item + ' is not correct. Valid values: ' + str(EXPAND_LIST))
 
-        if self._connect():
-            issue = self._jira.issue(key, expand = expand)
-            logging.debug('loaded issue: %s', issue)
+        if self._connect(url=url):
+            try:
+                issue = self._jira.issue(key, expand=expand)
+                logging.debug('loaded issue %s from %s', issue, self._jira._options['server'])
+            except Exception as e:
+                logging.error('%s [%s]', e.text, e.status_code)
+
         return issue
 
     def get_builder(self):

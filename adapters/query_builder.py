@@ -15,10 +15,11 @@ class AbstractQueryBuilder():
         return None
 
     def build_bss_box(self):
-        query_str = self.build('CRM') + ' or ' + self.build('ORDERING') + ' or ' + self.build(
-            'PRM') + ' or ' + self.build('BILLING') + ' or ' + self.build('DFE') + ' or ' + self.build(
-            'NWM') + ' or ' + self.build('INFRA') + ' or ' + self.build('PSC') + ' or ' + self.build(
-            'QC') + ' or ' + self.build('ARCH') + ' or ' + self.build('BA') + ' or ' + self.build('DOC')
+        query_str = self.build('CRM') + ' or ' + self.build('ORDERING') + ' or ' + self.build('PRM') + ' or ' + \
+                    self.build('BILLING') + ' or ' + self.build('DFE') + ' or ' + self.build('NWM') + ' or ' + \
+                    self.build('INFRA') + ' or ' + self.build('PSC') + ' or ' + self.build('QC') + ' or ' + \
+                    self.build('ARCH') + ' or ' + self.build('BA') + ' or ' + self.build('DOC') + ' or ' + \
+                    self.build('BACKLOG')
 
         logging.debug(query_str)
         return query_str

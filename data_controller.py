@@ -42,11 +42,11 @@ class DataController:
         except FileExistsError:
             logging.error('can not update the cache')
 
-    def update_cache_from_jira(self, query, start):
+    def update_cache_from_jira(self, query, start, url):
         if self._cacheable:
-            old_issue_dict = self.get_cacheable_issue_dict(query=query, expand=None)
+            old_issue_dict = self.get_issue_dict(query=query, expand=None, url=url)
 
-            updated_issues = self.get_updated_issues_by_query(query=query, expand=None, start=start)
+            updated_issues = self.get_updates_by_query(query=query, expand=None, start=start, url=url)
             updated_issue_dict = iu.issues_to_dict(updated_issues)
 
             issue_dict = iu.merge_issue(issue_dict=old_issue_dict, updated_issue_dict=updated_issue_dict)
@@ -56,9 +56,9 @@ class DataController:
 
         return issue_dict
 
-    def initialize_cache_from_jira(self, query):
+    def initialize_cache_from_jira(self, query, url):
         if self._cacheable:
-            issues = self.get_issues_by_query(query=query, expand=None)
+            issues = self.get_issues_by_query(query=query, expand=None, url=url)
             issue_dict = iu.issues_to_dict(issues)
             self.save_to_cache(issue_dict)
         else:
@@ -66,23 +66,24 @@ class DataController:
 
         return issue_dict
 
-    def get_issues_by_query(self, query, expand):
+    def get_issues_by_query(self, query, expand, url):
         jira = self._get_jira_adapter()
-        issues = jira.load_all(query=query, expand=expand)
+        issues = jira.load_all(query=query, expand=expand, url=url)
         return issues
 
-    def get_issue(self, key):
+    def get_issue(self, key, jira_url):
         adapter = self._get_jira_adapter()
         #this list is a most complete information
         #renderedFields,names,schema,editmeta,changelog
         expand = EXPAND_LIST[RENDER_FIELDS_IDX] + ',' + EXPAND_LIST[NAMES_IDX] + ',' + EXPAND_LIST[SCHEMA_IDX] + ',' + \
                  EXPAND_LIST[EDITMETA_IDX] + ',' + EXPAND_LIST[CHANGELOG_IDX]
 
-        issue = adapter.load_by_key(key=key, expand=expand)
-        print(issue.raw)
+        issue = adapter.load_by_key(key=key, expand=expand, url=jira_url)
+        if issue is None:
+            raise Exception('issue not found')
         return issue
 
-    def get_updated_issues_by_query(self, query, expand, start):
+    def get_updates_by_query(self, query, expand, start, url):
         jira = self._get_jira_adapter()
         cache = self._get_cache_adapter().get_cache()
 
@@ -99,17 +100,17 @@ class DataController:
         logging.debug('update age from %s', age)
 
         if age is not None:
-            issues = jira.load_updated(query=query, age=age, expand=expand)
+            issues = jira.load_updated(query=query, age=age, expand=expand, url=url)
         else:
             issues = self.get_issues_by_query(query, expand=expand)
 
         logging.debug('len(issues) == %s', len(issues))
         return issues
 
-    def get_cacheable_issue_dict(self, query, expand):
+    def get_issue_dict(self, query, expand, url):
         if self._cacheable:
             cache = self._get_cache_adapter()
-            serializable_issue_dict = cache.load_all(query=query, expand=expand)
+            serializable_issue_dict = cache.load_all(query=query, expand=expand, url=url)
             issue_dict = iu.deserialize(serializable_issue_dict)
             logging.debug(len(issue_dict))
 
@@ -118,8 +119,8 @@ class DataController:
             issue_dict = iu.issues_to_dict(issues)
         return issue_dict
 
-    def get_issue_pandas(self, query, expand):
-        issue_dict = self.get_cacheable_issue_dict(query=query, expand=expand)
+    def get_pandas_issues(self, query, expand):
+        issue_dict = self.get_issue_dict(query=query, expand=expand)
         df = iu.get_data_frame(issue_dict)
         return df
 

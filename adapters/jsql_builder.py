@@ -21,6 +21,7 @@ class JSQLBuilder(AbstractQueryBuilder):
             'DOC': 'project = RNDDOC',
             'IOT_CMP': 'project in (IOT_CMP, IOT_CMP_MEGAFON_GF, IOT_CMP_ROSTELECOM)',
             'IOT_AEP': 'project = IOT_AEP or project = "RnD BSS Box" and component = AEP',
+            'BACKLOG': 'project in ("BSSBOX Backlog")',
             None: None
         }[x]
 
@@ -34,6 +35,7 @@ def test_builder():
         'PRM') + ' or ' + builder.build('BILLING') + ' or ' + builder.build('DFE') + ' or ' + builder.build(
         'NWM') + ' or ' + builder.build('INFRA') + ' or ' + builder.build('PSC') + ' or ' + builder.build(
         'QC') + ' or ' + builder.build('ARCH') + ' or ' + builder.build('QC')
+          #+ ' or ' + builder.build('BACKLOG')
 
     logging.info(q_s)
     # assert dylib_info('completely/invalid') is None

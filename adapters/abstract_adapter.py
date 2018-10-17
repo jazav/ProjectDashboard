@@ -5,15 +5,15 @@ class AbstractAdapter:
         raise NotImplementedError()
         return None
 
-    def load_by_query(self, query_str, expand):
+    def load_by_query(self, query_str, expand, url):
         raise NotImplementedError()
         return None
 
-    def load_by_key(self, key, expand):
+    def load_by_key(self, key, expand, url):
         raise NotImplementedError()
         return None
 
-    def load_all(self, query, expand):
+    def load_all(self, query, expand, url):
         """Loading all issues by batch query"""
         if query is None:
             builder = self.get_builder()
@@ -21,9 +21,9 @@ class AbstractAdapter:
         else:
             query_str = query
 
-        return self.load_by_query(query_str=query_str, expand=expand)
+        return self.load_by_query(query_str=query_str, expand=expand, url=url)
 
-    def load_updated(self, query, age, expand):
+    def load_updated(self, query, age, expand, url):
         """Loading all issues by batch query"""
         if query is None:
             builder = self.get_builder()
@@ -31,7 +31,7 @@ class AbstractAdapter:
         else:
             query_str = query
 
-        return self.load_by_query(query_str, expand)
+        return self.load_by_query(query_str, expand, url=url)
 
     def save_all(self, data):
         raise NotImplementedError()
