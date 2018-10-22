@@ -88,6 +88,8 @@ def main(argv):
     cc.prepare_dirs()
 
     name_space = get_command_namespace(argv)
+
+    print('start %s', name_space.command)
     dshc = DashboardController()
 
     if name_space.command in ("init", "update", "issue"):

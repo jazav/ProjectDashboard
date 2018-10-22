@@ -28,7 +28,7 @@ class CacheAdapter(AbstractAdapter):
     def load_by_key(self, key, expand, url):
         # read from file
         raise NotImplementedError()
-
+        issue = None
         return issue
 
     def save_all(self, data):

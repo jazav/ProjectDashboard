@@ -102,7 +102,7 @@ def get_fact_data(epic_df, issue_df):
 
 def get_open_data(epic_df, issue_df):
     # need only closed tasks
-    opened_df= applying_OR_filter(issue_df, ["Open"], "status")
+    opened_df = applying_OR_filter(issue_df, ["Open"], "status")
     sum_series = opened_df.groupby(['epiclink'])['timeoriginalestimate'].sum()
     # if we ned data frame
     # epic_df = epic_df.set_index('key').join(issue_sum_df, on='key', rsuffix='_fact', how='inner')

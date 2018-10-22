@@ -2,6 +2,7 @@ from jira import JIRA
 from adapters.abstract_adapter import AbstractAdapter
 from adapters.jsql_builder import JSQLBuilder
 from config_controller import *
+from jira.resources import Issue
 import urllib3
 import logging
 
@@ -32,8 +33,8 @@ def internet_on():
 
 
 class JiraAdapter(AbstractAdapter):
-    _connected = False
 
+    _connected = False
     _user_name = None
     _password = None
     _servers = None
@@ -89,7 +90,7 @@ class JiraAdapter(AbstractAdapter):
         return self._connected
 
     def load_by_query(self, query_str, expand, url):
-        issue_list = []
+        new_issues = []
 
         if query_str is None:
             raise ValueError('nothing to load')
@@ -114,6 +115,7 @@ class JiraAdapter(AbstractAdapter):
                 if item not in EXPAND_LIST:
                     raise ValueError(item + ' is not correct. Valid values: ' + str(EXPAND_LIST))
 
+        issue = Issue()
         if self._connect(url=url):
             try:
                 issue = self._jira.issue(key, expand=expand)

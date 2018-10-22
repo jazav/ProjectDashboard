@@ -102,7 +102,7 @@ class DataController:
         if age is not None:
             issues = jira.load_updated(query=query, age=age, expand=expand, url=url)
         else:
-            issues = self.get_issues_by_query(query, expand=expand)
+            issues = self.get_issues_by_query(query, expand=expand, url=url)
 
         logging.debug('len(issues) == %s', len(issues))
         return issues
@@ -120,7 +120,7 @@ class DataController:
         return issue_dict
 
     def get_pandas_issues(self, query, expand):
-        issue_dict = self.get_issue_dict(query=query, expand=expand)
+        issue_dict = self.get_issue_dict(query=query, expand=expand, url=None)
         df = iu.get_data_frame(issue_dict)
         return df
 
