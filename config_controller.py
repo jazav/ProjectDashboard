@@ -17,7 +17,7 @@ DOMAIN_IDX = 0
 COMPONENT_IDX = 1
 DETAIL_ARR = ['domain', 'component']
 LOG_DIR = 'log_dir'
-
+PROJECTS_SECTION = "PROJECTS"
 
 # Singleton/SingletonDecorator.py
 class ConfigControllerDecorator:
@@ -141,5 +141,18 @@ class ConfigController:
 
         return options
 
+    def read_projects_config(self,jira_name):
+
+        if self.config_controller is None:
+            return None
+        section = PROJECTS_SECTION
+        if jira_name != None:
+            section= section+'_'+jira_name.upper()
+        item_list = list(self.config_controller._sections[section])
+        projects = dict()
+
+        for item in item_list:
+            projects[item] = self.config_controller[section][item]
+        return projects
 
 cc_klass = ConfigControllerDecorator(ConfigController)

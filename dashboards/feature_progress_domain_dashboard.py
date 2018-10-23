@@ -1,327 +1,153 @@
 import pandas as pd
 import plotly
 import plotly.graph_objs as go
+from plotly import tools
 
 import dashboards.prepare_feature_data as pfd
 from dashboards.dashboard import AbstractDashboard
 
 PLAN_PREFIX = '<b>Plan: </b>'
-FACT_PREFIX = '<b>Fact: </b>'
+FACT_PREFIX = '<b>Closed: </b>'
 OPEN_PREFIX = '<b>Open: </b>'
 DEV_PREFIX = '<b>Dev: </b>'
 
 
 class FeatureProgressDomainDashboard(AbstractDashboard):
     '''Plotly Bar Stacked Chart'''
-
+    open_list= [];
+    dev_list= [];
+    close_list= [];
+    name_list= [];
     def prepare(self, data):
-
-        columns_size = 0
-        epic_df = data[(data.issuetype == "Epic")]
-        #debug epic_df = epic_df[epic_df["labels"].str.contains(pat="num34.01")]
-        epic_df = epic_df[epic_df["labels"].str.contains(pat="num")]
-        plan_df, fact_df, open_df = pfd.prepare_domain(epic_data=epic_df, issue_data=data, or_filter_list=self.filter_list,
-                                       and_filter_list=["SuperSprint6"],
-                                       plan_prefix=PLAN_PREFIX, fact_prefix=FACT_PREFIX, with_total=False,
-                                       details=self.details,project_fiter_list=self.project_list)
-        columns_size = plan_df.columns.size
-
-        self.data_fact = pd.DataFrame()
-        self.data_plan = pd.DataFrame()
-        self.data_open = pd.DataFrame()
-
-        for idx in range(0, columns_size):
-            if self.fact:
-                self.data_fact[fact_df.columns[idx]] = fact_df[fact_df.columns[idx]]
-                self.data_open[open_df.columns[idx]] = open_df[open_df.columns[idx]]
-            if self.plan:
-                self.data_plan[plan_df.columns[idx]] = plan_df[plan_df.columns[idx]]
-
-        #self.data_plan = self.data_plan.reindex(sorted(self.data_plan.columns, key=lambda x: x[len(PLAN_PREFIX):], reverse=False),
-        #                              axis=1)
-        #self.data_fact = self.data_fact.reindex(sorted(self.data_fact.columns, key=lambda x: x[len(PLAN_PREFIX):], reverse=False),
-        #                              axis=1)
+        self.open_list, self.dev_list, self.close_list, self.name_list = data.get_sum_by_projects(self.project, "SuperSprint6")
 
     def export_to_plotly(self):
 
-        if len(self.data) == 0:
+        if len(self.name_list) == 0:
             return
+        traces = []
+        trace1 = go.Bar(
+            x=self.name_list,
+            y=self.close_list,
+            text=self.close_list,
+            name=FACT_PREFIX,
+            textposition='auto',
+            marker=dict(
+                line=dict(
+                    color='rgb(8,48,107)',
+                    width=1.5),
+            )
+        )
+        trace2 = go.Bar(
+            x=self.name_list,
+            y=self.dev_list,
+            text=self.dev_list,
+            name=DEV_PREFIX,
+            textposition = 'auto',
+                           marker = dict(
+                line=dict(
+                    color='rgb(8,48,107)',
+                    width=1.5),
+            )
+        )
 
-        ind = 1
+        trace3 = go.Bar(
+            x=self.name_list,
+            y=self.open_list,
+            text=self.open_list,
+            name=OPEN_PREFIX,
+            textposition = 'auto',
+                           marker = dict(
+                line=dict(
+                    color='rgb(8,48,107)',
+                    width=1.5),
+            )
+        )
+        traces.append(trace1)
+        traces.append(trace2)
+        traces.append(trace3)
+        plan_fact_str = 'plan '+ 'fact'
 
-        feature_name_max_length = max(len(column) for column in self.data.columns)
+        title = "{0} <br>{1}".format(self.dashboard_name, plan_fact_str)
+        tools.make_subplots
 
-        first_feature = 0
-        last_feature = self.data.columns.size
-
-        loop_exit = False
-
-        # screen loop
-        for current_feature in range(first_feature, last_feature, self.items_on_chart):
-
-            final_feature = current_feature + self.items_on_chart
-            if last_feature - final_feature <= self.min_item_tail:
-                final_feature = last_feature
-                loop_exit = True
-
-                #
-            # data_frame[row1:row2, column1:column2]
-            #
-            data_part = self.data.iloc[:, current_feature:final_feature]
-            # reverse sorting due to go from top to down
-            data_part = data_part.reindex(
-                sorted(data_part.columns, key=lambda x: x[len(PLAN_PREFIX):], reverse=True), axis=1)
-
-            traces = list()
-            shapes = list()
-
-            # now the colors
-            # clrred = 'rgb(222,0,0)'
-            # clrgrn = 'rgb(0,222,0)'
-
-            for component_idx in range(0, len(data_part)):
-                # clrs = [clrred if x%2 else clrgrn for x in range(data_part.iloc[component_idx].size)]
-                total = str(data_part.iloc[component_idx].values.sum())
-
-                bar_plan = go.Bar(
-                    y=data_part.columns,
-                    x=data_part.iloc[component_idx],
-                    name=data_part.index[component_idx],
-                    textposition='auto',
-                    orientation='h',
-                    legendgroup=data_part.index[component_idx],
-                    hoverinfo='name + text',
-                    text=data_part.iloc[component_idx],
-
-                    # marker=[x for x in dict(color=clrred)]
-                )
-                traces.append(bar_plan)
-            plan_fact_str = ''
-            if self.plan:
-                plan_fact_str = 'plan '
-            if self.fact:
-                plan_fact_str = plan_fact_str + 'fact'
-
-            if last_feature > self.items_on_chart:
-                title = "{0} \nPart #{1} <br>{2}".format(self.dashboard_name.replace('num', ''), str(ind),
-                                                         plan_fact_str)
-            else:
-                title = "{0} <br>{1}".format(self.dashboard_name, plan_fact_str)
-
-            layout = go.Layout(
-                annotations=[
-                    dict(
-                        x=1.09,
-                        y=1.03,
-                        xref='paper',
-                        yref='paper',
-                        text='Components',
-                        showarrow=False,
-                        font=dict(
-                            family='sans-serif',
-                            size=12,
-                            color='#000'
-                        )
-                    )
-                ],
-                legend=dict(
-                    x=1,
-                    y=1,
-                    traceorder='normal',
+        file_name = self.dashboard_name.replace('num', '') + ' ' + plan_fact_str
+        html_file = self.png_dir + "{0}_{1}.html".format(file_name, self.project)
+        layout = go.Layout(
+            annotations=[
+                dict(
+                    x=1.09,
+                    y=1.03,
+                    xref='paper',
+                    yref='paper',
+                    text='Components',
+                    showarrow=False,
                     font=dict(
                         family='sans-serif',
-                        size=10,
+                        size=12,
                         color='#000'
                     )
-                ),
-                showlegend=True,
-                margin=dict(t=50, b=50, r=100, l=feature_name_max_length * 6),
-                autosize=True,
-                font=dict(size=9, color='black'),
-                barmode='stack',
-                shapes=shapes,
-                title=title,
-                plot_bgcolor='white',
-                yaxis=dict(
-                    rangemode="tozero",
-                    autorange=True,
-                    showgrid=True,
-                    zeroline=True,
-                    showline=True,
-                    ticks='',
-                    showticklabels=True,
-                    tickangle=0,
-                    tickfont=dict(
-                        size=10,
-                        color='black'
+                )
+            ],
+            legend=dict(
+                x=1,
+                y=1,
+                traceorder='normal',
+                font=dict(
+                    family='sans-serif',
+                    size=10,
+                    color='#000'
+                )
+            ),
+            showlegend=True,
+            margin=dict(t=50, b=50, r=100, l=6 * 6),
+            autosize=True,
+            font=dict(size=9, color='black'),
+            barmode='stack',
+            title=title,
+            plot_bgcolor='white',
+            yaxis=dict(
+                rangemode="tozero",
+                autorange=True,
+                showgrid=True,
+                zeroline=True,
+                showline=True,
+                ticks='',
+                showticklabels=True,
+                tickangle=0,
+                tickfont=dict(
+                    size=10,
+                    color='black'
 
-                    ),
                 ),
-                xaxis=dict(
-                    rangemode="tozero",
-                    autorange=True,
-                    showgrid=True,
-                    zeroline=True,
-                    showline=True,
-                    ticks='',
-                    showticklabels=True,
-                    tickfont=dict(
-                        size=10,
-                        color='black'
+            ),
+            xaxis=dict(
+                rangemode="tozero",
+                autorange=True,
+                showgrid=True,
+                zeroline=True,
+                showline=True,
+                ticks='',
+                showticklabels=True,
+                tickfont=dict(
+                    size=10,
+                    color='black'
 
-                    ),
-                    title='Estimates (man-days)',
-                    titlefont=dict(
-                        size=16,
-                        color='black'
-                    )
+                ),
+                title='Estimates (man-days)',
+                titlefont=dict(
+                    size=16,
+                    color='black'
                 )
             )
-            file_name = self.dashboard_name.replace('num', '') + ' ' + plan_fact_str
-            html_file = self.png_dir + "{0}_{1}.html".format(file_name, str(ind))
-            fig = go.Figure(data=traces, layout=layout)
-            plotly.offline.plot(fig, filename=html_file, auto_open=True)
+        )
 
-            ind = ind + 1
-            if loop_exit:
-                break
+        fig = go.Figure(data=traces, layout=layout)
+        plotly.offline.plot(fig, filename=html_file, auto_open=True)
 
-    def export_to_plotly2(self):
-
-        if len(self.data_plan) == 0:
-            return
-
-        ind = 1
-
-        first_feature = 0
-        last_feature = self.data_plan.columns.size
-        feature_name_max_length = max(len(column) for column in self.data_plan.columns)
-        loop_exit = False
-
-        # screen loop
-        for current_feature in range(first_feature, last_feature, self.items_on_chart):
-
-            final_feature = current_feature + self.items_on_chart
-            if last_feature - final_feature <= self.min_item_tail:
-                loop_exit = True
-            traces = list()
-
-            for component_idx in range(0, len(self.data_plan)):
-                #get dev man days
-                data_dev = []
-                for feat_idx in range(0, len(self.data_plan.values.tolist()[0])):
-                    data_dev.append(self.data_plan.values.tolist()[0][feat_idx] - self.data_open.values.tolist()[0][feat_idx] - self.data_fact.values.tolist()[0][feat_idx])
-                trace1 = go.Bar(
-                    x=list(self.data_fact.columns.values),
-                    y=self.data_fact.values.tolist()[0],
-                    name=FACT_PREFIX
-                )
-                trace2 = go.Bar(
-                    x=list(self.data_plan.columns.values),
-                    y=data_dev,
-                    name=DEV_PREFIX
-                )
-                trace3 = go.Bar(
-                    x=list(self.data_open.columns.values),
-                    y=self.data_open.values.tolist()[0],
-                    name=OPEN_PREFIX
-                )
-                traces.append(trace1)
-                traces.append(trace2)
-                traces.append(trace3)
-            plan_fact_str = ''
-            if self.plan:
-                plan_fact_str = 'plan '
-            if self.fact:
-                plan_fact_str = plan_fact_str + 'fact'
-
-            if last_feature > self.items_on_chart:
-                title = "{0} \nPart #{1} <br>{2}".format(self.dashboard_name.replace('num', ''), str(ind),
-                                                         plan_fact_str)
-            else:
-                title = "{0} <br>{1}".format(self.dashboard_name, plan_fact_str)
-
-
-            file_name = self.dashboard_name.replace('num', '') + ' ' + plan_fact_str
-            html_file = self.png_dir + "{0}_{1}.html".format(file_name, str(ind))
-            layout = go.Layout(
-                annotations=[
-                    dict(
-                        x=1.09,
-                        y=1.03,
-                        xref='paper',
-                        yref='paper',
-                        text='Components',
-                        showarrow=False,
-                        font=dict(
-                            family='sans-serif',
-                            size=12,
-                            color='#000'
-                        )
-                    )
-                ],
-                legend=dict(
-                    x=1,
-                    y=1,
-                    traceorder='normal',
-                    font=dict(
-                        family='sans-serif',
-                        size=10,
-                        color='#000'
-                    )
-                ),
-                showlegend=True,
-                margin=dict(t=50, b=50, r=100, l=feature_name_max_length * 6),
-                autosize=True,
-                font=dict(size=9, color='black'),
-                barmode='stack',
-                title=title,
-                plot_bgcolor='white',
-                yaxis=dict(
-                    rangemode="tozero",
-                    autorange=True,
-                    showgrid=True,
-                    zeroline=True,
-                    showline=True,
-                    ticks='',
-                    showticklabels=True,
-                    tickangle=0,
-                    tickfont=dict(
-                        size=10,
-                        color='black'
-
-                    ),
-                ),
-                xaxis=dict(
-                    rangemode="tozero",
-                    autorange=True,
-                    showgrid=True,
-                    zeroline=True,
-                    showline=True,
-                    ticks='',
-                    showticklabels=True,
-                    tickfont=dict(
-                        size=10,
-                        color='black'
-
-                    ),
-                    title='Estimates (man-days)',
-                    titlefont=dict(
-                        size=16,
-                        color='black'
-                    )
-                )
-            )
-
-            fig = go.Figure(data=traces, layout=layout)
-            plotly.offline.plot(fig, filename=html_file, auto_open=True)
-
-            ind = ind + 1
-            if loop_exit:
-                break
 
     def export_to_plot(self):
-        self.export_to_plotly2()
+        self.export_to_plotly()
 
     def export_to_json(self):
         raise NotImplementedError('export_to_json')

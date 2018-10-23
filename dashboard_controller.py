@@ -73,10 +73,10 @@ class DashboardController:
         mng.initialize_cache_from_jira(query=query, url=url)
 
     @staticmethod
-    def update(query, start, jira_url):
+    def update(query, start, jira_url, jira_name):
         """update data in cache"""
         mng = DataController()
-        mng.update_cache_from_jira(query=query, start=start, url=jira_url)
+        mng.update_cache_from_jira(query=query, start=start, url=jira_url, jira_name=jira_name)
 
     @staticmethod
     def get_all(query=None):
@@ -192,30 +192,25 @@ class DashboardController:
         dashboard.prepare(data=data)
         dashboard.export_to_plot()
 
+
     def dashboard_feature_domain_progress(self, plan, fact, details, projects):
         if not (plan and fact):
             raise ValueError('both of plan and fact parameters are false')
 
         dc = DataController()
-        data = dc.get_pandas_issues(query=None, expand=None)
-
-        df1 = data[(data.issuetype == "Epic") | (data.issuetype == "Documentation")]
-        df2 = df1[df1["labels"].str.contains(pat="num")]
-        d = df2['labels'].to_dict()
-
-        fl = get_feature_list(d)
+        data_dao = dc.get_issue_sqllite(query=None, expand=None)
 
         dashboard = FeatureProgressDomainDashboard()
         project_list = projects#["BSSPAY", "BSSUFM", "BSSBFAM", "BSSLIS"]
         for project in project_list:
-            dashboard.dashboard_name = 'All features in ' + project  # str(i).zfill(1)
-            dashboard.filter_list = ["num"]
-            dashboard.project_list = [project]
+            dashboard.dashboard_name = 'All features in '+ project  # str(i).zfill(1)
+            dashboard.filter_list = [""]
+            dashboard.project=project
             dashboard.items_on_chart = 40
             dashboard.min_item_tail = 6
             dashboard.plan = plan
             dashboard.fact = fact
             dashboard.details = details
 
-            dashboard.prepare(data=data)
+            dashboard.prepare(data=data_dao)
             dashboard.export_to_plot()

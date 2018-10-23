@@ -7,6 +7,8 @@ from adapters.jira_adapter import HISTORY_EXPAND
 from adapters.file_cache import DAY_AGE_READ_FORMAT
 from datetime import datetime
 
+from adapters.sqlite_dao_issue import get_sqlite_dao
+
 
 class DataController:
     """It is a data model of dashboards"""
@@ -42,11 +44,11 @@ class DataController:
         except FileExistsError:
             logging.error('can not update the cache')
 
-    def update_cache_from_jira(self, query, start, url):
+    def update_cache_from_jira(self, query, start, url, jira_name):
         if self._cacheable:
-            old_issue_dict = self.get_issue_dict(query=query, expand=None, url=url)
+            old_issue_dict = self.get_issue_dict(query=query, expand=None, url=url, jira_name=jira_name)
 
-            updated_issues = self.get_updates_by_query(query=query, expand=None, start=start, url=url)
+            updated_issues = self.get_updates_by_query(query=query, expand=None, start=start, url=url, jira_name=jira_name)
             updated_issue_dict = iu.issues_to_dict(updated_issues)
 
             issue_dict = iu.merge_issue(issue_dict=old_issue_dict, updated_issue_dict=updated_issue_dict)
@@ -83,7 +85,7 @@ class DataController:
             raise Exception('issue not found')
         return issue
 
-    def get_updates_by_query(self, query, expand, start, url):
+    def get_updates_by_query(self, query, expand, start, url, jira_name):
         jira = self._get_jira_adapter()
         cache = self._get_cache_adapter().get_cache()
 
@@ -100,17 +102,17 @@ class DataController:
         logging.debug('update age from %s', age)
 
         if age is not None:
-            issues = jira.load_updated(query=query, age=age, expand=expand, url=url)
+            issues = jira.load_updated(query=query, age=age, expand=expand, url=url, jira_name=jira_name)
         else:
             issues = self.get_issues_by_query(query, expand=expand, url=url)
 
         logging.debug('len(issues) == %s', len(issues))
         return issues
 
-    def get_issue_dict(self, query, expand, url):
+    def get_issue_dict(self, query, expand, url, jira_name):
         if self._cacheable:
             cache = self._get_cache_adapter()
-            serializable_issue_dict = cache.load_all(query=query, expand=expand, url=url)
+            serializable_issue_dict = cache.load_all(query=query, expand=expand, url=url, jira_name=jira_name)
             issue_dict = iu.deserialize(serializable_issue_dict)
             logging.debug(len(issue_dict))
 
@@ -128,3 +130,9 @@ class DataController:
         jira = self._get_jira_adapter()
         issues = jira.create_issue(issues)
         return issues
+
+    def get_issue_sqllite(self, query, expand):
+        issue_dict = self.get_issue_dict(query=query, expand=expand, url='', jira_name = '')
+        dao_issue = get_sqlite_dao()
+        dao_issue.insert_issues(issue_dict)
+        return dao_issue

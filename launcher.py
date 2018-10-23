@@ -24,7 +24,7 @@ def get_command_namespace(argv):
     update_parser.add_argument('-start', '-s', action="store",
                                help='point to start of changes (format: 2018-08-31T14:25:21)', required=False)
     update_parser.add_argument('-query', '-q', action="store", help="query for jira", required=False)
-    update_parser.add_argument('-jira', '-j', action="store", help="jira from config", required=False, default="jira_1")
+    update_parser.add_argument('-jira', '-j', action="store", help="jira from config", required=False, default="jira_1,jira_2")
 
     issue_parser = subparsers.add_parser('issue', help='get issue info')
     issue_parser.add_argument('-mode', '-m', action="store", help='witch fields to show: public, technical, empty',
@@ -101,8 +101,10 @@ def main(argv):
 
         if name_space.command == "update":
             # sample: 2018-08-31T14:25:21.748515
-            jira_url = get_jira_url(jira=name_space.jira)
-            dshc.update(query=name_space.query, start=name_space.start, jira_url=jira_url)
+            jiras = name_space.jira.split(',')
+            for jira_name in jiras:
+                jira_url = get_jira_url(jira=jira_name)
+                dshc.update(query=name_space.query, start=name_space.start, jira_url=jira_url, jira_name=jira_name)
 
         if name_space.command == "issue":
             jira_url = get_jira_url(jira=name_space.jira)

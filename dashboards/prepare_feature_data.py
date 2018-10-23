@@ -17,12 +17,13 @@ def list_from_string(source_str, reg_filter_list, del_substring):
     lst = list()
     substrings = source_str.split(',')
     for substring in substrings:
-        for reg_filter in reg_filter_list:
-            if re.search(reg_filter, substring):
-                if del_substring is not None:
-                    lst.append(substring.replace(del_substring, 'F-'))
-                else:
-                    lst.append(substring)
+#        if not (reg_filter_list is None):
+            for reg_filter in reg_filter_list:
+                if re.search(reg_filter, substring):
+                    if del_substring is not None:
+                        lst.append(substring.replace(del_substring, 'F-'))
+                    else:
+                        lst.append(substring)
     return lst
 
 
@@ -60,15 +61,16 @@ def applying_OR_filter(issue_df, or_filter_list, column_name):
     or_issue_df = None
     if or_filter_list is None:
         or_issue_df = issue_df
-    for or_filter in or_filter_list:
-        tmp_df = issue_df[issue_df[column_name].str.contains(or_filter)]
-        if or_issue_df is None or len(or_issue_df) == 0:
-            or_issue_df = tmp_df
-        else:
-            or_issue_df = or_issue_df.append(tmp_df)
+    else:
+        for or_filter in or_filter_list:
+            tmp_df = issue_df[issue_df[column_name].str.contains(or_filter)]
+            if or_issue_df is None or len(or_issue_df) == 0:
+                or_issue_df = tmp_df
+            else:
+                or_issue_df = or_issue_df.append(tmp_df)
 
-        if len(tmp_df) == 0:
-            logging.warning("No data for dashboard: %s", or_filter)
+            if len(tmp_df) == 0:
+                logging.warning("No data for dashboard: %s", or_filter)
 
     return or_issue_df
 
@@ -108,11 +110,18 @@ def get_open_data(epic_df, issue_df):
     # epic_df = epic_df.set_index('key').join(issue_sum_df, on='key', rsuffix='_fact', how='inner')
     return sum_series
 
+#get all tasks
+def get_all_data(epic_df, issue_df):
+    sum_series = issue_df.groupby(['epiclink'])['timeoriginalestimate'].sum()
+    return sum_series
 
-def get_dict_from_df(plan_df, fact_series, filter_list, plan_prefix, fact_prefix, with_total, details, open_series, open_prefix):
+
+def get_dict_from_df(plan_df, fact_series, filter_list, plan_prefix, fact_prefix, with_total, details, open_series,
+                     open_prefix, all_series):
     plan_dict = dict()
     fact_dict = dict()
     open_dict = dict()
+    all_dict = dict()
 
     for row in plan_df.itertuples():
         # issue can have several nums (features) in labels field
@@ -135,6 +144,11 @@ def get_dict_from_df(plan_df, fact_series, filter_list, plan_prefix, fact_prefix
         else:
             open_est = 0.0
 
+        if row.key in all_series:
+            all_est = float(all_series[row.key] / count_of_features)
+        else:
+            all_est = 0.0
+
         # we should divide total estimate for every feature
 
         for num_item in feature_list:
@@ -143,6 +157,7 @@ def get_dict_from_df(plan_df, fact_series, filter_list, plan_prefix, fact_prefix
             plan_feature = plan_prefix + num_item.replace("_", " ")
             fact_feature = fact_prefix + num_item.replace("_", " ")
             open_feature = open_prefix + num_item.replace("_", " ")
+            all_feature =  num_item.replace("_", " ")
 
             # Tech writers have different issue type and use BOX as a component
 
@@ -160,6 +175,7 @@ def get_dict_from_df(plan_df, fact_series, filter_list, plan_prefix, fact_prefix
             plan_est = float(plan_est / len(item_list))
             fact_est = float(fact_est / len(item_list))
             open_est = float(open_est / len(item_list))
+            all_est = float(all_est / len(item_list))
 
             for item in item_list:
 
@@ -171,18 +187,22 @@ def get_dict_from_df(plan_df, fact_series, filter_list, plan_prefix, fact_prefix
                         new_plan_est = plan_dict[plan_feature][item] + plan_est
                         new_fact_est = fact_dict[fact_feature][item] + fact_est
                         new_open_est = open_dict[open_feature][item] + open_est
+                        new_all_est = all_dict[all_feature][item] + all_est
 
                         plan_dict[plan_feature][item] = round(new_plan_est, DECIMALS)
                         fact_dict[fact_feature][item] = round(new_fact_est, DECIMALS)
                         open_dict[open_feature][item] = round(new_open_est, DECIMALS)
+                        all_dict[all_feature][item] = round(new_all_est, DECIMALS)
                     else:
                         plan_dict[plan_feature][item] = round(plan_est, DECIMALS)
                         fact_dict[fact_feature][item] = round(fact_est, DECIMALS)
                         open_dict[open_feature][item] = round(open_est, DECIMALS)
+                        all_dict[all_feature][item] = round(all_est, DECIMALS)
                 else:
                     plan_dict[plan_feature] = {item: round(plan_est, DECIMALS)}
                     fact_dict[fact_feature] = {item: round(fact_est, DECIMALS)}
                     open_dict[open_feature] = {item: round(open_est, DECIMALS)}
+                    all_dict[open_feature] = {item: round(all_est, DECIMALS)}
 
                 if with_total:
                     if TOTAL_NAME in plan_dict[plan_feature]:
@@ -192,12 +212,15 @@ def get_dict_from_df(plan_df, fact_series, filter_list, plan_prefix, fact_prefix
                                                               fact_dict[fact_feature][item]
                         open_dict[open_feature][TOTAL_NAME] = open_dict[open_feature][TOTAL_NAME] + \
                                                               open_dict[open_feature][item]
+                        all_dict[all_feature][TOTAL_NAME] = all_dict[all_feature][TOTAL_NAME] + \
+                                                              all_dict[all_feature][item]
                     else:
                         plan_dict[plan_feature][TOTAL_NAME] = plan_dict[plan_feature][item]
                         fact_dict[fact_feature][TOTAL_NAME] = fact_dict[fact_feature][item]
                         open_dict[open_feature][TOTAL_NAME] = open_dict[open_feature][item]
+                        all_dict[all_feature][TOTAL_NAME] = all_dict[all_feature][item]
 
-    return plan_dict, fact_dict, open_dict
+    return plan_dict, fact_dict, open_dict, all_dict
 
 
 def prepare(epic_data, issue_data, or_filter_list, and_filter_list, plan_prefix, fact_prefix, with_total, details):
@@ -214,11 +237,8 @@ def prepare(epic_data, issue_data, or_filter_list, and_filter_list, plan_prefix,
     open_series = get_open_data(epic_df=epic_data, issue_df=issue_data)
 
     plan_dict, fact_dict, open_dict = get_dict_from_df(plan_df=filtered_epic_df, fact_series=fact_series,
-                                            filter_list=or_filter_list,
-                                            plan_prefix=plan_prefix,
-                                            fact_prefix=fact_prefix,
-                                            with_total=with_total,
-                                            details=details, open_series=open_series, open_prefix='')
+                                            filter_list=or_filter_list, plan_prefix=plan_prefix,
+                                            fact_prefix=fact_prefix, with_total=with_total, details=details, open_series=open_series, open_prefix='')
 
     plan_epic_df = pd.DataFrame.from_dict(plan_dict)
     fact_epic_df = pd.DataFrame.from_dict(fact_dict)
@@ -241,18 +261,21 @@ def prepare_domain(epic_data, issue_data, or_filter_list, and_filter_list, plan_
     # here should be fact calculation
     fact_series = get_fact_data(epic_df=epic_data, issue_df=issue_data)
     open_series = get_open_data(epic_df=epic_data, issue_df=issue_data)
+    all_series = get_all_data(epic_df=epic_data, issue_df=issue_data)
 
-    plan_dict, fact_dict, open_dict = get_dict_from_df(plan_df=filtered_epic_df, fact_series=fact_series,
+    plan_dict, fact_dict, open_dict, all_dict = get_dict_from_df(plan_df=filtered_epic_df, fact_series=fact_series,
                                             filter_list=or_filter_list,
                                             plan_prefix='',
                                             fact_prefix='',
                                             with_total=with_total,
                                             details=details,
                                             open_series = open_series,
-                                            open_prefix='')
+                                            open_prefix='',
+                                            all_series=all_series)
 
     plan_epic_df = pd.DataFrame.from_dict(plan_dict)
     fact_epic_df = pd.DataFrame.from_dict(fact_dict)
     open_epic_df = pd.DataFrame.from_dict(open_dict)
+    all_epic_df = pd.DataFrame.from_dict(all_dict)
 
-    return plan_epic_df, fact_epic_df, open_epic_df
+    return plan_epic_df, fact_epic_df, open_epic_df, all_epic_df
