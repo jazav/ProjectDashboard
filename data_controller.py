@@ -58,9 +58,9 @@ class DataController:
 
         return issue_dict
 
-    def initialize_cache_from_jira(self, query, url):
+    def initialize_cache_from_jira(self, query, url, jira_name):
         if self._cacheable:
-            issues = self.get_issues_by_query(query=query, expand=None, url=url)
+            issues = self.get_issues_by_query(query=query, expand=None, url=url, jira_name=jira_name)
             issue_dict = iu.issues_to_dict(issues)
             self.save_to_cache(issue_dict)
         else:
@@ -68,9 +68,9 @@ class DataController:
 
         return issue_dict
 
-    def get_issues_by_query(self, query, expand, url):
+    def get_issues_by_query(self, query, expand, url, jira_name):
         jira = self._get_jira_adapter()
-        issues = jira.load_all(query=query, expand=expand, url=url)
+        issues = jira.load_all(query=query, expand=expand, url=url, jira_name=jira_name)
         return issues
 
     def get_issue(self, key, jira_url):

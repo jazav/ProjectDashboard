@@ -117,7 +117,23 @@ def clear_issues(issues):
 
     return issues
 
-
+field_map = {'default':{'DEVELOPER_FIELD' : 'customfield_10002',
+'TESTER_FIELD' : 'customfield_10003',
+'SPRINT_FIELD' : 'customfield_10200',
+'EPICLINK_FIELD' : 'customfield_10201',
+'EPICNAME_FIELD' : 'customfield_10204',
+'STORYPOINTS_FIELD' : 'customfield_10208',
+'RNDLABELS_FIELD' : 'customfield_11100',
+'CLM_FIELD' : 'customfield_13200'},
+'sandbox': {'DEVELOPER_FIELD': 'customfield_10204',
+                         'TESTER_FIELD': 'customfield_10003',
+                         'SPRINT_FIELD': 'customfield_10200',
+                         'EPICLINK_FIELD': 'customfield_10002',
+                         'EPICNAME_FIELD': 'customfield_10201',
+                         'STORYPOINTS_FIELD': 'customfield_10208',
+                         'RNDLABELS_FIELD': 'customfield_11100',
+                         'CLM_FIELD': 'customfield_13200'}
+             }
 ID_FIELD = 'id'
 KEY_FIELD = 'key'
 FIELDS_FIELD = 'fields'
@@ -128,14 +144,7 @@ DUEDATE_FIELD = 'duedate'
 RESOLUTIONDATE_FIELD = 'resolutiondate'
 RESOLUTION_FIELD = 'resolution'
 ASSIGNEE_FIELD = 'assignee'
-DEVELOPER_FIELD = 'customfield_10002'
-TESTER_FIELD = 'customfield_10003'
-SPRINT_FIELD = 'customfield_10200'
-EPICLINK_FIELD = 'customfield_10201'
-EPICNAME_FIELD = 'customfield_10204'
-STORYPOINTS_FIELD = 'customfield_10208'
-RNDLABELS_FIELD = 'customfield_11100'
-CLM_FIELD = 'customfield_13200'
+
 UPDATED_FIELD = 'updated'
 CREATED_FIELD = 'created'
 PROJECT_FIELD = 'project'
@@ -377,6 +386,11 @@ DATE_FORMAT = '%Y-%m-%d'
 #     return issue_dict
 
 def add_fields(fields, issue_dict):
+
+    if 'sandbox' in fields['project']['self']:
+        jira_type = 'sandbox'
+    else:
+        jira_type = 'default'
     if fields is None:
         return issue_dict
 
@@ -478,8 +492,8 @@ def add_fields(fields, issue_dict):
     else:
         priority = ''
 
-    if RNDLABELS_FIELD in fields:
-        labels = ','.join(fields[RNDLABELS_FIELD])
+    if field_map[jira_type]['RNDLABELS_FIELD'] in fields:
+        labels = ','.join(fields[field_map[jira_type]['RNDLABELS_FIELD']])
     else:
         labels = ''
 
@@ -498,13 +512,13 @@ def add_fields(fields, issue_dict):
     else:
         timeoriginalestimate = 0.00
 
-    if STORYPOINTS_FIELD in fields:
-        storypoints = float(fields[STORYPOINTS_FIELD])
+    if field_map[jira_type]['STORYPOINTS_FIELD'] in fields:
+        storypoints = float(fields[field_map[jira_type]['STORYPOINTS_FIELD']])
     else:
         storypoints = 0.00
 
-    if EPICLINK_FIELD in fields:
-        epiclink = fields[EPICLINK_FIELD]
+    if field_map[jira_type]['EPICLINK_FIELD']  in fields:
+        epiclink = fields[field_map[jira_type]['EPICLINK_FIELD']]
     else:
         epiclink = ''
 

@@ -115,7 +115,7 @@ class JiraAdapter(AbstractAdapter):
                 if item not in EXPAND_LIST:
                     raise ValueError(item + ' is not correct. Valid values: ' + str(EXPAND_LIST))
 
-        issue = Issue()
+        issue = None
         if self._connect(url=url):
             try:
                 issue = self._jira.issue(key, expand=expand)

@@ -67,10 +67,10 @@ class DashboardController:
         t.cancel()
 
     @staticmethod
-    def initialize_cache(query, url):
+    def initialize_cache(query, url, jira_name):
         """update data in cache"""
         mng = DataController()
-        mng.initialize_cache_from_jira(query=query, url=url)
+        mng.initialize_cache_from_jira(query=query, url=url, jira_name=jira_name)
 
     @staticmethod
     def update(query, start, jira_url, jira_name):

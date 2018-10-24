@@ -76,7 +76,7 @@ class SqliteDaoIssue(DaoIssue):
                                                  ?,?,?,?,
                                                  ?,?,?)''',
                                     (key, value["id"], value["status"], value["project"],
-                                     ','+value["labels"]+',', value["epiclink"], value["timeoriginalestimate"], value["timespent"],
+                                     ','+value["labels"]+',', 'value["epiclink"]', value["timeoriginalestimate"], value["timespent"],
                                      value["resolution"],value["issuetype"],value["summary"],))
             except:
                 print("Unexpected error on key:", key, ' value:  ', value, ', error:', sys.exc_info()[0])

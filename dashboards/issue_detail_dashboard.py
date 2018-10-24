@@ -432,6 +432,7 @@ class IssueDetailDashboard(AbstractDashboard):
         issue_str = self.get_issue_as_str()
 
         f = open(file, 'w')
+        issue_str =issue_str.replace('\u03a3','')
         f.write(issue_str)
         f.close()
 

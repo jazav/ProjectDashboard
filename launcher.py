@@ -96,8 +96,10 @@ def main(argv):
         cc.set_login(user=name_space.user, password=name_space.password)
 
         if name_space.command == "init":
-            jira_url = get_jira_url(jira=name_space.jira)
-            dshc.initialize_cache(query=name_space.query, url=jira_url)
+            jiras = name_space.jira.split(',')
+            for jira_name in jiras:
+                jira_url = get_jira_url(jira=jira_name)
+                dshc.initialize_cache(query=name_space.query, url=jira_url, jira_name=jira_name)
 
         if name_space.command == "update":
             # sample: 2018-08-31T14:25:21.748515
@@ -107,8 +109,10 @@ def main(argv):
                 dshc.update(query=name_space.query, start=name_space.start, jira_url=jira_url, jira_name=jira_name)
 
         if name_space.command == "issue":
-            jira_url = get_jira_url(jira=name_space.jira)
-            dshc.dashbord_issue_detail(key=name_space.key, field_mode=name_space.mode, export=name_space.export,
+            jiras = name_space.jira.split(',')
+            for jira_name in jiras:
+                jira_url = get_jira_url(jira=jira_name)
+                dshc.dashbord_issue_detail(key=name_space.key, field_mode=name_space.mode, export=name_space.export,
                                        jira_url=jira_url)
     if name_space.command == "dashboard":
         if name_space.name == "fgp":
