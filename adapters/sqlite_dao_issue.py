@@ -62,28 +62,32 @@ class SqliteDaoIssue(DaoIssue):
         self.cursor.execute('''CREATE TABLE issues
                                (issue_key TEXT,id INTEGER, status TEXT, project TEXT,
                                 labels TEXT, epiclink TEXT, timeoriginalestimate REAL, timespent REAL,
-                               resolution TEXT, issuetype TEXT, summary TEXT)''')
+                               resolution TEXT, issuetype TEXT, summary TEXT, fixversions TEXT)''')
 
         self.connection.commit()
 
     def insert_issues(self, issues):
         for key, value in issues.items():
             try:
+                if "fixversions" in value:
+                    fixversions = value["fixversions"]
+                else:
+                    fixversions = ""
                 self.cursor.execute('''INSERT INTO issues (issue_key, id, status, project,
                                         labels, epiclink, timeoriginalestimate, timespent,
-                                       resolution, issuetype, summary)
+                                       resolution, issuetype, summary, fixversions)
                                          VALUES (?,?,?,?,
                                                  ?,?,?,?,
-                                                 ?,?,?)''',
+                                                 ?,?,?,?)''',
                                     (key, value["id"], value["status"], value["project"],
-                                     ','+value["labels"]+',', 'value["epiclink"]', value["timeoriginalestimate"], value["timespent"],
-                                     value["resolution"],value["issuetype"],value["summary"],))
+                                     ','+value["labels"]+',', value["epiclink"], value["timeoriginalestimate"], value["timespent"],
+                                     value["resolution"],value["issuetype"],value["summary"],','+fixversions+',',))
             except:
                 print("Unexpected error on key:", key, ' value:  ', value, ', error:', sys.exc_info()[0])
 
         self.connection.commit()
 
-    def get_sum_by_projects(self, project_filter,label_filter):  # must return array of ReportRow
+    def get_sum_by_projects(self, project_filter,label_filter,fixversions_filter):  # must return array of ReportRow
         open_list= [];
         dev_list= [];
         close_list= [];
@@ -111,7 +115,12 @@ class SqliteDaoIssue(DaoIssue):
                                    LEFT JOIN issues i
                                         ON e.issue_key = i.epiclink
                                   WHERE e.issuetype = "Epic"
-                                    AND e.project = "'''+project_filter+'"'+ ' AND e.labels LIKE "%,'+label_filter+',%"  group by e.summary, e.timeoriginalestimate, i.project';
+                                    AND i.project = "'''+project_filter+'" '
+        if label_filter !='':
+            sql_str = sql_str + ' AND e.labels LIKE "%,'+label_filter+',%"  '
+        if fixversions_filter != '':
+                sql_str = sql_str + ' AND e.fixversions LIKE "%,'+fixversions_filter+',%"  '
+        sql_str = sql_str + ' group by e.summary, e.timeoriginalestimate, i.project';
         for row in self.cursor.execute(sql_str):
             name_list.append(row[1]);
             close_list.append(row[3])

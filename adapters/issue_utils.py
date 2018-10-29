@@ -3,6 +3,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 import pytz
+import sys
 
 
 def nat_check(nat):
@@ -106,7 +107,8 @@ def clear_issues(issues):
                              "issuelinks" not in field_key and
                              "parent" not in field_key and
                              "priority" not in field_key and
-                             "resolution" not in field_key
+                             "resolution" not in field_key and
+                             "fixVersions" not in field_key
 
                             ):
                         del issue[issue_key][field_key]
@@ -137,6 +139,7 @@ field_map = {'default':{'DEVELOPER_FIELD' : 'customfield_10002',
 ID_FIELD = 'id'
 KEY_FIELD = 'key'
 FIELDS_FIELD = 'fields'
+RENDERS_FIELD = 'renderedFields'
 VERSIONED_REPR ='versionedRepresentations'
 NAME_FIELD = 'name'
 CREATOR_FIELD = 'creator'
@@ -166,7 +169,7 @@ REPORTER_FIELD = 'reporter'
 PRIORITY_FIELD = 'priority'
 AGGREGATEPROGRESS_FIELD = 'aggregateprogress'
 PROGRESS_FIELD = 'progress'
-
+FIXVERSIONS_FIELD = 'fixVersions'
 
 DATETIME_WRITE_FORMAT = "{0:%Y-%m-%d %X.%f%z}"
 DATETIME_READ_FORMAT = "%Y-%m-%d %X.%f%z"
@@ -386,11 +389,10 @@ DATE_FORMAT = '%Y-%m-%d'
 #     return issue_dict
 
 def add_fields(fields, issue_dict):
-
-    if 'sandbox' in fields['project']['self']:
+    jira_type = 'default'
+    if 'project' in fields and 'sandbox' in fields['project']['self']:
         jira_type = 'sandbox'
-    else:
-        jira_type = 'default'
+
     if fields is None:
         return issue_dict
 
@@ -409,10 +411,12 @@ def add_fields(fields, issue_dict):
     else:
         reporter = ''
 
-    if RESOLUTIONDATE_FIELD in fields:
-        resolutiondate = datetime.strptime(fields[RESOLUTIONDATE_FIELD], DATETIME_FORMAT)
-    else:
-        resolutiondate = None
+    resolutiondate = None
+    try:
+        if RESOLUTIONDATE_FIELD in fields:
+            resolutiondate = datetime.strptime(fields[RESOLUTIONDATE_FIELD], DATETIME_FORMAT)
+    except:
+       print("Unexpected conver time error on issue_dict:", issue_dict, ' resolutiondate :  ', fields[RESOLUTIONDATE_FIELD], ', error:', sys.exc_info()[0])
 
     if RESOLUTION_FIELD in fields:
         resolution = fields[RESOLUTION_FIELD][NAME_FIELD]
@@ -427,16 +431,19 @@ def add_fields(fields, issue_dict):
         # now it's TZ aware
     else:
         duedate = None
+    updated = None
+    try:
+        if UPDATED_FIELD in fields:
+            updated = datetime.strptime(fields[UPDATED_FIELD], DATETIME_FORMAT)
+    except:
+       print("Unexpected conver time error on issue_dict:", issue_dict, ' update :  ', fields[UPDATED_FIELD], ', error:', sys.exc_info()[0])
 
-    if UPDATED_FIELD in fields:
-        updated = datetime.strptime(fields[UPDATED_FIELD], DATETIME_FORMAT)
-    else:
-        updated = None
-
-    if CREATED_FIELD in fields:
-        created = datetime.strptime(fields[CREATED_FIELD], DATETIME_FORMAT)
-    else:
-        created = None
+    created = None
+    try:
+        if CREATED_FIELD in fields:
+            created = datetime.strptime(fields[CREATED_FIELD], DATETIME_FORMAT)
+    except:
+       print("Unexpected conver time error on issue_dict:", issue_dict, ' created :  ', fields[CREATED_FIELD], ', error:', sys.exc_info()[0])
 
     if PROJECT_FIELD in fields:
         project = fields[PROJECT_FIELD][KEY_FIELD]
@@ -563,6 +570,12 @@ def add_fields(fields, issue_dict):
         description = fields[DESCRIPTION_FIELD]
     else:
         description = ''
+    fixversions  = ''
+    if FIXVERSIONS_FIELD in fields:
+        for ver in fields[FIXVERSIONS_FIELD]:
+            if fixversions != '':
+                fixversions = fixversions + ','
+            fixversions = fixversions + ver['name']
 
     issue_dict[TYPE_FIELD] = issuetype
     issue_dict[STATUS_FIELD] = status
@@ -594,9 +607,18 @@ def add_fields(fields, issue_dict):
     issue_dict[PROGRESS_FIELD] = progress
     issue_dict[AGGREGATEPROGRESS_FIELD] = aggregateprogress
     issue_dict[PRIORITY_FIELD] = priority
+    issue_dict['fixversions'] = fixversions
 
     return issue_dict
 
+def add_render_fields(fields, issue_dict):
+    # if FIXVERSIONS_FIELD in fields:
+    #     fixVersions = fields[FIXVERSIONS_FIELD]
+    # else:
+    #     fixVersions = ''
+    # issue_dict['fixversions'] = fixVersions
+
+    return issue_dict
 
 def issues_to_dict(issues):
     issues_dict = dict()
@@ -618,6 +640,8 @@ def issues_to_dict(issues):
         if VERSIONED_REPR in issue:
             issue_dict = add_fields(fields=issue[VERSIONED_REPR], issue_dict=issue_dict)
 
+        if RENDERS_FIELD in issue:
+            issue_dict = add_render_fields(fields=issue[RENDERS_FIELD], issue_dict=issue_dict)
         issues_dict[key] = issue_dict
 
     return issues_dict

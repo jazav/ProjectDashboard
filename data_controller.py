@@ -60,7 +60,10 @@ class DataController:
 
     def initialize_cache_from_jira(self, query, url, jira_name):
         if self._cacheable:
-            issues = self.get_issues_by_query(query=query, expand=None, url=url, jira_name=jira_name)
+            expand = EXPAND_LIST[RENDER_FIELDS_IDX] + ',' + EXPAND_LIST[NAMES_IDX] + ',' + EXPAND_LIST[
+                SCHEMA_IDX] + ',' + \
+                     EXPAND_LIST[EDITMETA_IDX]
+            issues = self.get_issues_by_query(query=query, expand=expand, url=url, jira_name=jira_name)
             issue_dict = iu.issues_to_dict(issues)
             self.save_to_cache(issue_dict)
         else:

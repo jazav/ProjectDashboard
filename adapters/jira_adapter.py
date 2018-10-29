@@ -19,7 +19,7 @@ OPERATIONS_IDX = 4
 EDITMETA_IDX = 5
 CHANGELOG_IDX = 6
 VERS_REPRESENTATIONS_IDX = 7
-
+FIXVERSIONS_FIELD = 'fixVersions'
 
 def internet_on():
     try:
@@ -70,7 +70,9 @@ class JiraAdapter(AbstractAdapter):
             return issues_list
 
         for issue in issues:
-            issues_list.append(issue.raw)
+            new_issue = issue.raw;
+            #new_issue['fields'].fixVersions = issue.fields.fixVersions
+            issues_list.append(new_issue)
 
         if clear:
             issues_list = clear_issues(issues_list)

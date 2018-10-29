@@ -19,7 +19,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
     close_list= [];
     name_list= [];
     def prepare(self, data):
-        self.open_list, self.dev_list, self.close_list, self.name_list = data.get_sum_by_projects(self.project, "SuperSprint6")
+        self.open_list, self.dev_list, self.close_list, self.name_list = data.get_sum_by_projects(self.project, "", "SuperSprint7")
 
     def export_to_plotly(self):
 
