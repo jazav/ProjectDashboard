@@ -2,6 +2,10 @@ import configparser
 from pathlib import Path
 import os
 
+import datetime
+
+import dateutil
+
 JIRA_INI_PATH = "./"
 INI_FILE = "config.ini"
 JIRA_SECTION = "JIRA"
@@ -18,6 +22,8 @@ COMPONENT_IDX = 1
 DETAIL_ARR = ['domain', 'component']
 LOG_DIR = 'log_dir'
 PROJECTS_SECTION = "PROJECTS"
+START = "start"
+END = "end"
 
 # Singleton/SingletonDecorator.py
 class ConfigControllerDecorator:
@@ -154,5 +160,49 @@ class ConfigController:
         for item in item_list:
             projects[item] = self.config_controller[section][item]
         return projects
+
+    def read_capacity(self,project, supersprint):
+        if self.config_controller is None:
+            return None
+        section = supersprint.upper()
+        if section in self.config_controller:
+            capacity = self.config_controller[section][item]
+        else:
+            capacity = 0
+        return capacity
+
+    def getDateTimeFromISO8601String(self,s):
+        d = dateutil.parser.parse(s)
+        return d
+
+    def read_supersprint_end(self,supersprint):
+        if self.config_controller is None:
+            return None
+        section = supersprint.upper()
+        end = None
+        if section in self.config_controller:
+            end = self.getDateTimeFromISO8601String(self.config_controller[section][END])
+        return end
+
+    def read_supersprint_start(self,supersprint):
+        if self.config_controller is None:
+            return None
+        section = supersprint.upper()
+        start = None
+        if section in self.config_controller:
+            start = self.getDateTimeFromISO8601String(self.config_controller[section][START])
+        return start
+
+    def read_supersprint_length(self,supersprint):
+        if self.config_controller is None:
+            return None
+        section = supersprint.upper()
+        length = None
+        if section in self.config_controller:
+            start = self.config_controller[section][START]
+            end = self.config_controller[section][END]
+            delta = self.getDateTimeFromISO8601String(end)- self.getDateTimeFromISO8601String(start)
+            length = delta.days
+        return length
 
 cc_klass = ConfigControllerDecorator(ConfigController)

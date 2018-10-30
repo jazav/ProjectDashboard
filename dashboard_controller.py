@@ -193,7 +193,7 @@ class DashboardController:
         dashboard.export_to_plot()
 
 
-    def dashboard_feature_domain_progress(self, plan, fact, details, projects):
+    def dashboard_feature_domain_progress(self, plan, fact, details, projects, fixversion):
         if not (plan and fact):
             raise ValueError('both of plan and fact parameters are false')
 
@@ -212,5 +212,5 @@ class DashboardController:
             dashboard.fact = fact
             dashboard.details = details
 
-            dashboard.prepare(data=data_dao)
+            dashboard.prepare(data=data_dao, fixversion = fixversion)
             dashboard.export_to_plot()

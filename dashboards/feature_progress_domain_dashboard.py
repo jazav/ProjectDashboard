@@ -1,9 +1,11 @@
+import datetime
 import pandas as pd
 import plotly
 import plotly.graph_objs as go
 from plotly import tools
 
 import dashboards.prepare_feature_data as pfd
+from config_controller import cc_klass
 from dashboards.dashboard import AbstractDashboard
 
 PLAN_PREFIX = '<b>Plan: </b>'
@@ -18,8 +20,10 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
     dev_list= [];
     close_list= [];
     name_list= [];
-    def prepare(self, data):
-        self.open_list, self.dev_list, self.close_list, self.name_list = data.get_sum_by_projects(self.project, "", "SuperSprint7")
+
+    def prepare(self, data, fixversion):
+        self.fixversion = fixversion
+        self.open_list, self.dev_list, self.close_list, self.name_list = data.get_sum_by_projects(self.project, "", fixversion)
 
     def export_to_plotly(self):
 
@@ -66,9 +70,28 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
         traces.append(trace1)
         traces.append(trace2)
         traces.append(trace3)
-        plan_fact_str = 'plan '+ 'fact'
-
-        title = "{0} <br>{1}".format(self.dashboard_name, plan_fact_str)
+        all_open = 0
+        for value in self.open_list:
+            all_open += value
+        all_dev = 0
+        for value in self.dev_list:
+            all_dev += value
+        all_closed = 0
+        for value in self.close_list:
+            all_closed += value
+        all_tasks= all_closed + all_dev + all_open
+        if all_tasks == 0:
+            all_tasks = 1
+        plan_fact_str = "pf"
+        title_sum = "Open: {0:.2f}%, Dev: {1:.2f}%, Closed: {2:.2f}%, All tasks: {3:.2f} md".format(100*all_open/all_tasks, 100*all_dev/all_tasks, 100*all_closed/all_tasks, all_tasks)
+        now_dt = datetime.datetime.now()
+        cc = cc_klass()
+        length_ss = cc.read_supersprint_length(self.fixversion)
+        if length_ss!=0:
+            will_be_done = 100*(now_dt - cc.read_supersprint_start(self.fixversion)).days/ length_ss
+        else:
+            will_be_done = 0
+        title = "{0} <br>{1} <br> Current position in {2}: {3:.2f}%".format(self.dashboard_name, title_sum, self.fixversion, will_be_done)
         tools.make_subplots
 
         file_name = self.dashboard_name.replace('num', '') + ' ' + plan_fact_str
