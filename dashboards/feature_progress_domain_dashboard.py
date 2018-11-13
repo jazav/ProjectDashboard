@@ -14,24 +14,44 @@ OPEN_PREFIX = '<b>Open: </b>'
 DEV_PREFIX = '<b>Dev: </b>'
 
 
+def stringDivider(strval, width, spaceReplacer):
+    p = 0
+    if (len(strval) > width):
+        p = width
+    while ((p > 0) and (strval[p] != ' ')):
+        p = p - 1
+    if (p > 0):
+        left = strval[0:p];
+        right = strval[p + 1:];
+        return left + spaceReplacer + stringDivider(right, width, spaceReplacer);
+    return strval;
+
 class FeatureProgressDomainDashboard(AbstractDashboard):
     '''Plotly Bar Stacked Chart'''
     open_list= [];
     dev_list= [];
     close_list= [];
     name_list= [];
+    auto_open = True;
 
     def prepare(self, data, fixversion):
         self.fixversion = fixversion
         self.open_list, self.dev_list, self.close_list, self.name_list = data.get_sum_by_projects(self.project, "", fixversion)
 
+
+
+
     def export_to_plotly(self):
 
         if len(self.name_list) == 0:
             return
+        self.brnamelist =[];
+        for vl in self.name_list:
+            self.brnamelist.append(stringDivider(vl,30,"<br>"))
+
         traces = []
         trace1 = go.Bar(
-            x=self.name_list,
+            x=self.brnamelist,
             y=self.close_list,
             text=self.close_list,
             name=FACT_PREFIX,
@@ -43,7 +63,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
             )
         )
         trace2 = go.Bar(
-            x=self.name_list,
+            x=self.brnamelist,
             y=self.dev_list,
             text=self.dev_list,
             name=DEV_PREFIX,
@@ -56,7 +76,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
         )
 
         trace3 = go.Bar(
-            x=self.name_list,
+            x=self.brnamelist,
             y=self.open_list,
             text=self.open_list,
             name=OPEN_PREFIX,
@@ -91,7 +111,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
             will_be_done = 100*(now_dt - cc.read_supersprint_start(self.fixversion)).days/ length_ss
         else:
             will_be_done = 0
-        title = "{0} <br>{1} <br> Current position in {2}: {3:.2f}%".format(self.dashboard_name, title_sum, self.fixversion, will_be_done)
+        title = "{0} <br>{1} <br> Must be done today {2}: {3:.2f}%".format(self.dashboard_name, title_sum, self.fixversion, will_be_done)
         tools.make_subplots
 
         file_name = self.dashboard_name.replace('num', '') + ' ' + plan_fact_str
@@ -103,11 +123,11 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
                     y=1.03,
                     xref='paper',
                     yref='paper',
-                    text='Components',
+                    text='Status',
                     showarrow=False,
                     font=dict(
                         family='sans-serif',
-                        size=12,
+                        size=14,
                         color='#000'
                     )
                 )
@@ -118,14 +138,14 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
                 traceorder='normal',
                 font=dict(
                     family='sans-serif',
-                    size=10,
+                    size=14,
                     color='#000'
                 )
             ),
             showlegend=True,
             margin=dict(t=50, b=50, r=100, l=6 * 6),
             autosize=True,
-            font=dict(size=9, color='black'),
+            font=dict(size=12, color='black'),
             barmode='stack',
             title=title,
             plot_bgcolor='white',
@@ -151,6 +171,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
                 zeroline=True,
                 showline=True,
                 ticks='',
+                tickangle=0,
                 showticklabels=True,
                 tickfont=dict(
                     size=10,
@@ -159,14 +180,14 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
                 ),
                 title='Estimates (man-days)',
                 titlefont=dict(
-                    size=16,
+                    size=12,
                     color='black'
                 )
             )
         )
 
         fig = go.Figure(data=traces, layout=layout)
-        plotly.offline.plot(fig, filename=html_file, auto_open=True)
+        plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
 
 
     def export_to_plot(self):

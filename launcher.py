@@ -54,6 +54,9 @@ def get_command_namespace(argv):
     dashboard_parser.add_argument('-fixversion', '-f', action="store",
                                   help="fixversion : SuperSprint7",
                                   required=False, default="SuperSprint7")
+    dashboard_parser.add_argument('-auto_open', '-a', action="store",
+                                  help="auto_open : True",
+                                  required=False, default="True")
     name_space = parser.parse_args(args=argv)
     return name_space
 
@@ -128,7 +131,7 @@ def main(argv):
         if name_space.name == "domain":
             plan, fact = get_plan_fact(parameters=name_space.mode)
             dshc.dashboard_feature_domain_progress(plan=plan, fact=fact, details=name_space.details,
-                                                   projects=name_space.projects.split(","), fixversion=name_space.fixversion)
+                                                   projects=name_space.projects.split(","), fixversion=name_space.fixversion, auto_open=(name_space.auto_open.upper()=='TRUE'))
         if name_space.name == "hm":
             dshc.dashboard_heatmap()
 
