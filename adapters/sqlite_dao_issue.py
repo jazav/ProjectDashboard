@@ -2,7 +2,7 @@
 #
 # Copyright © 2018 .
 #
-
+import logging
 import sqlite3
 
 import sys
@@ -62,7 +62,7 @@ class SqliteDaoIssue(DaoIssue):
         self.cursor.execute('''CREATE TABLE issues
                                (issue_key TEXT,id INTEGER, status TEXT, project TEXT,
                                 labels TEXT, epiclink TEXT, timeoriginalestimate REAL, timespent REAL,
-                               resolution TEXT, issuetype TEXT, summary TEXT, fixversions TEXT)''')
+                               resolution TEXT, issuetype TEXT, summary TEXT, fixversions TEXT, parent TEXT)''')
 
         self.connection.commit()
 
@@ -73,17 +73,28 @@ class SqliteDaoIssue(DaoIssue):
                     fixversions = value["fixversions"]
                 else:
                     fixversions = ""
-                self.cursor.execute('''INSERT INTO issues (issue_key, id, status, project,
+                sql_str = '''INSERT INTO issues (issue_key, id, status, project,
                                         labels, epiclink, timeoriginalestimate, timespent,
-                                       resolution, issuetype, summary, fixversions)
-                                         VALUES (?,?,?,?,
+                                       resolution, issuetype, summary, fixversions, 
+                                       parent)'''
+                self.cursor.execute(sql_str + ''' VALUES (?,?,?,?,
                                                  ?,?,?,?,
-                                                 ?,?,?,?)''',
+                                                 ?,?,?,?,
+                                                 ?)''',
                                     (key, value["id"], value["status"], value["project"],
                                      ','+value["labels"]+',', value["epiclink"], value["timeoriginalestimate"], value["timespent"],
-                                     value["resolution"],value["issuetype"],value["summary"],','+fixversions+',',))
+                                     value["resolution"],value["issuetype"],value["summary"],','+fixversions+',',
+                                     value["parent"],))
+                if value["project"] == '!BSSGUS' :
+                    logging.debug(sql_str +'''VALUES ("%s",%s,"%s","%s",
+                                                 "%s","%s","%s","%s",
+                                                 "%s","%s","%s","%s",
+                                                 "%s");''', key, value["id"], value["status"], value["project"],
+                                     ','+value["labels"]+',', value["epiclink"], value["timeoriginalestimate"], value["timespent"],
+                                     value["resolution"],value["issuetype"],value["summary"].replace('"', "'"),','+fixversions+',',
+                                     value["parent"])
             except:
-                print("Unexpected error on key:", key, ' value:  ', value, ', error:', sys.exc_info()[0])
+                logging.error("Unexpected error on key:", key, ' value:  ', value, ', error:', sys.exc_info()[0])
 
         self.connection.commit()
 
@@ -92,39 +103,52 @@ class SqliteDaoIssue(DaoIssue):
         dev_list= [];
         close_list= [];
         name_list = [];
-        sql_str = '''SELECT
-                                           i.project,
-                                           e.summary,
-                                           e.timeoriginalestimate,
-                                           SUM(CASE WHEN i.status in ('Closed','Resolved') THEN
-                                               i.timeoriginalestimate
-                                           ELSE
-                                               0
-                                           END) close,
-                                           SUM(CASE WHEN i.status in ('Open') THEN
-                                               i.timeoriginalestimate
-                                           ELSE
-                                               0
-                                           END) open,
-                                           SUM(CASE WHEN i.status in ('Open','Closed','Resolved') THEN
-                                               0
-                                           ELSE
-                                               i.timeoriginalestimate
-                                           END) dev
-                                  FROM issues e 
-                                   LEFT JOIN issues i
-                                        ON e.issue_key = i.epiclink
-                                  WHERE e.issuetype = "Epic"
-                                    AND i.project = "'''+project_filter+'" '
+        sql_str = '''SELECT project,
+                           summary,
+                           SUM(CASE WHEN status IN ('Closed', 'Resolved') THEN timeoriginalestimate ELSE 0 END) close,
+                           SUM(CASE WHEN status IN ('Open','New') THEN timeoriginalestimate ELSE 0 END) open,
+                           SUM(CASE WHEN status IN ('Open','New','Closed', 'Resolved') THEN 0 ELSE timeoriginalestimate END) dev
+                      FROM (
+                               SELECT i.project,
+                                      e.summary,
+                                      i.status,
+                                      i.timeoriginalestimate
+                                 FROM issues e
+                                      LEFT JOIN
+                                      issues i ON e.issue_key = i.epiclink
+                                      LEFT OUTER JOIN
+                                      issues st ON i.issue_key = st.parent
+                                WHERE e.issuetype = "Epic" AND 
+                                      st.parent IS NULL  AND
+                                      i.project = "'''+project_filter+'" '
         if label_filter !='':
             sql_str = sql_str + ' AND e.labels LIKE "%,'+label_filter+',%"  '
         if fixversions_filter != '':
                 sql_str = sql_str + ' AND e.fixversions LIKE "%,'+fixversions_filter+',%"  '
-        sql_str = sql_str + ' group by e.summary, e.timeoriginalestimate, i.project';
+        # add subtasks query
+        sql_str = sql_str +''' UNION ALL
+                                   SELECT i.project,
+                                          e.summary,
+                                          st.status,
+                                          st.timeoriginalestimate
+                                     FROM issues e
+                                          LEFT JOIN
+                                          issues i ON e.issue_key = i.epiclink
+                                          LEFT JOIN
+                                          issues st ON i.issue_key = st.parent
+                                    WHERE e.issuetype = "Epic" AND 
+                                          st.parent IS NOT NULL AND 
+                                          i.project = "''' + project_filter + '" '
+        if label_filter != '':
+             sql_str = sql_str + ' AND e.labels LIKE "%,' + label_filter + ',%"  '
+        if fixversions_filter != '':
+             sql_str = sql_str + ' AND e.fixversions LIKE "%,' + fixversions_filter + ',%"  '
+        sql_str = sql_str + ' ) GROUP BY summary, project'
+
         for row in self.cursor.execute(sql_str):
             name_list.append(row[1]);
-            close_list.append(row[3])
-            open_list.append(row[4]);
-            dev_list.append(row[5]);
+            close_list.append(round(row[2]))
+            open_list.append(round(row[3]));
+            dev_list.append(round(row[4]));
         return open_list, dev_list, close_list, name_list;
 

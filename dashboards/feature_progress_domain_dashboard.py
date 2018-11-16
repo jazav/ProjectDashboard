@@ -8,22 +8,24 @@ import dashboards.prepare_feature_data as pfd
 from config_controller import cc_klass
 from dashboards.dashboard import AbstractDashboard
 
-PLAN_PREFIX = '<b>Plan: </b>'
-FACT_PREFIX = '<b>Closed: </b>'
-OPEN_PREFIX = '<b>Open: </b>'
-DEV_PREFIX = '<b>Dev: </b>'
+PLAN_PREFIX = '<b>Plan</b>'
+FACT_PREFIX = '<b>Closed</b>'
+OPEN_PREFIX = '<b>Open</b>'
+DEV_PREFIX = '<b>Dev</b>'
 
 
 def stringDivider(strval, width, spaceReplacer):
-    p = 0
     if (len(strval) > width):
         p = width
-    while ((p > 0) and (strval[p] != ' ')):
-        p = p - 1
-    if (p > 0):
-        left = strval[0:p];
-        right = strval[p + 1:];
-        return left + spaceReplacer + stringDivider(right, width, spaceReplacer);
+        while ((p > 0) and (strval[p] != ' ')):
+            p = p - 1
+        if (p == 0):
+            while (p < len(strval) and (strval[p] != ' ')):
+                p = p + 1
+        if (p > 0):
+            left = strval[0:p];
+            right = strval[p + 1:];
+            return left + spaceReplacer + stringDivider(right, width, spaceReplacer);
     return strval;
 
 class FeatureProgressDomainDashboard(AbstractDashboard):
@@ -45,9 +47,10 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
 
         if len(self.name_list) == 0:
             return
+        cc = cc_klass()
         self.brnamelist =[];
         for vl in self.name_list:
-            self.brnamelist.append(stringDivider(vl,30,"<br>"))
+            self.brnamelist.append(stringDivider(vl,int(cc.read_display_width()/10/len(self.name_list)),"<br>"))
 
         traces = []
         trace1 = go.Bar(
@@ -105,13 +108,13 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
         plan_fact_str = "pf"
         title_sum = "Open: {0:.2f}%, Dev: {1:.2f}%, Closed: {2:.2f}%, All tasks: {3:.2f} md".format(100*all_open/all_tasks, 100*all_dev/all_tasks, 100*all_closed/all_tasks, all_tasks)
         now_dt = datetime.datetime.now()
-        cc = cc_klass()
+
         length_ss = cc.read_supersprint_length(self.fixversion)
         if length_ss!=0:
             will_be_done = 100*(now_dt - cc.read_supersprint_start(self.fixversion)).days/ length_ss
         else:
             will_be_done = 0
-        title = "{0} <br>{1} <br> Must be done today {2}: {3:.2f}%".format(self.dashboard_name, title_sum, self.fixversion, will_be_done)
+        title = "{0} <br>{1} <br> Must be done today({4}) in {2}: {3:.2f}%".format(self.dashboard_name,  title_sum, self.fixversion, will_be_done, now_dt.strftime("%d.%m.%y %H:%M"))
         tools.make_subplots
 
         file_name = self.dashboard_name.replace('num', '') + ' ' + plan_fact_str

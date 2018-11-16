@@ -24,6 +24,7 @@ LOG_DIR = 'log_dir'
 PROJECTS_SECTION = "PROJECTS"
 START = "start"
 END = "end"
+DISPLAY_WIDTH = "display_width"
 
 # Singleton/SingletonDecorator.py
 class ConfigControllerDecorator:
@@ -204,5 +205,13 @@ class ConfigController:
             delta = self.getDateTimeFromISO8601String(end)- self.getDateTimeFromISO8601String(start)
             length = delta.days
         return length
+
+    def read_display_width(self):
+        if self.config_controller is None:
+            return None
+        width = 1980
+        if DASHBOARDS_SECTION in self.config_controller:
+            width = int(self.config_controller[DASHBOARDS_SECTION][DISPLAY_WIDTH])
+        return width
 
 cc_klass = ConfigControllerDecorator(ConfigController)
