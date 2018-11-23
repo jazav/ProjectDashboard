@@ -50,7 +50,7 @@ def get_command_namespace(argv):
                                   default=EXPORT_MODE[PLOT_IDX])
     dashboard_parser.add_argument('-projects', '-p', action="store",
                                   help="list of projects, to show progress (divided by ,) : BSSPAY,BSSBFAM",
-                                  required=False, default="BSSPAY,BSSUFM,BSSBFAM,BSSLIS")
+                                  required=False, default="")
     dashboard_parser.add_argument('-fixversion', '-f', action="store",
                                   help="fixversion : SuperSprint7",
                                   required=False, default="SuperSprint7")

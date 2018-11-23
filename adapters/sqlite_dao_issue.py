@@ -119,8 +119,9 @@ class SqliteDaoIssue(DaoIssue):
                                       LEFT OUTER JOIN
                                       issues st ON i.issue_key = st.parent
                                 WHERE e.issuetype = "Epic" AND 
-                                      st.parent IS NULL  AND
-                                      i.project = "'''+project_filter+'" '
+                                      st.parent IS NULL  '''
+        if project_filter !='':
+            sql_str = sql_str + ' AND  i.project = "'''+project_filter+'" '
         if label_filter !='':
             sql_str = sql_str + ' AND e.labels LIKE "%,'+label_filter+',%"  '
         if fixversions_filter != '':
@@ -137,8 +138,9 @@ class SqliteDaoIssue(DaoIssue):
                                           LEFT JOIN
                                           issues st ON i.issue_key = st.parent
                                     WHERE e.issuetype = "Epic" AND 
-                                          st.parent IS NOT NULL AND 
-                                          i.project = "''' + project_filter + '" '
+                                          st.parent IS NOT NULL  '''
+        if project_filter != '':
+            sql_str = sql_str + ' AND  i.project = "''' + project_filter + '" '
         if label_filter != '':
              sql_str = sql_str + ' AND e.labels LIKE "%,' + label_filter + ',%"  '
         if fixversions_filter != '':
@@ -149,6 +151,9 @@ class SqliteDaoIssue(DaoIssue):
             name_list.append(row[1]);
             close_list.append(round(row[2]))
             open_list.append(round(row[3]));
-            dev_list.append(round(row[4]));
+            if row[4] == None:
+                dev_list.append(0);
+            else:
+                dev_list.append(round(row[4]));
         return open_list, dev_list, close_list, name_list;
 

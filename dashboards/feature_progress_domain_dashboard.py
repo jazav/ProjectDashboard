@@ -114,7 +114,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
             will_be_done = 100*(now_dt - cc.read_supersprint_start(self.fixversion)).days/ length_ss
         else:
             will_be_done = 0
-        title = "{0} <br>{1} <br> Must be done today({4}) in {2}: {3:.2f}%".format(self.dashboard_name,  title_sum, self.fixversion, will_be_done, now_dt.strftime("%d.%m.%y %H:%M"))
+        title = "{0} <br>{1} <br> Must be closed today({4}) in {2}: {3:.2f}%".format(self.dashboard_name,  title_sum, self.fixversion, will_be_done, now_dt.strftime("%d.%m.%y %H:%M"))
         tools.make_subplots
 
         file_name = self.dashboard_name.replace('num', '') + ' ' + plan_fact_str
@@ -161,6 +161,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
                 ticks='',
                 showticklabels=True,
                 tickangle=0,
+                title='Estimates (man-days)',
                 tickfont=dict(
                     size=10,
                     color='black'
@@ -175,13 +176,13 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
                 showline=True,
                 ticks='',
                 tickangle=0,
-                showticklabels=True,
+                showticklabels=(len(self.dev_list) < 30),
                 tickfont=dict(
                     size=10,
                     color='black'
 
                 ),
-                title='Estimates (man-days)',
+                title='Features (L3) ',
                 titlefont=dict(
                     size=12,
                     color='black'

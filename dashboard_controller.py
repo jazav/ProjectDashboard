@@ -192,6 +192,10 @@ class DashboardController:
         dashboard.prepare(data=data)
         dashboard.export_to_plot()
 
+    def chunks(l, n):
+        """Yield successive n-sized chunks from l."""
+        for i in range(0, len(l), n):
+            yield l[i:i + n]
 
     def dashboard_feature_domain_progress(self, plan, fact, details, projects, fixversion, auto_open):
         if not (plan and fact):
@@ -203,7 +207,7 @@ class DashboardController:
         dashboard = FeatureProgressDomainDashboard()
         project_list = projects#["BSSPAY", "BSSUFM", "BSSBFAM", "BSSLIS"]
         for project in project_list:
-            dashboard.dashboard_name = 'All features in '+ project  # str(i).zfill(1)
+            dashboard.dashboard_name = 'All features in ' + fixversion + ' '+  project  # str(i).zfill(1)
             dashboard.filter_list = [""]
             dashboard.project=project
             dashboard.items_on_chart = 40
@@ -213,4 +217,9 @@ class DashboardController:
             dashboard.details = details
             dashboard.auto_open = auto_open
             dashboard.prepare(data=data_dao, fixversion = fixversion)
+            dashboard.fixversion = fixversion
+            #lopen_list, ldev_list, lclose_list, lname_list = data_dao.get_sum_by_projects(dashboard.project, "",
+            #                                                                                          fixversion)
+            #for val in lname_list:
+            #    dashboard.open_list, dashboard.dev_list, dashboard.close_list, dashboard.name_list
             dashboard.export_to_plot()
