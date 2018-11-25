@@ -1,7 +1,9 @@
 import logging
 import re
+
 import pandas as pd
 from pylab import *
+
 from config_controller import *
 
 TOTAL_NAME = 'Total:'
@@ -17,13 +19,13 @@ def list_from_string(source_str, reg_filter_list, del_substring):
     lst = list()
     substrings = source_str.split(',')
     for substring in substrings:
-#        if not (reg_filter_list is None):
-            for reg_filter in reg_filter_list:
-                if re.search(reg_filter, substring):
-                    if del_substring is not None:
-                        lst.append(substring.replace(del_substring, 'F-'))
-                    else:
-                        lst.append(substring)
+        #        if not (reg_filter_list is None):
+        for reg_filter in reg_filter_list:
+            if re.search(reg_filter, substring):
+                if del_substring is not None:
+                    lst.append(substring.replace(del_substring, 'F-'))
+                else:
+                    lst.append(substring)
     return lst
 
 
@@ -96,11 +98,12 @@ def applying_AND_filter(issue_df, and_filter_list):
 
 def get_fact_data(epic_df, issue_df):
     # need only closed tasks
-    closed_df= applying_OR_filter(issue_df, ["Closed","Resolved"], "status")
+    closed_df = applying_OR_filter(issue_df, ["Closed", "Resolved"], "status")
     sum_series = closed_df.groupby(['epiclink'])['timeoriginalestimate'].sum()
     # if we ned data frame
     # epic_df = epic_df.set_index('key').join(issue_sum_df, on='key', rsuffix='_fact', how='inner')
     return sum_series
+
 
 def get_open_data(epic_df, issue_df):
     # need only closed tasks
@@ -110,7 +113,8 @@ def get_open_data(epic_df, issue_df):
     # epic_df = epic_df.set_index('key').join(issue_sum_df, on='key', rsuffix='_fact', how='inner')
     return sum_series
 
-#get all tasks
+
+# get all tasks
 def get_all_data(epic_df, issue_df):
     sum_series = issue_df.groupby(['epiclink'])['timeoriginalestimate'].sum()
     return sum_series
@@ -134,7 +138,7 @@ def get_dict_from_df(plan_df, fact_series, filter_list, plan_prefix, fact_prefix
         # if component has several nums, we devide it by nums count
         plan_est = float(row.timeoriginalestimate / count_of_features)
 
-        if fact_series is not None and  row.key in fact_series:
+        if fact_series is not None and row.key in fact_series:
             fact_est = float(fact_series[row.key] / count_of_features)
         else:
             fact_est = 0.0
@@ -157,7 +161,7 @@ def get_dict_from_df(plan_df, fact_series, filter_list, plan_prefix, fact_prefix
             plan_feature = plan_prefix + num_item.replace("_", " ")
             fact_feature = fact_prefix + num_item.replace("_", " ")
             open_feature = open_prefix + num_item.replace("_", " ")
-            all_feature =  num_item.replace("_", " ")
+            all_feature = num_item.replace("_", " ")
 
             # Tech writers have different issue type and use BOX as a component
 
@@ -213,7 +217,7 @@ def get_dict_from_df(plan_df, fact_series, filter_list, plan_prefix, fact_prefix
                         open_dict[open_feature][TOTAL_NAME] = open_dict[open_feature][TOTAL_NAME] + \
                                                               open_dict[open_feature][item]
                         all_dict[all_feature][TOTAL_NAME] = all_dict[all_feature][TOTAL_NAME] + \
-                                                              all_dict[all_feature][item]
+                                                            all_dict[all_feature][item]
                     else:
                         plan_dict[plan_feature][TOTAL_NAME] = plan_dict[plan_feature][item]
                         fact_dict[fact_feature][TOTAL_NAME] = fact_dict[fact_feature][item]
@@ -237,8 +241,9 @@ def prepare(epic_data, issue_data, or_filter_list, and_filter_list, plan_prefix,
     open_series = get_open_data(epic_df=epic_data, issue_df=issue_data)
 
     plan_dict, fact_dict, open_dict = get_dict_from_df(plan_df=filtered_epic_df, fact_series=fact_series,
-                                            filter_list=or_filter_list, plan_prefix=plan_prefix,
-                                            fact_prefix=fact_prefix, with_total=with_total, details=details, open_series=open_series, open_prefix='')
+                                                       filter_list=or_filter_list, plan_prefix=plan_prefix,
+                                                       fact_prefix=fact_prefix, with_total=with_total, details=details,
+                                                       open_series=open_series, open_prefix='')
 
     plan_epic_df = pd.DataFrame.from_dict(plan_dict)
     fact_epic_df = pd.DataFrame.from_dict(fact_dict)
@@ -246,14 +251,17 @@ def prepare(epic_data, issue_data, or_filter_list, and_filter_list, plan_prefix,
 
     return plan_epic_df, fact_epic_df
 
-def prepare_domain(epic_data, issue_data, or_filter_list, and_filter_list, plan_prefix, fact_prefix, with_total, details, project_fiter_list):
+
+def prepare_domain(epic_data, issue_data, or_filter_list, and_filter_list, plan_prefix, fact_prefix, with_total,
+                   details, project_fiter_list):
     # filter on Epic&Doc only
 
     # applying "OR" filter (features, feature group etc.)
     filtered_epic_df = applying_OR_filter(issue_df=epic_data, or_filter_list=or_filter_list, column_name="labels")
 
     # applying "OR" filter by project()
-    filtered_project_df = applying_OR_filter(issue_df=filtered_epic_df, or_filter_list=project_fiter_list, column_name="project")
+    filtered_project_df = applying_OR_filter(issue_df=filtered_epic_df, or_filter_list=project_fiter_list,
+                                             column_name="project")
 
     # applying "AND" filter
     filtered_epic_df = applying_AND_filter(issue_df=filtered_project_df, and_filter_list=and_filter_list)
@@ -264,14 +272,14 @@ def prepare_domain(epic_data, issue_data, or_filter_list, and_filter_list, plan_
     all_series = get_all_data(epic_df=epic_data, issue_df=issue_data)
 
     plan_dict, fact_dict, open_dict, all_dict = get_dict_from_df(plan_df=filtered_epic_df, fact_series=fact_series,
-                                            filter_list=or_filter_list,
-                                            plan_prefix='',
-                                            fact_prefix='',
-                                            with_total=with_total,
-                                            details=details,
-                                            open_series = open_series,
-                                            open_prefix='',
-                                            all_series=all_series)
+                                                                 filter_list=or_filter_list,
+                                                                 plan_prefix='',
+                                                                 fact_prefix='',
+                                                                 with_total=with_total,
+                                                                 details=details,
+                                                                 open_series=open_series,
+                                                                 open_prefix='',
+                                                                 all_series=all_series)
 
     plan_epic_df = pd.DataFrame.from_dict(plan_dict)
     fact_epic_df = pd.DataFrame.from_dict(fact_dict)

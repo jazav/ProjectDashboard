@@ -189,7 +189,7 @@ class DashboardController:
         dashboard.fact = fact
         dashboard.details = details
 
-        dashboard.prepare(data=data)
+        dashboard.prepare(data=data, fixversion=None)
         dashboard.export_to_plot()
 
     def chunks(l, n):
@@ -207,17 +207,20 @@ class DashboardController:
         dashboard = FeatureProgressDomainDashboard()
         project_list = projects#["BSSPAY", "BSSUFM", "BSSBFAM", "BSSLIS"]
         for project in project_list:
-            dashboard.dashboard_name = 'All features in ' + fixversion + ' '+  project  # str(i).zfill(1)
+            dashboard.dashboard_name = 'All features in ' + fixversion + ' ' + project  # str(i).zfill(1)
             dashboard.filter_list = [""]
-            dashboard.project=project
             dashboard.items_on_chart = 40
             dashboard.min_item_tail = 6
             dashboard.plan = plan
             dashboard.fact = fact
             dashboard.details = details
             dashboard.auto_open = auto_open
-            dashboard.prepare(data=data_dao, fixversion = fixversion)
+
+            dashboard.project = project
             dashboard.fixversion = fixversion
+
+            dashboard.prepare(data=data_dao)
+
             #lopen_list, ldev_list, lclose_list, lname_list = data_dao.get_sum_by_projects(dashboard.project, "",
             #                                                                                          fixversion)
             #for val in lname_list:

@@ -11,6 +11,7 @@ LOG_FORMAT = "%(asctime)s - %(levelname)s - %(module)s.%(funcName)s: %(message)s
 def get_command_namespace(argv):
     parser = argparse.ArgumentParser(description='Project Dashboards help:')
 
+
     subparsers = parser.add_subparsers(help='list of commands:', dest='command')
 
     init_parser = subparsers.add_parser('init', help='initialize data cache')
@@ -35,6 +36,7 @@ def get_command_namespace(argv):
                               default=EXPORT_MODE[TXT_IDX])
     issue_parser.add_argument('-jira', '-j', action="store", help="jira from config", required=False, default="jira_1")
 
+    # loop for cache parsers
     for subparser in [init_parser, update_parser, issue_parser]:
         subparser.add_argument('-user', '-u', action="store", help='user name of Jira account', required=True)
         subparser.add_argument('-password', '-p', action="store", help='password of Jira account', required=True)

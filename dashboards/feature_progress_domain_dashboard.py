@@ -23,34 +23,33 @@ def stringDivider(strval, width, spaceReplacer):
             while (p < len(strval) and (strval[p] != ' ')):
                 p = p + 1
         if (p > 0):
-            left = strval[0:p];
-            right = strval[p + 1:];
-            return left + spaceReplacer + stringDivider(right, width, spaceReplacer);
-    return strval;
+            left = strval[0:p]
+            right = strval[p + 1:]
+            return left + spaceReplacer + stringDivider(right, width, spaceReplacer)
+    return strval
 
 class FeatureProgressDomainDashboard(AbstractDashboard):
     '''Plotly Bar Stacked Chart'''
-    open_list= [];
-    dev_list= [];
-    close_list= [];
-    name_list= [];
-    auto_open = True;
+    open_list = []
+    dev_list = []
+    close_list = []
+    name_list = []
+    auto_open = True
+    fixversion = None
+    project = None
 
-    def prepare(self, data, fixversion):
-        self.fixversion = fixversion
-        self.open_list, self.dev_list, self.close_list, self.name_list = data.get_sum_by_projects(self.project, "", fixversion)
-
-
-
+    def prepare(self, data):
+        self.open_list, self.dev_list, self.close_list, self.name_list = data.get_sum_by_projects(self.project, "", self.fixversion)
 
     def export_to_plotly(self):
-
         if len(self.name_list) == 0:
             return
         cc = cc_klass()
-        self.brnamelist =[];
+        self.brnamelist = []
+        colors = []
         for vl in self.name_list:
-            self.brnamelist.append(stringDivider(vl,int(cc.read_display_width()/10/len(self.name_list)),"<br>"))
+            self.brnamelist.append(stringDivider(vl, int(cc.read_display_width()/10/len(self.name_list)), "<br>"))
+            #colors.append()
 
         traces = []
         trace1 = go.Bar(
@@ -60,6 +59,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
             name=FACT_PREFIX,
             textposition='auto',
             marker=dict(
+                color='palegreen',
                 line=dict(
                     color='rgb(8,48,107)',
                     width=1.5),
@@ -70,8 +70,9 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
             y=self.dev_list,
             text=self.dev_list,
             name=DEV_PREFIX,
-            textposition = 'auto',
-                           marker = dict(
+            textposition='auto',
+            marker=dict(
+                color='lightgoldenrodyellow',
                 line=dict(
                     color='rgb(8,48,107)',
                     width=1.5),
@@ -83,8 +84,9 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
             y=self.open_list,
             text=self.open_list,
             name=OPEN_PREFIX,
-            textposition = 'auto',
-                           marker = dict(
+            textposition='auto',
+            marker=dict(
+                color='powderblue',
                 line=dict(
                     color='rgb(8,48,107)',
                     width=1.5),
@@ -122,7 +124,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
         layout = go.Layout(
             annotations=[
                 dict(
-                    x=1.09,
+                    x=1.05,
                     y=1.03,
                     xref='paper',
                     yref='paper',
