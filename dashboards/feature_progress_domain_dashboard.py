@@ -39,21 +39,25 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
     project = None
 
     def prepare(self, data):
-        self.open_list, self.dev_list, self.close_list, self.name_list = data.get_sum_by_projects(self.project, "", self.fixversion)
+        if self.fixversion is None:
+            raise ValueError('fixversion is undefined')
+        self.open_list, self.dev_list, self.close_list, self.name_list, self.prj_list = \
+            data.get_sum_by_projects(self.project, "", self.fixversion)
 
     def export_to_plotly(self):
         if len(self.name_list) == 0:
             return
         cc = cc_klass()
-        self.brnamelist = []
+        brnamelist = []
         colors = []
         for vl in self.name_list:
-            self.brnamelist.append(stringDivider(vl, int(cc.read_display_width()/10/len(self.name_list)), "<br>"))
+            brnamelist.append(stringDivider(vl, int(cc.read_display_width()/10/len(self.name_list)), "<br>"))
             #colors.append()
 
         traces = []
         trace1 = go.Bar(
-            x=self.brnamelist,
+            #was: brnamelist
+            x=self.prj_list,
             y=self.close_list,
             text=self.close_list,
             name=FACT_PREFIX,
@@ -65,8 +69,9 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
                     width=1.5),
             )
         )
+        # was: brnamelist
         trace2 = go.Bar(
-            x=self.brnamelist,
+            x=self.prj_list,
             y=self.dev_list,
             text=self.dev_list,
             name=DEV_PREFIX,
@@ -78,9 +83,9 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
                     width=1.5),
             )
         )
-
+        # was: brnamelist
         trace3 = go.Bar(
-            x=self.brnamelist,
+            x=self.prj_list,
             y=self.open_list,
             text=self.open_list,
             name=OPEN_PREFIX,
@@ -116,7 +121,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
             will_be_done = 100*(now_dt - cc.read_supersprint_start(self.fixversion)).days/ length_ss
         else:
             will_be_done = 0
-        title = "{0} <br>{1} <br> Must be closed today({4}) in {2}: {3:.2f}%".format(self.dashboard_name,  title_sum, self.fixversion, will_be_done, now_dt.strftime("%d.%m.%y %H:%M"))
+        title = "{0} <br>{1} <br> Must be closed today ({4}) in {2}: {3:.2f}%".format(self.dashboard_name,  title_sum, self.fixversion, will_be_done, now_dt.strftime("%d.%m.%y %H:%M"))
         tools.make_subplots
 
         file_name = self.dashboard_name.replace('num', '') + ' ' + plan_fact_str

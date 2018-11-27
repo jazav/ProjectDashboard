@@ -96,7 +96,7 @@ def main(argv):
 
     name_space = get_command_namespace(argv)
 
-    print('start %s', name_space.command)
+    print('start {0}'.format(name_space.command))
     dshc = DashboardController()
 
     if name_space.command in ("init", "update", "issue"):
