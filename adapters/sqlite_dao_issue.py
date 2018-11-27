@@ -67,6 +67,9 @@ class SqliteDaoIssue(DaoIssue):
         self.connection.commit()
 
     def insert_issues(self, issues):
+        if len(issues) == 0:
+            return
+
         for key, value in issues.items():
             try:
                 if "fixversions" in value:

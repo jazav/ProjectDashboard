@@ -11,7 +11,6 @@ LOG_FORMAT = "%(asctime)s - %(levelname)s - %(module)s.%(funcName)s: %(message)s
 def get_command_namespace(argv):
     parser = argparse.ArgumentParser(description='Project Dashboards help:')
 
-
     subparsers = parser.add_subparsers(help='list of commands:', dest='command')
 
     init_parser = subparsers.add_parser('init', help='initialize data cache')
@@ -42,24 +41,35 @@ def get_command_namespace(argv):
         subparser.add_argument('-password', '-p', action="store", help='password of Jira account', required=True)
 
     dashboard_parser = subparsers.add_parser('dashboard', help='show dashboard')
+
     dashboard_parser.add_argument('-name', '-n', action="store", help="name of dashboard", required=True)
+
     dashboard_parser.add_argument('-mode', '-m', action="store", help="mode to show: plan,fact", required=False,
                                   default="plan,fact")
+
     dashboard_parser.add_argument('-details', '-d', action="store", help="mode to show: domain|component",
                                   required=False,
                                   default="domain")
+
     dashboard_parser.add_argument('-export', '-e', action="store", help='export to plot', required=False,
                                   default=EXPORT_MODE[PLOT_IDX])
     dashboard_parser.add_argument('-projects', '-p', action="store",
                                   help="list of projects, to show progress (divided by ,) : BSSPAY,BSSBFAM",
                                   required=False, default="")
+
     dashboard_parser.add_argument('-fixversion', '-f', action="store",
                                   help="fixversion : SuperSprint7",
                                   required=False, default="SuperSprint7")
+
     dashboard_parser.add_argument('-auto_open', '-a', action="store",
                                   help="auto_open : True",
                                   required=False, default="True")
+
+    for subparser in [init_parser, update_parser, issue_parser, dashboard_parser]:
+        subparser.add_argument('-cache', '-c', action="store", help="cache file", required=False)
+
     name_space = parser.parse_args(args=argv)
+
     return name_space
 
 
@@ -99,7 +109,11 @@ def main(argv):
     print('start {0}'.format(name_space.command))
     dshc = DashboardController()
 
+    if name_space.cache is not None:
+        cc.set_data_cache(name_space.cache)
+
     if name_space.command in ("init", "update", "issue"):
+
         cc.set_login(user=name_space.user, password=name_space.password)
 
         if name_space.command == "init":
@@ -121,6 +135,8 @@ def main(argv):
                 jira_url = get_jira_url(jira=jira_name)
                 dshc.dashbord_issue_detail(key=name_space.key, field_mode=name_space.mode, export=name_space.export,
                                        jira_url=jira_url)
+
+
     if name_space.command == "dashboard":
         if name_space.name == "fgp":
             plan, fact = get_plan_fact(parameters=name_space.mode)

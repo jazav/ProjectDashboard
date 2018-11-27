@@ -116,6 +116,9 @@ class ConfigController:
 
         return options
 
+    def set_data_cache(self, cache):
+        self.config_controller[CACHE_SECTION][DATA_FILE] = cache
+
     def read_dashboards_config(self):
 
         if self.config_controller is None:
@@ -148,7 +151,7 @@ class ConfigController:
 
         return options
 
-    def read_projects_config(self,jira_name):
+    def read_projects_config(self, jira_name):
 
         if self.config_controller is None:
             return None
@@ -176,7 +179,7 @@ class ConfigController:
         d = dateutil.parser.parse(s)
         return d
 
-    def read_supersprint_end(self,supersprint):
+    def read_supersprint_end(self, supersprint):
         if self.config_controller is None:
             return None
         section = supersprint.upper()
@@ -185,7 +188,7 @@ class ConfigController:
             end = self.getDateTimeFromISO8601String(self.config_controller[section][END])
         return end
 
-    def read_supersprint_start(self,supersprint):
+    def read_supersprint_start(self, supersprint):
         if self.config_controller is None:
             return None
         section = supersprint.upper()
@@ -194,7 +197,7 @@ class ConfigController:
             start = self.getDateTimeFromISO8601String(self.config_controller[section][START])
         return start
 
-    def read_supersprint_length(self,supersprint):
+    def read_supersprint_length(self, supersprint):
         if self.config_controller is None:
             return None
         section = supersprint.upper()

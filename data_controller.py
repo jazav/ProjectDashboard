@@ -118,7 +118,6 @@ class DataController:
             serializable_issue_dict = cache.load_all(query=query, expand=expand, url=url, jira_name=jira_name)
             issue_dict = iu.deserialize(serializable_issue_dict)
             logging.debug(len(issue_dict))
-
         else:
             issues = self.get_issues_by_query(query=query, expand=expand)
             issue_dict = iu.issues_to_dict(issues)
@@ -135,7 +134,7 @@ class DataController:
         return issues
 
     def get_issue_sqllite(self, query, expand):
-        issue_dict = self.get_issue_dict(query=query, expand=expand, url='', jira_name = '')
+        issue_dict = self.get_issue_dict(query=query, expand=expand, url='', jira_name='')
         dao_issue = get_sqlite_dao()
         dao_issue.insert_issues(issue_dict)
         return dao_issue
