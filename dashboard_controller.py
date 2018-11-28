@@ -207,7 +207,7 @@ class DashboardController:
         dashboard = FeatureProgressDomainDashboard()
         project_list = projects#["BSSPAY", "BSSUFM", "BSSBFAM", "BSSLIS"]
         for project in project_list:
-            dashboard.dashboard_name = 'All features in ' + fixversion + ' ' + project  # str(i).zfill(1)
+            dashboard.dashboard_name = 'All features in ' + ((fixversion + ' ') if project == "" else project)  # str(i).zfill(1)
             dashboard.filter_list = [""]
             dashboard.items_on_chart = 40
             dashboard.min_item_tail = 6

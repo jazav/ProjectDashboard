@@ -69,11 +69,13 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
             name=FACT_PREFIX,
             textposition='auto',
             marker=dict(
-                color='palegreen',
+                color='rgb(29,137,49)',#'palegreen',
                 line=dict(
-                    color='rgb(8,48,107)',
+                    color='black',
                     width=1.5),
-            )
+            ),
+            insidetextfont=dict(family='Arial', size=12,
+                      color='white')
         )
         # was: brnamelist
         trace2 = go.Bar(
@@ -83,11 +85,13 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
             name=DEV_PREFIX,
             textposition='auto',
             marker=dict(
-                color='lightgoldenrodyellow',
+                color='rgb(254,210,92)',#'lightgoldenrodyellow',
                 line=dict(
-                    color='rgb(8,48,107)',
+                    color='black',
                     width=1.5),
-            )
+            ),
+            insidetextfont=dict(family='Arial', size=12,
+                      color='black')
         )
         # was: brnamelist
         trace3 = go.Bar(
@@ -97,11 +101,13 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
             name=OPEN_PREFIX,
             textposition='auto',
             marker=dict(
-                color='powderblue',
+                color='rgb(75,103,132)',#'powderblue',
                 line=dict(
-                    color='rgb(8,48,107)',
+                    color='black',
                     width=1.5),
-            )
+            ),
+            insidetextfont=dict(family='Arial', size=12,
+                      color='white')
         )
         traces.append(trace1)
         traces.append(trace2)
@@ -131,7 +137,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
         title = "{0} <br>{1} <br> Must be closed today ({4}) in {2}: {3:.2f}%".format(self.dashboard_name,  title_sum, self.fixversion, will_be_done, now_dt.strftime("%d.%m.%y %H:%M"))
         tools.make_subplots
 
-        file_name = self.dashboard_name.replace('num', '') + ' ' + plan_fact_str
+        file_name = self.dashboard_name + ' ' + plan_fact_str
         html_file = self.png_dir + "{0}_{1}.html".format(file_name, self.project)
         layout = go.Layout(
             annotations=[
@@ -145,7 +151,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
                     font=dict(
                         family='sans-serif',
                         size=14,
-                        color='#000'
+                        color='black'
                     )
                 )
             ],
@@ -190,13 +196,13 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
                 showline=True,
                 ticks='',
                 tickangle=0,
-                showticklabels=(len(self.dev_list) < 30),
+                showticklabels=self.dashboard_type == DashboardType.PROJECT or (len(self.dev_list) < 30),
                 tickfont=dict(
                     size=10,
                     color='black'
 
                 ),
-                title='Features (L3) ',
+                title='Features (L3) ' if self.dashboard_type == DashboardType.FEATURE else "Projects",
                 titlefont=dict(
                     size=12,
                     color='black'
