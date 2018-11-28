@@ -8,7 +8,7 @@ from adapters.file_cache import FileCache
 from config_controller import *
 from dashboards.feature_heatmap_dashboard import FeatureHeatmapDashboard
 from dashboards.feature_progress_dashboard import FeatureProgressDashboard
-from dashboards.feature_progress_domain_dashboard import FeatureProgressDomainDashboard
+from dashboards.feature_progress_domain_dashboard import FeatureProgressDomainDashboard, DashboardType
 from dashboards.issue_detail_dashboard import IssueDetailDashboard
 from dashboards.prepare_feature_data import *
 from data_controller import DataController
@@ -197,7 +197,7 @@ class DashboardController:
         for i in range(0, len(l), n):
             yield l[i:i + n]
 
-    def dashboard_feature_domain_progress(self, plan, fact, details, projects, fixversion, auto_open):
+    def dashboard_feature_domain_progress(self, plan, fact, details, projects, fixversion, auto_open, dashboard_type):
         if not (plan and fact):
             raise ValueError('both of plan and fact parameters are false')
 
@@ -218,7 +218,7 @@ class DashboardController:
 
             dashboard.project = project
             dashboard.fixversion = fixversion
-
+            dashboard.dashboard_type = dashboard_type#DashboardType.FEATURE
             dashboard.prepare(data=data_dao)
 
             #lopen_list, ldev_list, lclose_list, lname_list = data_dao.get_sum_by_projects(dashboard.project, "",

@@ -4,6 +4,7 @@ from config_controller import *
 from dashboard_controller import DashboardController
 from adapters.jira_adapter import *
 from dashboards.dashboard import *
+from dashboards.feature_progress_domain_dashboard import DashboardType
 
 LOG_FORMAT = "%(asctime)s - %(levelname)s - %(module)s.%(funcName)s: %(message)s"
 
@@ -64,6 +65,10 @@ def get_command_namespace(argv):
     dashboard_parser.add_argument('-auto_open', '-a', action="store",
                                   help="auto_open : True",
                                   required=False, default="True")
+
+    dashboard_parser.add_argument('-dashboard_type', '-dt', action="store",
+                                  help="dashboard_type : FEATURE or PROJECT",
+                                  required=False, default="FEATURE")
 
     for subparser in [init_parser, update_parser, issue_parser, dashboard_parser]:
         subparser.add_argument('-cache', '-c', action="store", help="cache file", required=False)
@@ -149,7 +154,9 @@ def main(argv):
         if name_space.name == "domain":
             plan, fact = get_plan_fact(parameters=name_space.mode)
             dshc.dashboard_feature_domain_progress(plan=plan, fact=fact, details=name_space.details,
-                                                   projects=name_space.projects.split(","), fixversion=name_space.fixversion, auto_open=(name_space.auto_open.upper()=='TRUE'))
+                                                   projects=name_space.projects.split(","), fixversion=name_space.fixversion,
+                                                   auto_open=(name_space.auto_open.upper()=='TRUE'),
+                                                   dashboard_type=DashboardType[name_space.dashboard_type.upper()])
         if name_space.name == "hm":
             dshc.dashboard_heatmap()
 

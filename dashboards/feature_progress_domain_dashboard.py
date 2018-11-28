@@ -8,6 +8,12 @@ import dashboards.prepare_feature_data as pfd
 from config_controller import cc_klass
 from dashboards.dashboard import AbstractDashboard
 
+from enum import Enum, auto
+class DashboardType(Enum):
+     PROJECT = auto()
+     FEATURE = auto()
+
+
 PLAN_PREFIX = '<b>Plan</b>'
 FACT_PREFIX = '<b>Closed</b>'
 OPEN_PREFIX = '<b>Open</b>'
@@ -37,7 +43,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
     auto_open = True
     fixversion = None
     project = None
-
+    dashboard_type = DashboardType.PROJECT
     def prepare(self, data):
         if self.fixversion is None:
             raise ValueError('fixversion is undefined')
@@ -57,7 +63,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
         traces = []
         # was: brnamelist
         trace1 = go.Bar(
-            x=self.prj_list,
+            x=self.prj_list if self.dashboard_type == DashboardType.PROJECT else brnamelist,
             y=self.close_list,
             text=self.close_list,
             name=FACT_PREFIX,
@@ -71,7 +77,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
         )
         # was: brnamelist
         trace2 = go.Bar(
-            x=self.prj_list,
+            x=self.prj_list if self.dashboard_type == DashboardType.PROJECT else brnamelist,
             y=self.dev_list,
             text=self.dev_list,
             name=DEV_PREFIX,
@@ -85,7 +91,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
         )
         # was: brnamelist
         trace3 = go.Bar(
-            x=self.prj_list,
+            x=self.prj_list if self.dashboard_type == DashboardType.PROJECT else brnamelist,
             y=self.open_list,
             text=self.open_list,
             name=OPEN_PREFIX,
