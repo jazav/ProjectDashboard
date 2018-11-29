@@ -102,7 +102,7 @@ class SqliteDaoIssue(DaoIssue):
 
         self.connection.commit()
 
-    def get_sum_by_projects(self, project_filter, label_filter,fixversions_filter):  # must return arrays
+    def get_sum_by_projects(self, project_filter, label_filter,fixversions_filter, group_by):  # must return arrays
         open_list= []
         dev_list= []
         close_list= []
@@ -113,12 +113,37 @@ class SqliteDaoIssue(DaoIssue):
                            summary,
                            SUM(CASE WHEN status IN ('Closed', 'Resolved') THEN timeoriginalestimate ELSE 0 END) close,
                            SUM(CASE WHEN status IN ('Open','New') THEN timeoriginalestimate ELSE 0 END) open,
-                           SUM(CASE WHEN status IN ('Open','New','Closed', 'Resolved') THEN 0 ELSE timeoriginalestimate END) dev
+                           SUM(CASE WHEN status IN ('Open','New','Closed', 'Resolved') THEN 0 ELSE timeoriginalestimate END) dev,
+                           domain
                       FROM (
                                SELECT i.project,
                                       e.summary,
                                       i.status,
-                                      i.timeoriginalestimate
+                                      i.timeoriginalestimate,
+                                          CASE
+                                            WHEN i.project = 'BSSARBA' THEN 'ARBA'
+                                            WHEN i.project ='BSSBFAM' THEN 'Billing'
+                                            WHEN i.project ='Billing' THEN 'Billing'
+                                            WHEN i.project ='BSSGUS' THEN 'Billing'
+                                            WHEN i.project ='BSSCRM' THEN 'CRM'
+                                            WHEN i.project ='BSSCAM' THEN 'CRM'
+                                            WHEN i.project ='BSSCCM'  THEN  'CRM'
+                                            WHEN i.project ='BSSCPM' THEN  'Ordering'
+                                            WHEN i.project ='BSSUFM' THEN  'Billing'
+                                            WHEN i.project ='BSSORDER' THEN  'Ordering'
+                                            WHEN i.project ='BSSCRMP' THEN  'DFE'
+                                            WHEN i.project ='BSSDAPI' THEN  'DFE'
+                                            WHEN i.project ='BSSSCP' THEN  'DFE'
+                                            WHEN i.project ='UIKIT' THEN  'DFE'
+                                            WHEN i.project ='RNDDOC' THEN  'Doc'
+                                            WHEN i.project ='BSSLIS' THEN  'Billing'
+                                            WHEN i.project ='BSSPRM' THEN  'PRM'
+                                            WHEN i.project ='BSSPSC' THEN  'Catalog'
+                                            WHEN i.project ='BSSPAY' THEN  'Billing'
+                                            WHEN i.project ='BSSBOX' THEN  'BSSBOX'
+                                            WHEN i.project ='NWMOCS' THEN  'NWM'
+                                            ELSE '!'||i.project
+                                            END domain
                                  FROM issues e
                                       LEFT JOIN
                                       issues i ON e.issue_key = i.epiclink
@@ -137,7 +162,31 @@ class SqliteDaoIssue(DaoIssue):
                                    SELECT i.project,
                                           e.summary,
                                           st.status,
-                                          st.timeoriginalestimate
+                                          st.timeoriginalestimate,
+                                          CASE
+                                            WHEN i.project = 'BSSARBA' THEN 'ARBA'
+                                            WHEN i.project ='BSSBFAM' THEN 'Billing'
+                                            WHEN i.project ='Billing' THEN 'Billing'
+                                            WHEN i.project ='BSSGUS' THEN 'Billing'
+                                            WHEN i.project ='BSSCRM' THEN 'CRM'
+                                            WHEN i.project ='BSSCAM' THEN 'CRM'
+                                            WHEN i.project ='BSSCCM'  THEN  'CRM'
+                                            WHEN i.project ='BSSCPM' THEN  'Ordering'
+                                            WHEN i.project ='BSSUFM' THEN  'Billing'
+                                            WHEN i.project ='BSSORDER' THEN  'Ordering'
+                                            WHEN i.project ='BSSCRMP' THEN  'DFE'
+                                            WHEN i.project ='BSSDAPI' THEN  'DFE'
+                                            WHEN i.project ='BSSSCP' THEN  'DFE'
+                                            WHEN i.project ='UIKIT' THEN  'DFE'
+                                            WHEN i.project ='RNDDOC' THEN  'Doc'
+                                            WHEN i.project ='BSSLIS' THEN  'Billing'
+                                            WHEN i.project ='BSSPRM' THEN  'PRM'
+                                            WHEN i.project ='BSSPSC' THEN  'Catalog'
+                                            WHEN i.project ='BSSPAY' THEN  'Billing'
+                                            WHEN i.project ='BSSBOX' THEN  'BSSBOX'
+                                            WHEN i.project ='NWMOCS' THEN  'NWM'
+                                            ELSE '!'||i.project
+                                            END domain
                                      FROM issues e
                                           LEFT JOIN
                                           issues i ON e.issue_key = i.epiclink
@@ -151,7 +200,7 @@ class SqliteDaoIssue(DaoIssue):
              sql_str = sql_str + ' AND e.labels LIKE "%,' + label_filter + ',%"  '
         if fixversions_filter != '':
              sql_str = sql_str + ' AND e.fixversions LIKE "%,' + fixversions_filter + ',%"  '
-        sql_str = sql_str + ' ) GROUP BY summary, project'
+        sql_str = sql_str + ' ) GROUP BY ' + group_by + ' ORDER BY domain, project, summary'
 
         for row in self.cursor.execute(sql_str):
             prj_list.append(row[0] if row[0] is not None else "")
@@ -159,7 +208,7 @@ class SqliteDaoIssue(DaoIssue):
             close_list.append(round(row[2]))
             open_list.append(round(row[3]))
             dev_list.append(round(row[4]) if row[4] is not None else 0)
-            domain_list.append(get_domain_by_project(row[0]))
+            domain_list.append(row[5])
 
         return open_list, dev_list, close_list, name_list, prj_list, domain_list
 

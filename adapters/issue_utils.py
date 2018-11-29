@@ -81,6 +81,7 @@ def get_domain_by_project(project):
         None: None
     }[project]
 
+
 def get_domains(components):
     component_list = components.split(',')
     domains = ""

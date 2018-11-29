@@ -1,10 +1,8 @@
 import datetime
-import pandas as pd
 import plotly
 import plotly.graph_objs as go
 from plotly import tools
 
-import dashboards.prepare_feature_data as pfd
 from config_controller import cc_klass
 from dashboards.dashboard import AbstractDashboard
 
@@ -14,6 +12,10 @@ class DashboardType(Enum):
      FEATURE = auto()
      DOMAIN = auto()
 
+
+class DashboardFormat(Enum):
+    HTML = auto()
+    PNG = auto()
 
 PLAN_PREFIX = '<b>Plan</b>'
 FACT_PREFIX = '<b>Closed</b>'
@@ -46,12 +48,13 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
     fixversion = None
     project = None
     dashboard_type = DashboardType.PROJECT
+    dashboard_format = DashboardFormat.HTML
 
     def prepare(self, data):
         if self.fixversion is None:
             raise ValueError('fixversion is undefined')
         self.open_list, self.dev_list, self.close_list, self.name_list, self.prj_list, self.domain_list = \
-            data.get_sum_by_projects(self.project, "", self.fixversion)
+            data.get_sum_by_projects(self.project, "", self.fixversion, 'domain' if self.dashboard_type == DashboardType.DOMAIN else 'summary, project')
 
     def get_name_list(self):
         if self.dashboard_type == DashboardType.PROJECT:
@@ -91,7 +94,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
                 color='rgb(29,137,49)',#'palegreen',
                 line=dict(
                     color='black',
-                    width=0 if self.dashboard_type == DashboardType.DOMAIN else 1),
+                    width=1),
             ),
             insidetextfont=dict(family='Arial', size=12,
                       color='white')
@@ -107,7 +110,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
                 color='rgb(254,210,92)',#'lightgoldenrodyellow',
                 line=dict(
                     color='black',
-                    width=0 if self.dashboard_type == DashboardType.DOMAIN else 1),
+                    width=1),
             ),
             insidetextfont=dict(family='Arial', size=12,
                       color='black')
@@ -123,7 +126,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
                 color='rgb(75,103,132)',#'powderblue',
                 line=dict(
                     color='black',
-                    width=0 if self.dashboard_type == DashboardType.DOMAIN else 1),
+                    width=1),
             ),
             insidetextfont=dict(family='Arial', size=12,
                       color='white')
@@ -156,8 +159,8 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
         title = "{0} <br>{1} <br> Must be closed today ({4}) in {2}: {3:.2f}%".format(self.dashboard_name,  title_sum, self.fixversion, will_be_done, now_dt.strftime("%d.%m.%y %H:%M"))
         tools.make_subplots
 
-        file_name = self.dashboard_name + ' ' + ("" if (self.dashboard_type == DashboardType.DOMAIN or self.project != "") else (self.dashboard_type.name +" "))+plan_fact_str
-        html_file = self.png_dir + "{0}_{1}.html".format(file_name, self.project)
+        file_name1 = self.dashboard_name + ' ' + ("" if (self.dashboard_type == DashboardType.DOMAIN or self.project != "") else (self.dashboard_type.name +" "))+plan_fact_str
+        file_name = self.png_dir + "{0}_{1}".format(file_name1, self.project)
         layout = go.Layout(
             annotations=[
                 dict(
@@ -230,7 +233,13 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
         )
 
         fig = go.Figure(data=traces, layout=layout)
-        plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
+        if self.dashboard_format == DashboardFormat.HTML:
+            plotly.offline.plot(fig, filename=file_name+'.html', auto_open=self.auto_open)
+        else:
+            plotly.offline.plot(fig,auto_open=self.auto_open, image='png', image_filename=file_name+'.png',
+                         output_type='file', filename=file_name+'.html')
+            #pio.write_image(fig, file_name+'.png')
+
 
 
     def export_to_plot(self):

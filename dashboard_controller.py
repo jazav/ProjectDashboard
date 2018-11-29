@@ -197,7 +197,7 @@ class DashboardController:
         for i in range(0, len(l), n):
             yield l[i:i + n]
 
-    def dashboard_feature_domain_progress(self, plan, fact, details, projects, fixversion, auto_open, dashboard_type):
+    def dashboard_feature_domain_progress(self, plan, fact, details, projects, fixversion, auto_open, dashboard_type, dashboard_format):
         if not (plan and fact):
             raise ValueError('both of plan and fact parameters are false')
 
@@ -219,6 +219,7 @@ class DashboardController:
             dashboard.project = project
             dashboard.fixversion = fixversion
             dashboard.dashboard_type = dashboard_type
+            dashboard.dashboard_format = dashboard_format
             dashboard.prepare(data=data_dao)
 
             #lopen_list, ldev_list, lclose_list, lname_list = data_dao.get_sum_by_projects(dashboard.project, "",
