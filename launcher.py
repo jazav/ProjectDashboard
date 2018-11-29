@@ -110,7 +110,6 @@ def get_jira_url(jira):
 
 def main(argv):
     cc = cc_klass()
-    cc.prepare_dirs()
 
     name_space = get_command_namespace(argv)
 
@@ -119,6 +118,7 @@ def main(argv):
 
     if name_space.cache is not None:
         cc.set_data_cache(name_space.cache)
+    cc.prepare_dirs()
 
     if name_space.command in ("init", "update", "issue"):
 
