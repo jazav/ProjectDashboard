@@ -12,6 +12,7 @@ from enum import Enum, auto
 class DashboardType(Enum):
      PROJECT = auto()
      FEATURE = auto()
+     DOMAIN = auto()
 
 
 PLAN_PREFIX = '<b>Plan</b>'
@@ -40,30 +41,48 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
     dev_list = []
     close_list = []
     name_list = []
+    brnamelist = []
     auto_open = True
     fixversion = None
     project = None
     dashboard_type = DashboardType.PROJECT
+
     def prepare(self, data):
         if self.fixversion is None:
             raise ValueError('fixversion is undefined')
-        self.open_list, self.dev_list, self.close_list, self.name_list, self.prj_list = \
+        self.open_list, self.dev_list, self.close_list, self.name_list, self.prj_list, self.domain_list = \
             data.get_sum_by_projects(self.project, "", self.fixversion)
+
+    def get_name_list(self):
+        if self.dashboard_type == DashboardType.PROJECT:
+            return self.prj_list
+        elif self.dashboard_type == DashboardType.FEATURE:
+            return self.brnamelist
+        else:
+            return self.domain_list
+
+    def get_title_xaxis(self):
+        if self.dashboard_type == DashboardType.PROJECT:
+            return "Projects"
+        elif self.dashboard_type == DashboardType.FEATURE:
+            return "Features(L3)"
+        else:
+            return "Domains"
 
     def export_to_plotly(self):
         if len(self.name_list) == 0:
             return
         cc = cc_klass()
-        brnamelist = []
-        colors = []
+
+        self.brnamelist = []
         for vl in self.name_list:
-            brnamelist.append(stringDivider(vl, int(cc.read_display_width()/10/len(self.name_list)), "<br>"))
+            self.brnamelist.append(stringDivider(vl, int(cc.read_display_width()/10/len(self.name_list)), "<br>"))
             #colors.append()
 
         traces = []
         # was: brnamelist
         trace1 = go.Bar(
-            x=self.prj_list if self.dashboard_type == DashboardType.PROJECT else brnamelist,
+            x=self.get_name_list(),
             y=self.close_list,
             text=self.close_list,
             name=FACT_PREFIX,
@@ -72,14 +91,14 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
                 color='rgb(29,137,49)',#'palegreen',
                 line=dict(
                     color='black',
-                    width=1.5),
+                    width=0 if self.dashboard_type == DashboardType.DOMAIN else 1),
             ),
             insidetextfont=dict(family='Arial', size=12,
                       color='white')
         )
         # was: brnamelist
         trace2 = go.Bar(
-            x=self.prj_list if self.dashboard_type == DashboardType.PROJECT else brnamelist,
+            x=self.get_name_list(),
             y=self.dev_list,
             text=self.dev_list,
             name=DEV_PREFIX,
@@ -88,14 +107,14 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
                 color='rgb(254,210,92)',#'lightgoldenrodyellow',
                 line=dict(
                     color='black',
-                    width=1.5),
+                    width=0 if self.dashboard_type == DashboardType.DOMAIN else 1),
             ),
             insidetextfont=dict(family='Arial', size=12,
                       color='black')
         )
         # was: brnamelist
         trace3 = go.Bar(
-            x=self.prj_list if self.dashboard_type == DashboardType.PROJECT else brnamelist,
+            x=self.get_name_list(),
             y=self.open_list,
             text=self.open_list,
             name=OPEN_PREFIX,
@@ -104,7 +123,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
                 color='rgb(75,103,132)',#'powderblue',
                 line=dict(
                     color='black',
-                    width=1.5),
+                    width=0 if self.dashboard_type == DashboardType.DOMAIN else 1),
             ),
             insidetextfont=dict(family='Arial', size=12,
                       color='white')
@@ -137,7 +156,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
         title = "{0} <br>{1} <br> Must be closed today ({4}) in {2}: {3:.2f}%".format(self.dashboard_name,  title_sum, self.fixversion, will_be_done, now_dt.strftime("%d.%m.%y %H:%M"))
         tools.make_subplots
 
-        file_name = self.dashboard_name + ' ' + plan_fact_str
+        file_name = self.dashboard_name + ' ' + ("" if (self.dashboard_type == DashboardType.DOMAIN or self.project != "") else (self.dashboard_type.name +" "))+plan_fact_str
         html_file = self.png_dir + "{0}_{1}.html".format(file_name, self.project)
         layout = go.Layout(
             annotations=[
@@ -196,13 +215,13 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
                 showline=True,
                 ticks='',
                 tickangle=0,
-                showticklabels=self.dashboard_type == DashboardType.PROJECT or (len(self.dev_list) < 30),
+                showticklabels=self.dashboard_type == DashboardType.PROJECT or self.dashboard_type == DashboardType.DOMAIN or (len(self.dev_list) < 30),
                 tickfont=dict(
-                    size=10,
+                    size=16 if self.dashboard_type == DashboardType.DOMAIN else 10,
                     color='black'
 
                 ),
-                title='Features (L3) ' if self.dashboard_type == DashboardType.FEATURE else "Projects",
+                title=self.get_title_xaxis(),
                 titlefont=dict(
                     size=12,
                     color='black'

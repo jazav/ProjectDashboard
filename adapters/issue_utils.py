@@ -55,6 +55,32 @@ def get_domain(component):
         None: None
     }[component]
 
+def get_domain_by_project(project):
+    return {
+        'BSSARBA': 'ARBA',
+        'BSSBFAM': 'Billing',
+        'Billing': 'Billing',
+        'BSSGUS': 'Billing',
+        'BSSCRM': 'CRM',
+        'BSSCAM': 'CRM',
+        'BSSCCM': 'CRM',
+        'BSSCPM': 'Ordering',
+        'BSSUFM': 'Billing',
+        'BSSORDER': 'Ordering',
+        'BSSCRMP': 'DFE',
+        'BSSDAPI': 'DFE',
+        'BSSSCP': 'DFE',
+        'UIKIT': 'DFE',
+        'RNDDOC': 'Doc',
+        'BSSLIS': 'Billing',
+        'BSSPRM': 'PRM',
+        'BSSPSC': 'Catalog',
+        'BSSPAY': 'Billing',
+        'BSSBOX': 'BSSBOX',
+        'NWMOCS': 'NWM',
+        None: None
+    }[project]
+
 def get_domains(components):
     component_list = components.split(',')
     domains = ""

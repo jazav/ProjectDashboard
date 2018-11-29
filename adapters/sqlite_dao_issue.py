@@ -8,6 +8,7 @@ import sqlite3
 import sys
 
 from adapters.dao_issue import DaoIssue
+from adapters.issue_utils import get_domain_by_project
 
 __SqliteDaoIssue__ = None
 
@@ -101,12 +102,13 @@ class SqliteDaoIssue(DaoIssue):
 
         self.connection.commit()
 
-    def get_sum_by_projects(self, project_filter, label_filter,fixversions_filter):  # must return array of ReportRow
+    def get_sum_by_projects(self, project_filter, label_filter,fixversions_filter):  # must return arrays
         open_list= []
         dev_list= []
         close_list= []
         name_list = []
         prj_list = []
+        domain_list = []
         sql_str = '''SELECT project,
                            summary,
                            SUM(CASE WHEN status IN ('Closed', 'Resolved') THEN timeoriginalestimate ELSE 0 END) close,
@@ -157,6 +159,7 @@ class SqliteDaoIssue(DaoIssue):
             close_list.append(round(row[2]))
             open_list.append(round(row[3]))
             dev_list.append(round(row[4]) if row[4] is not None else 0)
+            domain_list.append(get_domain_by_project(row[0]))
 
-        return open_list, dev_list, close_list, name_list, prj_list
+        return open_list, dev_list, close_list, name_list, prj_list, domain_list
 

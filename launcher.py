@@ -67,7 +67,7 @@ def get_command_namespace(argv):
                                   required=False, default="True")
 
     dashboard_parser.add_argument('-dashboard_type', '-dt', action="store",
-                                  help="dashboard_type : FEATURE or PROJECT",
+                                  help="dashboard_type : FEATURE or PROJECT or DOMAIN",
                                   required=False, default="FEATURE")
 
     for subparser in [init_parser, update_parser, issue_parser, dashboard_parser]:

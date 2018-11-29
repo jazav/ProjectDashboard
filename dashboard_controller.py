@@ -204,9 +204,9 @@ class DashboardController:
         dc = DataController()
         data_dao = dc.get_issue_sqllite(query=None, expand=None)
 
-        dashboard = FeatureProgressDomainDashboard()
         project_list = projects#["BSSPAY", "BSSUFM", "BSSBFAM", "BSSLIS"]
         for project in project_list:
+            dashboard = FeatureProgressDomainDashboard()
             dashboard.dashboard_name = 'All features in ' + ((fixversion + ' ') if project == "" else project)  # str(i).zfill(1)
             dashboard.filter_list = [""]
             dashboard.items_on_chart = 40
@@ -218,7 +218,7 @@ class DashboardController:
 
             dashboard.project = project
             dashboard.fixversion = fixversion
-            dashboard.dashboard_type = dashboard_type#DashboardType.FEATURE
+            dashboard.dashboard_type = dashboard_type
             dashboard.prepare(data=data_dao)
 
             #lopen_list, ldev_list, lclose_list, lname_list = data_dao.get_sum_by_projects(dashboard.project, "",
