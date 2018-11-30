@@ -212,3 +212,67 @@ class SqliteDaoIssue(DaoIssue):
 
         return open_list, dev_list, close_list, name_list, prj_list, domain_list
 
+    # By @alanbryn
+    def get_bugs_duration(self, label_filter, priority_filter):
+        project_list = []
+        name_list = []
+        domain_list = []
+        created_list = []
+        resolutiondate_list = []
+        sql_str = '''SELECT project,
+                            summary,
+                            created,
+                            resolutiondate,
+                            CASE
+                                WHEN (components LIKE 'CES') OR (components LIKE '%BFAM%')
+                                    OR (components LIKE '%Charge Events Storage%') OR (components LIKE '%Billing%')
+                                    OR (components LIKE '%SPP%') OR (components LIKE '%Payment%')
+                                    OR (components LIKE '%Collection%') OR (components LIKE '%ogical%nventory%')
+                                    OR (components LIKE '%UFM%') THEN 'Billing'
+                                WHEN (components LIKE '%Party Management%') OR (components LIKE '%Searching%')
+                                    OR (components LIKE '%CRM Processes%') OR (components LIKE '%Interactions%')
+                                    OR (components LIKE '%Processes engine%')
+                                    OR (components LIKE '%Process Management%') OR (components LIKE '%Loyalty%')
+                                    THEN 'CRM'
+                                WHEN (components LIKE '%CSR Portal%') OR (components LIKE '%Partners portal%')
+                                    OR (components LIKE '%DFE%') OR (components LIKE '%Common%')
+                                    OR (components LIKE '%Admin UI%') THEN 'DFE'
+                                WHEN (components LIKE '%Infra%') OR (components LIKE '%Message Bus%')
+                                    OR (components LIKE '%SSO%') OR (components LIKE '%Security%')
+                                    OR (components LIKE '%Notification%') OR (components LIKE '%Report Engine%')
+                                    THEN 'Infra'
+                                WHEN (components LIKE '%NWM%') OR (components LIKE '%Network Monetization%') THEN 'NWM'
+                                WHEN (components LIKE '%Marketplace%') OR (components LIKE '%Product Instances%')
+                                    OR (components LIKE '%Inventory%') OR (components LIKE '%Ordering%')
+                                    OR (components LIKE '%Customer Order%') OR (components LIKE '%CRAB_AKKA%')
+                                    THEN 'Ordering'
+                                WHEN (components LIKE '%Partner Management%') OR (components LIKE '%PRM%') THEN 'PRM'
+                                WHEN (components LIKE '%Product Catalog%') OR (components LIKE '%PSC%')
+                                    OR (components LIKE '%Ref%Data%') THEN 'PSC'
+                                WHEN components LIKE '' THEN 'COMPONENTS FIELD HAS NOT BEEN FILLED'
+                                ELSE 'OTHERS'
+                            END domains
+                     FROM issues
+                     WHERE issuetype = "Bug" AND 
+                           status IN ('Closed', 'Resolved') AND
+                           resolution IN ('Fixed', 'Done') AND
+                           creator IN ('Alla.Denisova', 'APredtechensky', 'Danila.Nazarenko', 'Polina.Bednyakova', 
+                                'Andrey.Karpenko', 'Denis.Sharov', 'Daniil.Shchukin', 'Mariya.Shibanova',
+                                'Valentin.Sitnik', 'Aleksey.Zabelin', 'Sergey.Filyanin', 'Sergey.Borodkin',
+                                'Dmitry.Ganin', 'Yuriy.Ivanov', 'Vitaly.Osipov', 'Stanislav.Prikhodko',
+                                'Vladimir.Barkov', 'Vladimir.Likhtansky', 'Vitaly.Mamykin', 'Alexey.Savchkov',
+                                'Yevgeny.Tokar') '''
+        if label_filter != '':
+            sql_str = sql_str + ' AND labels LIKE \'%' + label_filter + '%\''
+        if priority_filter != '':
+            sql_str = sql_str + ' AND priority LIKE \'%' + priority_filter + '%\''
+        sql_str = sql_str + ' ORDER BY domains'
+
+        for row in self.cursor.execute(sql_str):
+            project_list.append(row[0])
+            name_list.append(row[1])
+            created_list.append(row[2])
+            resolutiondate_list.append(row[3])
+            domain_list.append(row[4])
+
+        return project_list, name_list, created_list, resolutiondate_list, domain_list
