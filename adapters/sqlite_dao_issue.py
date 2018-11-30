@@ -63,7 +63,8 @@ class SqliteDaoIssue(DaoIssue):
         self.cursor.execute('''CREATE TABLE issues
                                (issue_key TEXT,id INTEGER, status TEXT, project TEXT,
                                 labels TEXT, epiclink TEXT, timeoriginalestimate REAL, timespent REAL,
-                               resolution TEXT, issuetype TEXT, summary TEXT, fixversions TEXT, parent TEXT)''')
+                               resolution TEXT, issuetype TEXT, summary TEXT, fixversions TEXT, parent TEXT,
+                               created TEXT, resolutiondate TEXT, creator TEXT, components TEXT, priority TEXT)''')
 
         self.connection.commit()
 
@@ -80,17 +81,19 @@ class SqliteDaoIssue(DaoIssue):
                 sql_str = '''INSERT INTO issues (issue_key, id, status, project,
                                         labels, epiclink, timeoriginalestimate, timespent,
                                        resolution, issuetype, summary, fixversions, 
-                                       parent)'''
+                                       parent, created, resolutiondate, creator, components, priority)'''
                 self.cursor.execute(sql_str + ''' VALUES (?,?,?,?,
                                                  ?,?,?,?,
                                                  ?,?,?,?,
-                                                 ?)''',
+                                                 ?,?,?,?,
+                                                 ?,?)''',
                                     (key, value["id"], value["status"], value["project"],
-                                     ','+value["labels"]+',', value["epiclink"], value["timeoriginalestimate"], value["timespent"],
-                                     value["resolution"],value["issuetype"],value["summary"],','+fixversions+',',
-                                     value["parent"],))
+                                     ','+value["labels"]+',', value["epiclink"], value["timeoriginalestimate"],
+                                     value["timespent"], value["resolution"], value["issuetype"], value["summary"],
+                                     ','+fixversions+',', value["parent"], value["created"], value["resolutiondate"],
+                                     value["creator"], value["components"], value["priority"]))
                 if value["project"] == '!BSSGUS' :
-                    logging.debug(sql_str +'''VALUES ("%s",%s,"%s","%s",
+                    logging.debug(sql_str + '''VALUES ("%s",%s,"%s","%s",
                                                  "%s","%s","%s","%s",
                                                  "%s","%s","%s","%s",
                                                  "%s");''', key, value["id"], value["status"], value["project"],
@@ -102,10 +105,10 @@ class SqliteDaoIssue(DaoIssue):
 
         self.connection.commit()
 
-    def get_sum_by_projects(self, project_filter, label_filter,fixversions_filter, group_by):  # must return arrays
-        open_list= []
-        dev_list= []
-        close_list= []
+    def get_sum_by_projects(self, project_filter, label_filter, fixversions_filter, group_by):  # must return arrays
+        open_list = []
+        dev_list = []
+        close_list = []
         name_list = []
         prj_list = []
         domain_list = []
@@ -151,14 +154,14 @@ class SqliteDaoIssue(DaoIssue):
                                       issues st ON i.issue_key = st.parent
                                 WHERE e.issuetype = "Epic" AND 
                                       st.parent IS NULL  '''
-        if project_filter !='':
+        if project_filter != '':
             sql_str = sql_str + ' AND  i.project = "'''+project_filter+'" '
-        if label_filter !='':
+        if label_filter != '':
             sql_str = sql_str + ' AND e.labels LIKE "%,'+label_filter+',%"  '
         if fixversions_filter != '':
                 sql_str = sql_str + ' AND e.fixversions LIKE "%,'+fixversions_filter+',%"  '
         # add subtasks query
-        sql_str = sql_str +''' UNION ALL
+        sql_str = sql_str + ''' UNION ALL
                                    SELECT i.project,
                                           e.summary,
                                           st.status,
