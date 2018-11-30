@@ -9,7 +9,7 @@ from config_controller import *
 from dashboards.feature_heatmap_dashboard import FeatureHeatmapDashboard
 from dashboards.feature_progress_dashboard import FeatureProgressDashboard
 from dashboards.feature_progress_domain_dashboard import FeatureProgressDomainDashboard, DashboardType
-from dashboards.bugs_duration_dashboard_NEW import BugsDurationDashboard  # By @alanbryn
+from dashboards.bugs_duration_dashboard import BugsDurationDashboard  # By @alanbryn
 from dashboards.issue_detail_dashboard import IssueDetailDashboard
 from dashboards.prepare_feature_data import *
 from data_controller import DataController
