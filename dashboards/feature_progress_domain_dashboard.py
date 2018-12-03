@@ -1,6 +1,7 @@
 import datetime
 import plotly
 import plotly.graph_objs as go
+import plotly.io as pio
 from plotly import tools
 
 from config_controller import cc_klass
@@ -236,9 +237,9 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
         if self.dashboard_format == DashboardFormat.HTML:
             plotly.offline.plot(fig, filename=file_name+'.html', auto_open=self.auto_open)
         else:
-            plotly.offline.plot(fig,auto_open=self.auto_open, image='png', image_filename=file_name+'.png',
-                         output_type='file', filename=file_name+'.html')
-            #pio.write_image(fig, file_name+'.png')
+            #plotly.offline.plot(fig,auto_open=self.auto_open, image='png', image_filename=file_name+'.png',
+            #             output_type='file', filename=file_name+'.html')
+            pio.write_image(fig, file_name+'.png')
 
 
 
