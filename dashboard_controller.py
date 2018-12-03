@@ -230,7 +230,7 @@ class DashboardController:
             dashboard.export_to_plot()
     
     # By @alanbryn
-    def dashboard_bugs_duration(self, plan, fact, auto_open, priorities):
+    def dashboard_bugs_duration(self, plan, fact, auto_open, priorities, labels, creators):
         if not (plan and fact):
             raise ValueError('both of plan and fact parameters are false')
 
@@ -246,5 +246,7 @@ class DashboardController:
             dashboard.fact = fact
             dashboard.auto_open = auto_open
             dashboard.priority = priority
+            dashboard.creators = creators
+            dashboard.labels = labels
             dashboard.prepare(data=data_dao)
             dashboard.export_to_plot()

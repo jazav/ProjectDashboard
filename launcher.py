@@ -77,6 +77,11 @@ def get_command_namespace(argv):
     # By @alanbryn
     dashboard_parser.add_argument('-priorities', '-pr', action='store', help='e.g. priority: Blocker',
                                   required=False, default="")
+
+    dashboard_parser.add_argument('-labels', '-l', action='store', help='RnD labels field', required=False, default='')
+
+    dashboard_parser.add_argument('-creators', '-cr', action='store', help='Creator for issue',
+                                  required=False, default='')
     
     for subparser in [init_parser, update_parser, issue_parser, dashboard_parser]:
         subparser.add_argument('-cache', '-c', action="store", help="cache file", required=False)
@@ -171,7 +176,8 @@ def main(argv):
         if name_space.name == "bugs":
             plan, fact = get_plan_fact(parameters=name_space.mode)
             dshc.dashboard_bugs_duration(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
-                                         priorities=name_space.priorities.split(", "))
+                                         priorities=name_space.priorities.split(", "), labels=name_space.labels,
+                                         creators=name_space.creators)
         
         if name_space.name == "hm":
             dshc.dashboard_heatmap()

@@ -258,7 +258,7 @@ class SqliteDaoIssue(DaoIssue):
         return open_list, dev_list, close_list, name_list, prj_list, domain_list
 
     # By @alanbryn
-    def get_bugs_duration(self, label_filter, priority_filter):
+    def get_bugs_duration(self, label_filter, priority_filter, creators_filter):
         project_list = []
         name_list = []
         components_list = []
@@ -272,17 +272,19 @@ class SqliteDaoIssue(DaoIssue):
                      FROM issues
                      WHERE issuetype = "Bug" AND 
                            status IN ('Closed', 'Resolved') AND
-                           resolution IN ('Fixed', 'Done') AND
-                           creator IN ('Alla.Denisova', 'APredtechensky', 'Danila.Nazarenko', 'Polina.Bednyakova', 
-                                'Andrey.Karpenko', 'Denis.Sharov', 'Daniil.Shchukin', 'Mariya.Shibanova',
-                                'Valentin.Sitnik', 'Aleksey.Zabelin', 'Sergey.Filyanin', 'Sergey.Borodkin',
-                                'Dmitry.Ganin', 'Yuriy.Ivanov', 'Vitaly.Osipov', 'Stanislav.Prikhodko',
-                                'Vladimir.Barkov', 'Vladimir.Likhtansky', 'Vitaly.Mamykin', 'Alexey.Savchkov',
-                                'Yevgeny.Tokar') '''
+                           resolution IN ('Fixed', 'Done')'''
         if label_filter != '':
             sql_str = sql_str + ' AND labels LIKE \'%' + label_filter + '%\''
         if priority_filter != '':
             sql_str = sql_str + ' AND priority LIKE \'%' + priority_filter + '%\''
+        if creators_filter != '':
+            sql_str = sql_str + ' AND creator IN ('
+            for creator in creators_filter.split(', '):
+                sql_str = sql_str + '\'' + creator + '\''
+                if creator != creators_filter.split(', ')[-1]:
+                    sql_str = sql_str + ', '
+                else:
+                    sql_str = sql_str + ')'
         sql_str = sql_str + ' ORDER BY components'
 
         for row in self.cursor.execute(sql_str):
