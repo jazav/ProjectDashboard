@@ -9,6 +9,7 @@ from config_controller import *
 from dashboards.feature_heatmap_dashboard import FeatureHeatmapDashboard
 from dashboards.feature_progress_dashboard import FeatureProgressDashboard
 from dashboards.feature_progress_domain_dashboard import FeatureProgressDomainDashboard, DashboardType
+from dashboards.bugs_duration_dashboard import BugsDurationDashboard  # By @alanbryn
 from dashboards.issue_detail_dashboard import IssueDetailDashboard
 from dashboards.prepare_feature_data import *
 from data_controller import DataController
@@ -226,4 +227,24 @@ class DashboardController:
             #                                                                                          fixversion)
             #for val in lname_list:
             #    dashboard.open_list, dashboard.dev_list, dashboard.close_list, dashboard.name_list
+            dashboard.export_to_plot()
+    
+    # By @alanbryn
+    def dashboard_bugs_duration(self, plan, fact, auto_open, priorities):
+        if not (plan and fact):
+            raise ValueError('both of plan and fact parameters are false')
+
+        dc = DataController()
+        data_dao = dc.get_issue_sqllite(query=None, expand=None)
+
+        for priority in priorities:
+            dashboard = BugsDurationDashboard()
+            dashboard.dashboard_name = 'Bugs Life Cycle for BSSBox ' + priority
+            dashboard.items_on_chart = 10
+            dashboard.min_item_tail = 5
+            dashboard.plan = plan
+            dashboard.fact = fact
+            dashboard.auto_open = auto_open
+            dashboard.priority = priority
+            dashboard.prepare(data=data_dao)
             dashboard.export_to_plot()

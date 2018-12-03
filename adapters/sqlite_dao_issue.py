@@ -96,7 +96,7 @@ class SqliteDaoIssue(DaoIssue):
                                                  "{8}","{9}","{10}","{11}",
                                                  "{12}");'''.format(key, value["id"], value["status"], value["project"],
                                      ','+value["labels"]+',', value["epiclink"], value["timeoriginalestimate"], value["timespent"],
-                                     value["resolution"],value["issuetype"],"summary",','+fixversions+',',
+                                     value["resolution"],value["issuetype"],value["summary"].replace('"', "'"),','+fixversions+',',
                                      value["parent"])
                     #value["summary"].replace('"', "'")
                     handle.write(write_str)
@@ -257,3 +257,39 @@ class SqliteDaoIssue(DaoIssue):
 
         return open_list, dev_list, close_list, name_list, prj_list, domain_list
 
+    # By @alanbryn
+    def get_bugs_duration(self, label_filter, priority_filter):
+        project_list = []
+        name_list = []
+        components_list = []
+        created_list = []
+        resolutiondate_list = []
+        sql_str = '''SELECT project,
+                            summary,
+                            created,
+                            resolutiondate,
+                            components
+                     FROM issues
+                     WHERE issuetype = "Bug" AND 
+                           status IN ('Closed', 'Resolved') AND
+                           resolution IN ('Fixed', 'Done') AND
+                           creator IN ('Alla.Denisova', 'APredtechensky', 'Danila.Nazarenko', 'Polina.Bednyakova', 
+                                'Andrey.Karpenko', 'Denis.Sharov', 'Daniil.Shchukin', 'Mariya.Shibanova',
+                                'Valentin.Sitnik', 'Aleksey.Zabelin', 'Sergey.Filyanin', 'Sergey.Borodkin',
+                                'Dmitry.Ganin', 'Yuriy.Ivanov', 'Vitaly.Osipov', 'Stanislav.Prikhodko',
+                                'Vladimir.Barkov', 'Vladimir.Likhtansky', 'Vitaly.Mamykin', 'Alexey.Savchkov',
+                                'Yevgeny.Tokar') '''
+        if label_filter != '':
+            sql_str = sql_str + ' AND labels LIKE \'%' + label_filter + '%\''
+        if priority_filter != '':
+            sql_str = sql_str + ' AND priority LIKE \'%' + priority_filter + '%\''
+        sql_str = sql_str + ' ORDER BY components'
+
+        for row in self.cursor.execute(sql_str):
+            project_list.append(row[0])
+            name_list.append(row[1])
+            created_list.append(row[2])
+            resolutiondate_list.append(row[3])
+            components_list.append(row[4])
+
+        return project_list, name_list, created_list, resolutiondate_list, components_list

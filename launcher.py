@@ -73,6 +73,11 @@ def get_command_namespace(argv):
     dashboard_parser.add_argument('-dashboard_format', '-df', action="store",
                                   help="dashboard_format : HTML or PNG",
                                   required=False, default="HTML")
+    
+    # By @alanbryn
+    dashboard_parser.add_argument('-priorities', '-pr', action='store', help='e.g. priority: Blocker',
+                                  required=False, default="")
+    
     for subparser in [init_parser, update_parser, issue_parser, dashboard_parser]:
         subparser.add_argument('-cache', '-c', action="store", help="cache file", required=False)
 
@@ -110,7 +115,6 @@ def get_jira_url(jira):
 
 def main(argv):
     cc = cc_klass()
-    cc.prepare_dirs()
 
     name_space = get_command_namespace(argv)
 
@@ -119,6 +123,7 @@ def main(argv):
 
     if name_space.cache is not None:
         cc.set_data_cache(name_space.cache)
+    cc.prepare_dirs()
 
     if name_space.command in ("init", "update", "issue"):
 
@@ -161,6 +166,13 @@ def main(argv):
                                                    auto_open=(name_space.auto_open.upper()=='TRUE'),
                                                    dashboard_type=DashboardType[name_space.dashboard_type.upper()],
                                                    dashboard_format=DashboardFormat[name_space.dashboard_format.upper()])
+        
+        # By @alanbryn
+        if name_space.name == "bugs":
+            plan, fact = get_plan_fact(parameters=name_space.mode)
+            dshc.dashboard_bugs_duration(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
+                                         priorities=name_space.priorities.split(", "))
+        
         if name_space.name == "hm":
             dshc.dashboard_heatmap()
 

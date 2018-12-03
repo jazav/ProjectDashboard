@@ -107,7 +107,7 @@ class DataController:
         if age is not None:
             issues = jira.load_updated(query=query, age=age, expand=expand, url=url, jira_name=jira_name)
         else:
-            issues = self.get_issues_by_query(query, expand=expand, url=url)
+            issues = self.get_issues_by_query(query, expand=expand, url=url, jira_name=jira_name)
 
         logging.debug('len(issues) == %s', len(issues))
         return issues
