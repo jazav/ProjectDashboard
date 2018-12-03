@@ -13,8 +13,6 @@ def nat_check(nat):
 
 def get_domain(component):
     component_to_domain = {
-        'Analytics': 'ARBA',
-        'Architecture': 'ARBA',
         'B2C Self-service': 'DFE',
         'BFAM': 'Billing',
         'Billing': 'Billing',
@@ -75,8 +73,17 @@ def get_domain(component):
         'PRM': 'PRM',
         'Product Catalog': 'PSC',
         'PSC': 'PSC',
+        'psc': 'PSC',
         'RefData': 'PSC',
         'Ref. Data': 'PSC',
+        'Self-Care Portal': 'DFE',
+        'Payment Management': 'Billing',
+        'NWM_SUP': 'NWM',
+        'PRM_DATA_MANAGEMENT': 'PRM',
+        'PRM_SETTLEMENT MANAGEMENT': 'PRM',
+        'Payment Mangement': 'Billing',
+        'DOSA': 'Ordering',
+        'GUS_DB_ADAPTER': 'Billing',
         '': 'COMPONENTS FIELD IS EMPTY!',
         None: None
     }
