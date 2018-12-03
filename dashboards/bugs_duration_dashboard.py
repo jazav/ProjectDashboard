@@ -56,7 +56,7 @@ class BugsDurationDashboard(AbstractDashboard):
             name='Duration average',
             textposition='auto',
             marker=dict(
-                color='rgb(29,137,49)',
+                color='rgb(49,130,189)',
                 line=dict(color='black',
                           width=1.5),
             ),
@@ -71,7 +71,7 @@ class BugsDurationDashboard(AbstractDashboard):
             name='Duration median',
             textposition='auto',
             marker=dict(
-                color='rgb(75,103,132)',
+                color='rgb(204,204,204)',
                 line=dict(color='black',
                           width=1.5),
             ),
@@ -87,7 +87,17 @@ class BugsDurationDashboard(AbstractDashboard):
         html_file = self.png_dir + "{0}.html".format(file_name)
 
         layout = go.Layout(
-            barmode='group'
+            barmode='group',
+            title=self.dashboard_name,
+            yaxis=dict(
+                title='Days',
+                showline=True,
+                showgrid=True
+            ),
+            xaxis=dict(
+                showline=True,
+                showgrid=True
+            )
         )
 
         fig = go.Figure(data=traces, layout=layout)
