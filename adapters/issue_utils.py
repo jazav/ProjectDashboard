@@ -716,7 +716,7 @@ def issues_to_dict(issues):
 
 def serialize(issue_dict):
 
-    if issue_dict is None or len(issue_dict) < 0:
+    if issue_dict is None or len(issue_dict) == 0:
         return issue_dict
 
     for issue in issue_dict.values():
