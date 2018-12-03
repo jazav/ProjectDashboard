@@ -63,7 +63,8 @@ class SqliteDaoIssue(DaoIssue):
         self.cursor.execute('''CREATE TABLE issues
                                (issue_key TEXT,id INTEGER, status TEXT, project TEXT,
                                 labels TEXT, epiclink TEXT, timeoriginalestimate REAL, timespent REAL,
-                               resolution TEXT, issuetype TEXT, summary TEXT, fixversions TEXT, parent TEXT)''')
+                               resolution TEXT, issuetype TEXT, summary TEXT, fixversions TEXT, parent TEXT,
+                               created TEXT, resolutiondate TEXT, components TEXT, priority TEXT, creator TEXT)''')
 
         self.connection.commit()
 
@@ -81,15 +82,17 @@ class SqliteDaoIssue(DaoIssue):
                 sql_str = '''INSERT INTO issues (issue_key, id, status, project,
                                         labels, epiclink, timeoriginalestimate, timespent,
                                        resolution, issuetype, summary, fixversions, 
-                                       parent)'''
+                                       parent, created, resolutiondate, components, priority, creator)'''
                 self.cursor.execute(sql_str + ''' VALUES (?,?,?,?,
                                                  ?,?,?,?,
                                                  ?,?,?,?,
-                                                 ?)''',
+                                                 ?,?,?,?,
+                                                 ?,?)''',
                                     (key, value["id"], value["status"], value["project"],
                                      ','+value["labels"]+',', value["epiclink"], value["timeoriginalestimate"], value["timespent"],
                                      value["resolution"],value["issuetype"],value["summary"],','+fixversions+',',
-                                     value["parent"],))
+                                     value["parent"], value["created"], value["resolutiondate"], value["components"],
+                                     value["priority"], value["creator"]))
                 if 1 == 0 :
                     write_str=sql_str +'''VALUES ("{0}",{1},"{2}","{3}",
                                                  "{4}","{5}","{6}","{7}",

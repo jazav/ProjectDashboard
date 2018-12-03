@@ -115,6 +115,9 @@ def get_domain_by_project(project):
         'BSSPAY': 'Billing',
         'BSSBOX': 'BSSBOX',
         'NWMOCS': 'NWM',
+        'GUS': 'Billing',
+        'BSSINFRA': 'Infra',
+        'IOTAEP': 'OTHERS',
         None: None
     }[project]
 
