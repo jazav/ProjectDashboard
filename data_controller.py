@@ -124,7 +124,7 @@ class DataController:
         return issue_dict
 
     def get_pandas_issues(self, query, expand):
-        issue_dict = self.get_issue_dict(query=query, expand=expand, url=None)
+        issue_dict = self.get_issue_dict(query=query, expand=expand, url='', jira_name='')
         df = iu.get_data_frame(issue_dict)
         return df
 

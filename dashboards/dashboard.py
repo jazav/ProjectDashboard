@@ -1,4 +1,4 @@
-import config_controller as cc
+import config_controller
 
 EXPORT_MODE = ['txt', 'csv', 'json', 'plot']
 TXT_IDX = 0
@@ -20,8 +20,8 @@ class AbstractDashboard():
     min_item_tail = 4
 
     def __init__(self):
-        config = cc.ConfigController()
-        self.png_dir = config.read_dashboards_config()[cc.FILE_DIR]
+        cc = config_controller.cc_klass()
+        self.png_dir = cc.read_dashboards_config()[config_controller.FILE_DIR]
 
     def prepare(self, data):
         self.data = data

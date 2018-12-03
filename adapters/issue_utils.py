@@ -712,6 +712,10 @@ def issues_to_dict(issues):
 
 
 def serialize(issue_dict):
+
+    if issue_dict is None or len(issue_dict):
+        return issue_dict
+
     for issue in issue_dict.values():
         if RESOLUTIONDATE_FIELD in issue:
             if nat_check(issue[RESOLUTIONDATE_FIELD]):

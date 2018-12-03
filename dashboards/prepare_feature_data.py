@@ -239,11 +239,12 @@ def prepare(epic_data, issue_data, or_filter_list, and_filter_list, plan_prefix,
     # here should be fact calculation
     fact_series = get_fact_data(epic_df=epic_data, issue_df=issue_data)
     open_series = get_open_data(epic_df=epic_data, issue_df=issue_data)
+    all_series = get_all_data(epic_df=epic_data, issue_df=issue_data)
 
     plan_dict, fact_dict, open_dict = get_dict_from_df(plan_df=filtered_epic_df, fact_series=fact_series,
                                                        filter_list=or_filter_list, plan_prefix=plan_prefix,
                                                        fact_prefix=fact_prefix, with_total=with_total, details=details,
-                                                       open_series=open_series, open_prefix='')
+                                                       open_series=open_series, open_prefix='', all_series=all_series)
 
     plan_epic_df = pd.DataFrame.from_dict(plan_dict)
     fact_epic_df = pd.DataFrame.from_dict(fact_dict)

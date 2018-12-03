@@ -54,6 +54,7 @@ def get_command_namespace(argv):
 
     dashboard_parser.add_argument('-export', '-e', action="store", help='export to plot', required=False,
                                   default=EXPORT_MODE[PLOT_IDX])
+
     dashboard_parser.add_argument('-projects', '-p', action="store",
                                   help="list of projects, to show progress (divided by ,) : BSSPAY,BSSBFAM",
                                   required=False, default="")
@@ -181,7 +182,6 @@ def main(argv):
         
         if name_space.name == "hm":
             dshc.dashboard_heatmap()
-
 
 if __name__ == '__main__':
     main(sys.argv[1:])
