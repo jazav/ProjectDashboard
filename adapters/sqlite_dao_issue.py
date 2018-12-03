@@ -70,6 +70,7 @@ class SqliteDaoIssue(DaoIssue):
     def insert_issues(self, issues):
         if len(issues) == 0:
             return
+        handle = open("sql.txt", "w")
 
         for key, value in issues.items():
             try:
@@ -89,17 +90,19 @@ class SqliteDaoIssue(DaoIssue):
                                      ','+value["labels"]+',', value["epiclink"], value["timeoriginalestimate"], value["timespent"],
                                      value["resolution"],value["issuetype"],value["summary"],','+fixversions+',',
                                      value["parent"],))
-                if value["project"] == '!BSSGUS' :
-                    logging.debug(sql_str +'''VALUES ("%s",%s,"%s","%s",
-                                                 "%s","%s","%s","%s",
-                                                 "%s","%s","%s","%s",
-                                                 "%s");''', key, value["id"], value["status"], value["project"],
+                if 1 == 0 :
+                    write_str=sql_str +'''VALUES ("{0}",{1},"{2}","{3}",
+                                                 "{4}","{5}","{6}","{7}",
+                                                 "{8}","{9}","{10}","{11}",
+                                                 "{12}");'''.format(key, value["id"], value["status"], value["project"],
                                      ','+value["labels"]+',', value["epiclink"], value["timeoriginalestimate"], value["timespent"],
-                                     value["resolution"],value["issuetype"],value["summary"].replace('"', "'"),','+fixversions+',',
+                                     value["resolution"],value["issuetype"],"summary",','+fixversions+',',
                                      value["parent"])
+                    #value["summary"].replace('"', "'")
+                    handle.write(write_str)
             except:
                 logging.error("Unexpected error on key:", key, ' value:  ', value, ', error:', sys.exc_info()[0])
-
+        handle.close()
         self.connection.commit()
 
     def get_sum_by_projects(self, project_filter, label_filter,fixversions_filter, group_by):  # must return arrays
@@ -157,7 +160,48 @@ class SqliteDaoIssue(DaoIssue):
             sql_str = sql_str + ' AND e.labels LIKE "%,'+label_filter+',%"  '
         if fixversions_filter != '':
                 sql_str = sql_str + ' AND e.fixversions LIKE "%,'+fixversions_filter+',%"  '
-        # add subtasks query
+        # add subtasks query with estimates in tasks
+        sql_str = sql_str +''' UNION ALL
+                                   SELECT i.project,
+                                          e.summary,
+                                          i.status,
+                                          i.timeoriginalestimate,
+                                          CASE
+                                            WHEN i.project = 'BSSARBA' THEN 'ARBA'
+                                            WHEN i.project ='BSSBFAM' THEN 'Billing'
+                                            WHEN i.project ='Billing' THEN 'Billing'
+                                            WHEN i.project ='BSSGUS' THEN 'Billing'
+                                            WHEN i.project ='BSSCRM' THEN 'CRM'
+                                            WHEN i.project ='BSSCAM' THEN 'CRM'
+                                            WHEN i.project ='BSSCCM'  THEN  'CRM'
+                                            WHEN i.project ='BSSCPM' THEN  'Ordering'
+                                            WHEN i.project ='BSSUFM' THEN  'Billing'
+                                            WHEN i.project ='BSSORDER' THEN  'Ordering'
+                                            WHEN i.project ='BSSCRMP' THEN  'DFE'
+                                            WHEN i.project ='BSSDAPI' THEN  'DFE'
+                                            WHEN i.project ='BSSSCP' THEN  'DFE'
+                                            WHEN i.project ='UIKIT' THEN  'DFE'
+                                            WHEN i.project ='RNDDOC' THEN  'Doc'
+                                            WHEN i.project ='BSSLIS' THEN  'Billing'
+                                            WHEN i.project ='BSSPRM' THEN  'PRM'
+                                            WHEN i.project ='BSSPSC' THEN  'Catalog'
+                                            WHEN i.project ='BSSPAY' THEN  'Billing'
+                                            WHEN i.project ='BSSBOX' THEN  'BSSBOX'
+                                            WHEN i.project ='NWMOCS' THEN  'NWM'
+                                            ELSE '!'||i.project
+                                            END domain
+                                     FROM issues e
+                                          LEFT JOIN
+                                          issues i ON e.issue_key = i.epiclink
+                                    WHERE e.issuetype = "Epic" AND 
+                                          0= (Select sum(st2.timeoriginalestimate) from issues st2 where i.issue_key = st2.parent) '''
+        if project_filter != '':
+            sql_str = sql_str + ' AND  i.project = "''' + project_filter + '" '
+        if label_filter != '':
+             sql_str = sql_str + ' AND e.labels LIKE "%,' + label_filter + ',%"  '
+        if fixversions_filter != '':
+             sql_str = sql_str + ' AND e.fixversions LIKE "%,' + fixversions_filter + ',%"  '
+        # add subtasks query with estimates in Subtasks
         sql_str = sql_str +''' UNION ALL
                                    SELECT i.project,
                                           e.summary,
@@ -193,14 +237,15 @@ class SqliteDaoIssue(DaoIssue):
                                           LEFT JOIN
                                           issues st ON i.issue_key = st.parent
                                     WHERE e.issuetype = "Epic" AND 
-                                          st.parent IS NOT NULL  '''
+                                          st.parent IS NOT NULL  AND 
+                                          0< (Select sum(st2.timeoriginalestimate) from issues st2 where i.issue_key = st2.parent)'''
         if project_filter != '':
             sql_str = sql_str + ' AND  i.project = "''' + project_filter + '" '
         if label_filter != '':
              sql_str = sql_str + ' AND e.labels LIKE "%,' + label_filter + ',%"  '
         if fixversions_filter != '':
              sql_str = sql_str + ' AND e.fixversions LIKE "%,' + fixversions_filter + ',%"  '
-        sql_str = sql_str + ' ) GROUP BY ' + group_by + ' ORDER BY domain, project, summary'
+        sql_str = sql_str + ' ) GROUP BY ' + group_by +' HAVING SUM(timeoriginalestimate) > 0 '
 
         for row in self.cursor.execute(sql_str):
             prj_list.append(row[0] if row[0] is not None else "")
