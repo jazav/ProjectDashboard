@@ -92,7 +92,7 @@ class DataController:
         jira = self._get_jira_adapter()
         cache = self._get_cache_adapter().get_cache()
 
-        cc = config_controller.ConfigController()
+        cc = cc_klass()
         options = cc.read_cache_config()
         path = options[config_controller.DATA_FILE]
         path = cc.get_info_from_data(path)
@@ -138,3 +138,5 @@ class DataController:
         dao_issue = get_sqlite_dao()
         dao_issue.insert_issues(issue_dict)
         return dao_issue
+
+cc_klass = ConfigControllerDecorator(ConfigController)
