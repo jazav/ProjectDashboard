@@ -12,48 +12,78 @@ def nat_check(nat):
 
 
 def get_domain(component):
-    return {
+    component_to_domain = {
         'Analytics': 'ARBA',
         'Architecture': 'ARBA',
         'B2C Self-service': 'DFE',
         'BFAM': 'Billing',
         'Billing': 'Billing',
         'CES': 'Billing',
+        'Charge Events Storage': 'Billing',
         'CRM': 'CRM',
         'CRM Processes': 'CRM',
         'Case management': 'CRM',
         'Case Management': 'CRM',
         'Collection': 'Billing',
         'CustomerOrder': 'Ordering',
+        'Customer Order': 'Ordering',
         'DFE': 'DFE',
         'Fin account': 'Billing',
         'Interactions': 'CRM',
-        'Inventory': 'Billing',
-        'Marketplace': 'CRM',
+        'Inventory': 'Ordering',
+        'Marketplace': 'Ordering',
         'Notification': 'Infra',
         'Party Management': 'CRM',
         'Payments': 'Billing',
         'Pays': 'Billing',
         'Processes': 'CRM',
-        'Product Instances': 'CRM',
+        'Product Instances': 'Ordering',
         'Product Processes': 'CRM',
         'ProductProcess': 'CRM',
         'Report Engine': 'Infra',
         'SSO': 'Infra',
+        'SPP': 'Billing',
         'Searching': 'CRM',
         'Security': 'Infra',
         'configuration': 'Component Architecture',
         'logical inventory': 'CRM',
+        'Logical Inventory': 'CRM',
         'notification_managment': 'Infra',
         'oredring': 'Ordering',
+        'Ordering': 'Ordering',
         'payment': 'Billing',
+        'Payment': 'Billing',
         'report engine': 'Infra',
         'service activator': 'Component Architecture',
         'Product': 'Ordering',
         'Resource Instances & OMS': 'Ordering',
         'BOX': 'Documentation',
+        'UFM': 'Billing',
+        'Processes engine': 'CRM',
+        'Process Management': 'CRM',
+        'Loyalty': 'CRM',
+        'CSR Portal': 'DFE',
+        'Partners portal': 'DFE',
+        'Common': 'DFE',
+        'Admin UI': 'DFE',
+        'Infra': 'Infra',
+        'Message Bus': 'Infra',
+        'NWM': 'NWM',
+        'Network Monetization': 'NWM',
+        'CRAB_AKKA': 'Ordering',
+        'Partner Management': 'PRM',
+        'PRM': 'PRM',
+        'Product Catalog': 'PSC',
+        'PSC': 'PSC',
+        'RefData': 'PSC',
+        'Ref. Data': 'PSC',
+        '': 'COMPONENTS FIELD IS EMPTY!',
         None: None
-    }[component]
+    }
+    if component in component_to_domain.keys():
+        return component_to_domain[component]
+    else:
+        return 'OTHERS'
 
 def get_domain_by_project(project):
     return {
