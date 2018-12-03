@@ -75,14 +75,13 @@ class BugsDurationDashboard(AbstractDashboard):
             name='Duration average',
             textposition='auto',
             marker=dict(
-                color='rgb(204,204,204)',
+                color='rgb(254,210,92)',
                 line=dict(color='black',
                           width=1.5),
             ),
             insidetextfont=dict(family='Arial',
                                 size=12,
-                                color='white'),
-            opacity=0.5
+                                color='black')
         )
         trace2 = go.Bar(
             x=list(self.days_dict.keys()),
