@@ -3,7 +3,6 @@ import json
 from pathlib import Path
 from datetime import datetime
 import config_controller
-import os
 
 AGE_WRITE_FORMAT = "{0:%Y-%m-%dT%X.%f%z}"
 AGE_READ_FORMAT = "%Y-%m-%dT%X.%f"
@@ -18,8 +17,6 @@ class FileCache():
     def read(data_path):
         issue_dict = []
 
-
-        logging.info(os.path.dirname(os.path.abspath(__file__)))
         file = Path(data_path)
         if file.exists():
             logging.info("file %s found", data_path)
@@ -45,8 +42,8 @@ class FileCache():
             except FileExistsError:
                 outfile.close()
                 raise
-
-        info_path = config_controller.ConfigController.get_info_from_data(data_path)
+        cc = config_controller.cc_klass()
+        info_path = cc.get_info_from_data(data_path)
         FileCache.write_info(info_file_name=info_path)
 
     @staticmethod

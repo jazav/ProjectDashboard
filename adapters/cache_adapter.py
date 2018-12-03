@@ -37,4 +37,4 @@ class CacheAdapter(AbstractAdapter):
         data_path = cc.read_cache_config()[config_controller.DATA_FILE]
 
         self.get_cache().save(data=data, data_path=data_path)
-        logging.info('cache was updated to '+data_path)
+        logging.info('cache was updated to ' + data_path)
