@@ -4,7 +4,7 @@ import plotly.graph_objs as go
 # from plotly import tools
 # from config_controller import cc_klass
 from dashboards.dashboard import AbstractDashboard
-from adapters.issue_utils import get_domain
+from adapters.issue_utils import get_domain, get_domain_by_project
 import numpy
 import statistics
 
@@ -44,13 +44,21 @@ class BugsDurationDashboard(AbstractDashboard):
                     self.components_list.append([self.components_list[i].pop()])
                     self.created_list.append(self.created_list[i])
                     self.resolutiondate_list.append(self.resolutiondate_list[i])
+                    self.project_list.append(self.project_list[i])
 
         for i in range(len(self.components_list)):
-            self.components_list[i] = get_domain(*self.components_list[i])
+            if self.components_list[i] != ['']:
+                self.components_list[i] = get_domain(*self.components_list[i])
+            else:
+                self.components_list[i] = get_domain_by_project(self.project_list[i])
             if self.components_list[i] not in self.days_dict.keys():
                 self.days_dict[self.components_list[i]] = []
             self.days_dict[self.components_list[i]].append(int(numpy.busday_count(self.created_list[i],
                                                                                   self.resolutiondate_list[i])) + 1)
+        try:
+            del self.days_dict["OTHERS"]
+        except KeyError:
+            print('Key not in domains')
 
         for domain in list(self.days_dict.keys()):
             self.average_list.append(round(statistics.mean(self.days_dict[domain]), 1))
@@ -67,13 +75,14 @@ class BugsDurationDashboard(AbstractDashboard):
             name='Duration average',
             textposition='auto',
             marker=dict(
-                color='rgb(49,130,189)',
+                color='rgb(204,204,204)',
                 line=dict(color='black',
                           width=1.5),
             ),
             insidetextfont=dict(family='Arial',
                                 size=12,
-                                color='white')
+                                color='white'),
+            opacity=0.5
         )
         trace2 = go.Bar(
             x=list(self.days_dict.keys()),
@@ -82,7 +91,7 @@ class BugsDurationDashboard(AbstractDashboard):
             name='Duration median',
             textposition='auto',
             marker=dict(
-                color='rgb(204,204,204)',
+                color='rgb(49,130,189)',
                 line=dict(color='black',
                           width=1.5),
             ),
@@ -96,8 +105,8 @@ class BugsDurationDashboard(AbstractDashboard):
 
         file_name = self.dashboard_name + ' ' + plan_fact_str
         html_file = self.png_dir + "{0}.html".format(file_name)
-        title = self.dashboard_name + (self.labels if self.labels != '' else '') + (' created by QC'
-                                                                                    if self.creators != '' else '')
+        title = self.dashboard_name + (' in ' + self.labels
+                                       if self.labels != '' else '') + (' created by QC' if self.creators != '' else '')
 
         layout = go.Layout(
             barmode='group',
