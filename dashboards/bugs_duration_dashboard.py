@@ -26,22 +26,22 @@ def string_divider(strval, width, space_replacer):
 
 class BugsDurationDashboard(AbstractDashboard):
     project_list, name_list, created_list, resolutiondate_list, components_list = [], [], [], [], []
-    auto_open, labels, priority = True, '', None
+    auto_open, labels, priority, creators = True, None, None, None
     days_dict, average_list, median_list = {}, [], []
 
     def prepare(self, data):
         self.average_list.clear()
         self.median_list.clear()
         self.project_list, self.name_list, self.created_list, self.resolutiondate_list, self.components_list = \
-            data.get_bugs_duration(self.labels, self.priority)
+            data.get_bugs_duration(self.labels, self.priority, self.creators)
 
         for i in range(len(self.name_list)):
             self.created_list[i] = datetime.strptime(self.created_list[i][:11].strip(), '%Y-%m-%d').date()
             self.resolutiondate_list[i] = datetime.strptime(self.resolutiondate_list[i][:11].strip(), '%Y-%m-%d').date()
             self.components_list[i] = self.components_list[i].split(',')
             if len(self.components_list[i]) != 1:
-                for j in range(len(self.components_list[i][1:])):
-                    self.components_list.append([self.components_list[i].pop(j)])
+                for _ in range(1, len(self.components_list[i])):
+                    self.components_list.append([self.components_list[i].pop()])
                     self.created_list.append(self.created_list[i])
                     self.resolutiondate_list.append(self.resolutiondate_list[i])
 
@@ -96,10 +96,12 @@ class BugsDurationDashboard(AbstractDashboard):
 
         file_name = self.dashboard_name + ' ' + plan_fact_str
         html_file = self.png_dir + "{0}.html".format(file_name)
+        title = self.dashboard_name + (self.labels if self.labels != '' else '') + (' created by QC'
+                                                                                    if self.creators != '' else '')
 
         layout = go.Layout(
             barmode='group',
-            title=self.dashboard_name,
+            title=title,
             yaxis=dict(
                 title='Days',
                 showline=True,
