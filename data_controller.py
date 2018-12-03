@@ -138,5 +138,3 @@ class DataController:
         dao_issue = get_sqlite_dao()
         dao_issue.insert_issues(issue_dict)
         return dao_issue
-
-cc_klass = ConfigControllerDecorator(ConfigController)
