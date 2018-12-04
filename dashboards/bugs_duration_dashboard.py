@@ -75,13 +75,13 @@ class BugsDurationDashboard(AbstractDashboard):
             name='Duration average',
             textposition='auto',
             marker=dict(
-                color='rgb(254,210,92)',
+                color='rgb(49,130,189)',
                 line=dict(color='black',
-                          width=1.5),
+                          width=1),
             ),
             insidetextfont=dict(family='Arial',
                                 size=12,
-                                color='black')
+                                color='white')
         )
         trace2 = go.Bar(
             x=list(self.days_dict.keys()),
@@ -90,13 +90,13 @@ class BugsDurationDashboard(AbstractDashboard):
             name='Duration median',
             textposition='auto',
             marker=dict(
-                color='rgb(49,130,189)',
+                color='rgb(254,210,92)',
                 line=dict(color='black',
-                          width=1.5),
+                          width=1),
             ),
             insidetextfont=dict(family='Arial',
                                 size=12,
-                                color='white')
+                                color='black')
         )
         traces = [trace1, trace2]
 
@@ -108,16 +108,73 @@ class BugsDurationDashboard(AbstractDashboard):
                                        if self.labels != '' else '') + (' created by QC' if self.creators != '' else '')
 
         layout = go.Layout(
+            annotations=[
+                dict(
+                    x=1.05,
+                    y=1.03,
+                    xref='paper',
+                    yref='paper',
+                    text='Operation',
+                    showarrow=False,
+                    font=dict(
+                        family='sans-serif',
+                        size=14,
+                        color='black'
+                    )
+                )
+            ],
+            legend=dict(
+                x=1,
+                y=1,
+                traceorder='normal',
+                font=dict(
+                    family='sans-serif',
+                    size=14,
+                    color='#000'
+                )
+            ),
+            showlegend=True,
+            margin=dict(t=50, b=50, r=100, l=6 * 6),
+            autosize=True,
+            font=dict(size=12, color='black'),
             barmode='group',
             title=title,
+            plot_bgcolor='white',
             yaxis=dict(
-                title='Days',
+                rangemode="tozero",
+                autorange=True,
+                showgrid=True,
+                zeroline=True,
                 showline=True,
-                showgrid=True
+                ticks='',
+                showticklabels=True,
+                tickangle=0,
+                title='Days between creation date and resolution date',
+                tickfont=dict(
+                    size=10,
+                    color='black'
+
+                ),
             ),
             xaxis=dict(
+                rangemode="tozero",
+                autorange=True,
+                showgrid=True,
+                zeroline=True,
                 showline=True,
-                showgrid=True
+                ticks='',
+                tickangle=0,
+                showticklabels=True,
+                tickfont=dict(
+                    size=16,
+                    color='black'
+
+                ),
+                title='Domains',
+                titlefont=dict(
+                    size=12,
+                    color='black'
+                )
             )
         )
 
