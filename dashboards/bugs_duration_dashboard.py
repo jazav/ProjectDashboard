@@ -9,21 +9,6 @@ import numpy
 import statistics
 
 
-def string_divider(strval, width, space_replacer):
-    if len(strval) > width:
-        p = width
-        while (p > 0) and (strval[p] != ' '):
-            p = p - 1
-        if p == 0:
-            while (p < len(strval)) and (strval[p] != ' '):
-                p = p + 1
-        if p > 0:
-            left = strval[0:p]
-            right = strval[p + 1:]
-            return left + space_replacer + string_divider(right, width, space_replacer)
-    return strval
-
-
 class BugsDurationDashboard(AbstractDashboard):
     project_list, name_list, created_list, resolutiondate_list, components_list = [], [], [], [], []
     auto_open, labels, priority, creators = True, None, None, None
@@ -102,10 +87,10 @@ class BugsDurationDashboard(AbstractDashboard):
 
         plan_fact_str = "pf"
 
-        file_name = self.dashboard_name + ' ' + plan_fact_str
-        html_file = self.png_dir + "{0}.html".format(file_name)
         title = self.dashboard_name + (' in ' + self.labels
                                        if self.labels != '' else '') + (' created by QC' if self.creators != '' else '')
+        file_name = title + ' ' + plan_fact_str
+        html_file = self.png_dir + "{0}.html".format(file_name)
 
         layout = go.Layout(
             annotations=[
