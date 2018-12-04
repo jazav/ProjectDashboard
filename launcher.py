@@ -1,6 +1,6 @@
 import argparse
 import sys
-from config_controller import *
+# from config_controller import *
 from dashboard_controller import DashboardController
 from adapters.jira_adapter import *
 from dashboards.dashboard import *
@@ -16,8 +16,8 @@ def get_command_namespace(argv):
 
     init_parser = subparsers.add_parser('init', help='initialize data cache')
     # init_parser.add_argument('-filter', '-f', action="store",
-    #                               help="list of filters (divided by ,): CRM,DEVPLAN,BACKLOG or possible to use the word ALL",
-    #                               required=False, default="ALL")
+    #                          help="list of filters (divided by ,): CRM,DEVPLAN,BACKLOG or ALL",
+    #                          required=False, default="ALL")
     init_parser.add_argument('-query', '-q', action="store", help="query for jira", required=False)
     init_parser.add_argument('-jira', '-j', action="store", help="jira from config", required=False, default="jira_1")
 
@@ -25,7 +25,8 @@ def get_command_namespace(argv):
     update_parser.add_argument('-start', '-s', action="store",
                                help='point to start of changes (format: 2018-08-31T14:25:21)', required=False)
     update_parser.add_argument('-query', '-q', action="store", help="query for jira", required=False)
-    update_parser.add_argument('-jira', '-j', action="store", help="jira from config", required=False, default="jira_1,jira_2")
+    update_parser.add_argument('-jira', '-j', action="store", help="jira from config", required=False,
+                               default="jira_1,jira_2")
 
     issue_parser = subparsers.add_parser('issue', help='get issue info')
     issue_parser.add_argument('-mode', '-m', action="store", help='witch fields to show: public, technical, empty',
