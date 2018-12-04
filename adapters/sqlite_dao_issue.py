@@ -298,3 +298,19 @@ class SqliteDaoIssue(DaoIssue):
             components_list.append(row[4])
 
         return project_list, name_list, created_list, resolutiondate_list, components_list
+
+    # By @alanbryn
+    def get_arba_issues(self):
+        name_list = []
+        assignee_list = []
+        created_list = []
+        duedate_list = []
+        sql_str = '''SELECT summary,
+                            assignee,
+                            created,
+                            duedate
+                     FROM issues
+                     WHERE project IN ('BSSBOX', 'BSSARBA') AND
+                           issuetype IN ('Task', 'Sub-task', 'Bug') AND
+                           status IN ('Open', 'Reopened', 'Dev') AND
+                           assignee IN ('Kirill.Yedigarev ', 'Petr.Kolotushkin', 'Andrey.Markeev', 'Sergey.Puchnin', 'Aleksey.Semenyuta', 'Aleksey.Yefremov', 'Anatoly.Akimov', 'Maksim.Grushka', 'YKudryavtseva', 'Mariia.Levanova', 'Elizaveta.Silina', 'Artem.Lavrentev')'''

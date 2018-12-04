@@ -82,7 +82,10 @@ def get_command_namespace(argv):
 
     dashboard_parser.add_argument('-labels', '-l', action='store', help='RnD labels field', required=False, default='')
 
-    dashboard_parser.add_argument('-creators', '-cr', action='store', help='Creator for issue',
+    dashboard_parser.add_argument('-creators', '-cr', action='store', help='Creators for issues',
+                                  required=False, default='')
+
+    dashboard_parser.add_argument('-assignees', '-a', action='store', help='Assignees for issues',
                                   required=False, default='')
     
     for subparser in [init_parser, update_parser, issue_parser, dashboard_parser]:
@@ -184,7 +187,8 @@ def main(argv):
         # By @alanbryn
         if name_space.name == "arba":
             plan, fact = get_plan_fact(parameters=name_space.mode)
-            dshc.dashboard_arba_issues(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'))
+            dshc.dashboard_arba_issues(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
+                                       assignees=name_space.assignees)
 
         if name_space.name == "hm":
             dshc.dashboard_heatmap()

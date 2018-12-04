@@ -255,7 +255,7 @@ class DashboardController:
 
     # By @alanbryn
     @staticmethod
-    def dashboard_arba_issues(plan, fact, auto_open):
+    def dashboard_arba_issues(plan, fact, auto_open, assignees):
         if not (plan and fact):
             raise ValueError('both of plan and fact parameters are false')
 
@@ -269,5 +269,6 @@ class DashboardController:
         dashboard.plan = plan
         dashboard.fact = fact
         dashboard.auto_open = auto_open
+        dashboard.assignees = assignees
         dashboard.prepare(data=data_dao)
         dashboard.export_to_plot()
