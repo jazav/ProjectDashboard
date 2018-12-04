@@ -153,8 +153,7 @@ def main(argv):
             for jira_name in jiras:
                 jira_url = get_jira_url(jira=jira_name)
                 dshc.dashbord_issue_detail(key=name_space.key, field_mode=name_space.mode, export=name_space.export,
-                                       jira_url=jira_url)
-
+                                           jira_url=jira_url)
 
     if name_space.command == "dashboard":
         if name_space.name == "fgp":
@@ -168,8 +167,9 @@ def main(argv):
         if name_space.name == "domain":
             plan, fact = get_plan_fact(parameters=name_space.mode)
             dshc.dashboard_feature_domain_progress(plan=plan, fact=fact, details=name_space.details,
-                                                   projects=name_space.projects.split(","), fixversion=name_space.fixversion,
-                                                   auto_open=(name_space.auto_open.upper()=='TRUE'),
+                                                   projects=name_space.projects.split(","),
+                                                   fixversion=name_space.fixversion,
+                                                   auto_open=(name_space.auto_open.upper() == 'TRUE'),
                                                    dashboard_type=DashboardType[name_space.dashboard_type.upper()],
                                                    dashboard_format=DashboardFormat[name_space.dashboard_format.upper()])
         
@@ -179,9 +179,15 @@ def main(argv):
             dshc.dashboard_bugs_duration(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
                                          priorities=name_space.priorities.split(", "), labels=name_space.labels,
                                          creators=name_space.creators)
-        
+
+        # By @alanbryn
+        if name_space.name == "arba":
+            plan, fact = get_plan_fact(parameters=name_space.mode)
+            dshc.dashboard_arba_issues(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'))
+
         if name_space.name == "hm":
             dshc.dashboard_heatmap()
+
 
 if __name__ == '__main__':
     main(sys.argv[1:])

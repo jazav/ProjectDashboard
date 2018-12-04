@@ -10,6 +10,7 @@ from dashboards.feature_heatmap_dashboard import FeatureHeatmapDashboard
 from dashboards.feature_progress_dashboard import FeatureProgressDashboard
 from dashboards.feature_progress_domain_dashboard import FeatureProgressDomainDashboard, DashboardType
 from dashboards.bugs_duration_dashboard import BugsDurationDashboard  # By @alanbryn
+from dashboards.arba_issues_dashboard import ArbaIssuesDashboard  # By @alanbryn
 from dashboards.issue_detail_dashboard import IssueDetailDashboard
 from dashboards.prepare_feature_data import *
 from data_controller import DataController
@@ -230,7 +231,8 @@ class DashboardController:
             dashboard.export_to_plot()
     
     # By @alanbryn
-    def dashboard_bugs_duration(self, plan, fact, auto_open, priorities, labels, creators):
+    @staticmethod
+    def dashboard_bugs_duration(plan, fact, auto_open, priorities, labels, creators):
         if not (plan and fact):
             raise ValueError('both of plan and fact parameters are false')
 
@@ -250,3 +252,22 @@ class DashboardController:
             dashboard.labels = labels
             dashboard.prepare(data=data_dao)
             dashboard.export_to_plot()
+
+    # By @alanbryn
+    @staticmethod
+    def dashboard_arba_issues(plan, fact, auto_open):
+        if not (plan and fact):
+            raise ValueError('both of plan and fact parameters are false')
+
+        dc = DataController()
+        data_dao = dc.get_issue_sqllite(query=None, expand=None)
+
+        dashboard = ArbaIssuesDashboard()
+        dashboard.dashboard_name = 'Current ARBA issues'
+        dashboard.items_on_chart = 10
+        dashboard.min_item_tail = 5
+        dashboard.plan = plan
+        dashboard.fact = fact
+        dashboard.auto_open = auto_open
+        dashboard.prepare(data=data_dao)
+        dashboard.export_to_plot()
