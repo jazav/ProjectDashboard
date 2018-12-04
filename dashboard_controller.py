@@ -271,4 +271,4 @@ class DashboardController:
         dashboard.auto_open = auto_open
         dashboard.assignees = assignees
         dashboard.prepare(data=data_dao)
-        dashboard.export_to_plot()
+        # dashboard.export_to_plot()

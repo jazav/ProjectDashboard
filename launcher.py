@@ -85,7 +85,7 @@ def get_command_namespace(argv):
     dashboard_parser.add_argument('-creators', '-cr', action='store', help='Creators for issues',
                                   required=False, default='')
 
-    dashboard_parser.add_argument('-assignees', '-a', action='store', help='Assignees for issues',
+    dashboard_parser.add_argument('-assignees', '-as', action='store', help='Assignees for issues',
                                   required=False, default='')
     
     for subparser in [init_parser, update_parser, issue_parser, dashboard_parser]:
