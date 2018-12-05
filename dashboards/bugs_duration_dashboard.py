@@ -9,21 +9,6 @@ import numpy
 import statistics
 
 
-def string_divider(strval, width, space_replacer):
-    if len(strval) > width:
-        p = width
-        while (p > 0) and (strval[p] != ' '):
-            p = p - 1
-        if p == 0:
-            while (p < len(strval)) and (strval[p] != ' '):
-                p = p + 1
-        if p > 0:
-            left = strval[0:p]
-            right = strval[p + 1:]
-            return left + space_replacer + string_divider(right, width, space_replacer)
-    return strval
-
-
 class BugsDurationDashboard(AbstractDashboard):
     project_list, name_list, created_list, resolutiondate_list, components_list = [], [], [], [], []
     auto_open, labels, priority, creators = True, None, None, None
@@ -75,13 +60,13 @@ class BugsDurationDashboard(AbstractDashboard):
             name='Duration average',
             textposition='auto',
             marker=dict(
-                color='rgb(254,210,92)',
+                color='rgb(49,130,189)',
                 line=dict(color='black',
-                          width=1.5),
+                          width=1),
             ),
             insidetextfont=dict(family='Arial',
                                 size=12,
-                                color='black')
+                                color='white')
         )
         trace2 = go.Bar(
             x=list(self.days_dict.keys()),
@@ -90,34 +75,91 @@ class BugsDurationDashboard(AbstractDashboard):
             name='Duration median',
             textposition='auto',
             marker=dict(
-                color='rgb(49,130,189)',
+                color='rgb(254,210,92)',
                 line=dict(color='black',
-                          width=1.5),
+                          width=1),
             ),
             insidetextfont=dict(family='Arial',
                                 size=12,
-                                color='white')
+                                color='black')
         )
         traces = [trace1, trace2]
 
         plan_fact_str = "pf"
 
-        file_name = self.dashboard_name + ' ' + plan_fact_str
-        html_file = self.png_dir + "{0}.html".format(file_name)
         title = self.dashboard_name + (' in ' + self.labels
                                        if self.labels != '' else '') + (' created by QC' if self.creators != '' else '')
+        file_name = title + ' ' + plan_fact_str
+        html_file = self.png_dir + "{0}.html".format(file_name)
 
         layout = go.Layout(
+            annotations=[
+                dict(
+                    x=1.05,
+                    y=1.03,
+                    xref='paper',
+                    yref='paper',
+                    text='Operation',
+                    showarrow=False,
+                    font=dict(
+                        family='sans-serif',
+                        size=14,
+                        color='black'
+                    )
+                )
+            ],
+            legend=dict(
+                x=1,
+                y=1,
+                traceorder='normal',
+                font=dict(
+                    family='sans-serif',
+                    size=14,
+                    color='#000'
+                )
+            ),
+            showlegend=True,
+            margin=dict(t=50, b=50, r=100, l=6 * 6),
+            autosize=True,
+            font=dict(size=12, color='black'),
             barmode='group',
             title=title,
+            plot_bgcolor='white',
             yaxis=dict(
-                title='Days',
+                rangemode="tozero",
+                autorange=True,
+                showgrid=True,
+                zeroline=True,
                 showline=True,
-                showgrid=True
+                ticks='',
+                showticklabels=True,
+                tickangle=0,
+                title='Days between creation date and resolution date',
+                tickfont=dict(
+                    size=10,
+                    color='black'
+
+                ),
             ),
             xaxis=dict(
+                rangemode="tozero",
+                autorange=True,
+                showgrid=True,
+                zeroline=True,
                 showline=True,
-                showgrid=True
+                ticks='',
+                tickangle=0,
+                showticklabels=True,
+                tickfont=dict(
+                    size=16,
+                    color='black'
+
+                ),
+                title='Domains',
+                titlefont=dict(
+                    size=12,
+                    color='black'
+                )
             )
         )
 

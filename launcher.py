@@ -1,6 +1,6 @@
 import argparse
 import sys
-from config_controller import *
+# from config_controller import *
 from dashboard_controller import DashboardController
 from adapters.jira_adapter import *
 from dashboards.dashboard import *
@@ -16,8 +16,8 @@ def get_command_namespace(argv):
 
     init_parser = subparsers.add_parser('init', help='initialize data cache')
     # init_parser.add_argument('-filter', '-f', action="store",
-    #                               help="list of filters (divided by ,): CRM,DEVPLAN,BACKLOG or possible to use the word ALL",
-    #                               required=False, default="ALL")
+    #                          help="list of filters (divided by ,): CRM,DEVPLAN,BACKLOG or ALL",
+    #                          required=False, default="ALL")
     init_parser.add_argument('-query', '-q', action="store", help="query for jira", required=False)
     init_parser.add_argument('-jira', '-j', action="store", help="jira from config", required=False, default="jira_1")
 
@@ -25,7 +25,8 @@ def get_command_namespace(argv):
     update_parser.add_argument('-start', '-s', action="store",
                                help='point to start of changes (format: 2018-08-31T14:25:21)', required=False)
     update_parser.add_argument('-query', '-q', action="store", help="query for jira", required=False)
-    update_parser.add_argument('-jira', '-j', action="store", help="jira from config", required=False, default="jira_1,jira_2")
+    update_parser.add_argument('-jira', '-j', action="store", help="jira from config", required=False,
+                               default="jira_1,jira_2")
 
     issue_parser = subparsers.add_parser('issue', help='get issue info')
     issue_parser.add_argument('-mode', '-m', action="store", help='witch fields to show: public, technical, empty',
@@ -81,7 +82,10 @@ def get_command_namespace(argv):
 
     dashboard_parser.add_argument('-labels', '-l', action='store', help='RnD labels field', required=False, default='')
 
-    dashboard_parser.add_argument('-creators', '-cr', action='store', help='Creator for issue',
+    dashboard_parser.add_argument('-creators', '-cr', action='store', help='Creators for issues',
+                                  required=False, default='')
+
+    dashboard_parser.add_argument('-assignees', '-as', action='store', help='Assignees for issues',
                                   required=False, default='')
     
     for subparser in [init_parser, update_parser, issue_parser, dashboard_parser]:
@@ -153,8 +157,7 @@ def main(argv):
             for jira_name in jiras:
                 jira_url = get_jira_url(jira=jira_name)
                 dshc.dashbord_issue_detail(key=name_space.key, field_mode=name_space.mode, export=name_space.export,
-                                       jira_url=jira_url)
-
+                                           jira_url=jira_url)
 
     if name_space.command == "dashboard":
         if name_space.name == "fgp":
@@ -168,8 +171,9 @@ def main(argv):
         if name_space.name == "domain":
             plan, fact = get_plan_fact(parameters=name_space.mode)
             dshc.dashboard_feature_domain_progress(plan=plan, fact=fact, details=name_space.details,
-                                                   projects=name_space.projects.split(","), fixversion=name_space.fixversion,
-                                                   auto_open=(name_space.auto_open.upper()=='TRUE'),
+                                                   projects=name_space.projects.split(","),
+                                                   fixversion=name_space.fixversion,
+                                                   auto_open=(name_space.auto_open.upper() == 'TRUE'),
                                                    dashboard_type=DashboardType[name_space.dashboard_type.upper()],
                                                    dashboard_format=DashboardFormat[name_space.dashboard_format.upper()])
         
@@ -179,9 +183,16 @@ def main(argv):
             dshc.dashboard_bugs_duration(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
                                          priorities=name_space.priorities.split(", "), labels=name_space.labels,
                                          creators=name_space.creators)
-        
+
+        # By @alanbryn
+        if name_space.name == "arba":
+            plan, fact = get_plan_fact(parameters=name_space.mode)
+            dshc.dashboard_arba_issues(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
+                                       assignees=name_space.assignees)
+
         if name_space.name == "hm":
             dshc.dashboard_heatmap()
+
 
 if __name__ == '__main__':
     main(sys.argv[1:])

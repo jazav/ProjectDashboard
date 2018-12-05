@@ -13,12 +13,12 @@ from adapters.issue_utils import get_domain_by_project
 __SqliteDaoIssue__ = None
 
 
-
 def get_sqlite_dao():
     global __SqliteDaoIssue__
     if __SqliteDaoIssue__ == None:
         __SqliteDaoIssue__ = SqliteDaoIssue()
     return __SqliteDaoIssue__
+
 
 class SqliteDaoIssue(DaoIssue):
     def __init__(self):
@@ -64,7 +64,8 @@ class SqliteDaoIssue(DaoIssue):
                                (issue_key TEXT,id INTEGER, status TEXT, project TEXT,
                                 labels TEXT, epiclink TEXT, timeoriginalestimate REAL, timespent REAL,
                                resolution TEXT, issuetype TEXT, summary TEXT, fixversions TEXT, parent TEXT,
-                               created TEXT, resolutiondate TEXT, components TEXT, priority TEXT, creator TEXT)''')
+                               created TEXT, resolutiondate TEXT, components TEXT, priority TEXT, creator TEXT,
+                               assignee TEXT, duedate TEXT)''')
 
         self.connection.commit()
 
@@ -82,17 +83,18 @@ class SqliteDaoIssue(DaoIssue):
                 sql_str = '''INSERT INTO issues (issue_key, id, status, project,
                                         labels, epiclink, timeoriginalestimate, timespent,
                                        resolution, issuetype, summary, fixversions, 
-                                       parent, created, resolutiondate, components, priority, creator)'''
+                                       parent, created, resolutiondate, components, priority, creator,
+                                       assignee, duedate)'''
                 self.cursor.execute(sql_str + ''' VALUES (?,?,?,?,
                                                  ?,?,?,?,
                                                  ?,?,?,?,
                                                  ?,?,?,?,
-                                                 ?,?)''',
+                                                 ?,?,?,?)''',
                                     (key, value["id"], value["status"], value["project"],
                                      ','+value["labels"]+',', value["epiclink"], value["timeoriginalestimate"], value["timespent"],
                                      value["resolution"],value["issuetype"],value["summary"],','+fixversions+',',
                                      value["parent"], value["created"], value["resolutiondate"], value["components"],
-                                     value["priority"], value["creator"]))
+                                     value["priority"], value["creator"], value["assignee"], value["duedate"]))
                 if 1 == 0 :
                     write_str=sql_str +'''VALUES ("{0}",{1},"{2}","{3}",
                                                  "{4}","{5}","{6}","{7}",
@@ -298,3 +300,35 @@ class SqliteDaoIssue(DaoIssue):
             components_list.append(row[4])
 
         return project_list, name_list, created_list, resolutiondate_list, components_list
+
+    # By @alanbryn
+    def get_arba_issues(self, assignees_filter):
+        name_list = []
+        assignee_list = []
+        created_list = []
+        duedate_list = []
+        sql_str = '''SELECT summary,
+                            assignee,
+                            created,
+                            duedate
+                     FROM issues
+                     WHERE project IN ('BSSBOX', 'BSSARBA') AND
+                           issuetype IN ('Task', 'Sub-task', 'Bug') AND
+                           status IN ('Open', 'Reopened', 'Dev')'''
+        if assignees_filter != '':
+            sql_str = sql_str + ' AND assignee IN ('
+            for assignee in assignees_filter.split(', '):
+                sql_str = sql_str + '\'' + assignee + '\''
+                if assignee != assignees_filter.split(', ')[-1]:
+                    sql_str = sql_str + ', '
+                else:
+                    sql_str = sql_str + ')'
+        sql_str = sql_str + ' ORDER BY assignee'
+
+        for row in self.cursor.execute(sql_str):
+            name_list.append(row[0])
+            assignee_list.append(row[1])
+            created_list.append(row[2])
+            duedate_list.append(row[3])
+
+        return name_list, assignee_list, created_list, duedate_list
