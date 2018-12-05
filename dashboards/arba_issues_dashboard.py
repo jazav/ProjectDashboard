@@ -29,47 +29,62 @@ def group_on(lst, splitted):
 class ArbaIssuesDashboard(AbstractDashboard):
     name_list, assignee_list, created_list, duedate_list = [], [], [], []
     auto_open, assignees = True, None
-    team_dict = {}
+    team_list = [],
 
     def prepare(self, data):
         self.name_list, self.assignee_list, self.created_list, self.duedate_list = data.get_arba_issues(self.assignees)
-        self.assignee_list = split_on(self.assignee_list)
-        self.duedate_list = group_on(self.duedate_list, self.assignee_list)
-        self.name_list = group_on(self.name_list, self.assignee_list)
-        print(self.duedate_list)
+        # self.assignee_list = split_on(self.assignee_list)
+        # self.duedate_list = group_on(self.duedate_list, self.assignee_list)
+        # self.name_list = group_on(self.name_list, self.assignee_list)
+        # for i in range(len(self.name_list)):
+        #     if self.assignee_list[i] not in self.team_dict:
+        #         self.team_dict[self.assignee_list[i]] = [[], []]
+        #     self.team_dict[self.assignee_list[i]][0].append(self.name_list[i])
+        #     self.team_dict[self.assignee_list[i]][1].append(self.duedate_list[i][:11].strip())
+        # print(self.team_dict)
+        max_tasks = 0
+        for i in range(len(self.assignee_list)):
+            if self.assignee_list.count(self.assignee_list[i]) > max_tasks:
+                max_tasks = self.assignee_list.count(self.assignee_list[i])
+        self.team_list = [[[], [], []] for _ in range(max_tasks)]
+        for i in range(len(self.assignee_list)):
+            self.team_list[self.assignee_list[:i].count(self.assignee_list[i])][0].append(self.assignee_list[i])
+            self.team_list[self.assignee_list[:i].count(self.assignee_list[i])][1].append(self.duedate_list[i])
+            self.team_list[self.assignee_list[:i].count(self.assignee_list[i])][2].append(self.name_list[i])
 
     def export_to_plotly(self):
         if len(self.name_list) == 0:
             raise ValueError('There is no issues to show')
 
         data, annotations = [], []
-        for i in range(len(self.assignee_list)):
-            data.append(go.Scatter(
-                x=self.duedate_list[i],
-                y=self.assignee_list[i],
-                mode='markers',
-                name=self.assignee_list[i][0]
+        for i in range(len(self.team_list)):
+            data.append(go.Bar(
+                x=self.team_list[i][1],
+                y=self.team_list[i][0],
+                width=0.05,
+                orientation='h'
             ))
-        for i in range(len(self.assignee_list)):
-            for j in range(len(self.assignee_list[i])):
-                annotations.append(dict(
-                    x=self.duedate_list[i][j],
-                    y=self.assignee_list[i][j],
-                    xref='x',
-                    yref='y',
-                    text=self.name_list[i][j][:11] + '...',
-                    showarrow=True,
-                    arrowwidth=0.5,
-                    arrowcolor='#636363',
-                    arrowhead=0,
-                    ax=-80,
-                    ay=-40 - 20 * (self.duedate_list[i][:j].count(self.duedate_list[i][j]))
-                ))
+        # for i in range(len(self.assignee_list)):
+        #     for j in range(len(self.assignee_list[i])):
+        #         annotations.append(dict(
+        #             x=self.duedate_list[i][j],
+        #             y=self.assignee_list[i][j],
+        #             xref='x',
+        #             yref='y',
+        #             text=self.name_list[i][j][:11] + '...',
+        #             showarrow=True,
+        #             arrowwidth=0.5,
+        #             arrowcolor='#636363',
+        #             arrowhead=0,
+        #             ax=-80,
+        #             ay=-40 - 20 * (self.duedate_list[i][:j].count(self.duedate_list[i][j]))
+        #         ))
 
         title = self.dashboard_name
         html_file = self.png_dir + "{0}.html".format(title)
 
         layout = go.Layout(
+            barmode='group',
             annotations=annotations,
             showlegend=False,
             title=title,
