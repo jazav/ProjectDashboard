@@ -314,7 +314,8 @@ class SqliteDaoIssue(DaoIssue):
                      FROM issues
                      WHERE project IN ('BSSBOX', 'BSSARBA') AND
                            issuetype IN ('Task', 'Sub-task', 'Bug') AND
-                           status IN ('Open', 'Reopened', 'Dev')'''
+                           status IN ('Open', 'Reopened', 'Dev') AND
+                           duedate IS NOT NULL'''
         if assignees_filter != '':
             sql_str = sql_str + ' AND assignee IN ('
             for assignee in assignees_filter.split(', '):
