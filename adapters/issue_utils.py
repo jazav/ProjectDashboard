@@ -117,7 +117,15 @@ def get_domain_by_project(project):
         'NWMOCS': 'NWM',
         'GUS': 'Billing',
         'BSSINFRA': 'Infra',
-        'IOTAEP': 'OTHERS',
+        'PCCM': 'NWM',
+        'NWMUDR': 'NWM',
+        'NWMPCRF': 'NWM',
+        'NWMAAA': 'NWM',
+        'NWM': 'NWM',
+        'IOTCMPRTK': 'IOT',
+        'IOTCMPGF': 'IOT',
+        'IOTCMP': 'IOT',
+        'IOTAEP': 'IOT',
         None: None
     }[project]
 
