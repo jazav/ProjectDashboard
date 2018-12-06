@@ -282,11 +282,15 @@ class SqliteDaoIssue(DaoIssue):
             sql_str = sql_str + ' AND labels LIKE \'%' + label_filter + '%\''
         if priority_filter != '':
             sql_str = sql_str + ' AND priority LIKE \'%' + priority_filter + '%\''
+
+        creator_dict = creators_filter.split(',')
+        creator_dict = [item.strip() for item in creator_dict]
+
         if creators_filter != '':
             sql_str = sql_str + ' AND creator IN ('
-            for creator in creators_filter.split(', '):
+            for creator in creator_dict:
                 sql_str = sql_str + '\'' + creator + '\''
-                if creator != creators_filter.split(', ')[-1]:
+                if creator != creator_dict[-1]:
                     sql_str = sql_str + ', '
                 else:
                     sql_str = sql_str + ')'

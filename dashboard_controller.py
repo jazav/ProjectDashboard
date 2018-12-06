@@ -191,7 +191,7 @@ class DashboardController:
         dashboard.fact = fact
         dashboard.details = details
 
-        dashboard.prepare(data=data, fixversion=None)
+        dashboard.prepare(data=data)
         dashboard.export_to_plot()
 
     def chunks(l, n):
@@ -241,13 +241,13 @@ class DashboardController:
 
         for priority in priorities:
             dashboard = BugsDurationDashboard()
-            dashboard.dashboard_name = 'Bugs Life Cycle for BSSBox ' + priority
+            dashboard.dashboard_name = 'Bugs Life Cycle for ' + priority
             dashboard.items_on_chart = 10
             dashboard.min_item_tail = 5
             dashboard.plan = plan
             dashboard.fact = fact
             dashboard.auto_open = auto_open
-            dashboard.priority = priority
+            dashboard.priority = priority.strip()
             dashboard.creators = creators
             dashboard.labels = labels
             dashboard.prepare(data=data_dao)

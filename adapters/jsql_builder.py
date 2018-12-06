@@ -43,7 +43,7 @@ class JSQLBuilder(AbstractQueryBuilder):
             if query == '' :
                 query = projects[x.lower()]
             else:
-                query = query + ' or '+ projects[x.lower()]
+                query = query + ' or ' + projects[x.lower()]
         return query
 
 def test_builder():

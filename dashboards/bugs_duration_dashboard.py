@@ -12,11 +12,12 @@ import statistics
 class BugsDurationDashboard(AbstractDashboard):
     project_list, name_list, created_list, resolutiondate_list, components_list = [], [], [], [], []
     auto_open, labels, priority, creators = True, None, None, None
-    days_dict, average_list, median_list = {}, [], []
+    days_dict, average_list, median_list, max_list = {}, [], [], []
 
     def prepare(self, data):
         self.average_list.clear()
         self.median_list.clear()
+        self.max_list.clear()
         self.project_list, self.name_list, self.created_list, self.resolutiondate_list, self.components_list = \
             data.get_bugs_duration(self.labels, self.priority, self.creators)
 
@@ -48,16 +49,17 @@ class BugsDurationDashboard(AbstractDashboard):
         for domain in list(self.days_dict.keys()):
             self.average_list.append(round(statistics.mean(self.days_dict[domain]), 1))
             self.median_list.append(statistics.median(self.days_dict[domain]))
+            self.max_list.append(max(self.days_dict[domain]))
 
     def export_to_plotly(self):
         if len(self.name_list) == 0:
             raise ValueError('There is no issues to show')
 
-        trace1 = go.Bar(
+        trace_avg = go.Bar(
             x=list(self.days_dict.keys()),
             y=self.average_list,
             text=self.average_list,
-            name='Duration average',
+            name='average',
             textposition='auto',
             marker=dict(
                 color='rgb(49,130,189)',
@@ -65,14 +67,14 @@ class BugsDurationDashboard(AbstractDashboard):
                           width=1),
             ),
             insidetextfont=dict(family='Arial',
-                                size=12,
+                                size=18,
                                 color='white')
         )
-        trace2 = go.Bar(
+        trace_median = go.Bar(
             x=list(self.days_dict.keys()),
             y=self.median_list,
             text=self.median_list,
-            name='Duration median',
+            name='median',
             textposition='auto',
             marker=dict(
                 color='rgb(254,210,92)',
@@ -80,10 +82,26 @@ class BugsDurationDashboard(AbstractDashboard):
                           width=1),
             ),
             insidetextfont=dict(family='Arial',
-                                size=12,
+                                size=18,
                                 color='black')
         )
-        traces = [trace1, trace2]
+
+        trace_max = go.Bar(
+            x=list(self.days_dict.keys()),
+            y=self.max_list,
+            text=self.max_list,
+            name='max',
+            textposition='auto',
+            marker=dict(
+                color='pink',
+                line=dict(color='black',
+                          width=1),
+            ),
+            insidetextfont=dict(family='Arial',
+                                size=18,
+                                color='black')
+        )
+        traces = [trace_median, trace_avg, trace_max]
 
         plan_fact_str = "pf"
 
@@ -99,7 +117,7 @@ class BugsDurationDashboard(AbstractDashboard):
                     y=1.03,
                     xref='paper',
                     yref='paper',
-                    text='Operation',
+                    text='Duration',
                     showarrow=False,
                     font=dict(
                         family='sans-serif',
@@ -134,9 +152,9 @@ class BugsDurationDashboard(AbstractDashboard):
                 ticks='',
                 showticklabels=True,
                 tickangle=0,
-                title='Days between creation date and resolution date',
+                title='Days between creation and resolution',
                 tickfont=dict(
-                    size=10,
+                    size=14,
                     color='black'
 
                 ),
