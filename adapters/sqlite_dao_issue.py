@@ -314,7 +314,7 @@ class SqliteDaoIssue(DaoIssue):
                      FROM issues
                      WHERE project IN ('BSSBOX', 'BSSARBA') AND
                            issuetype IN ('Task', 'Sub-task', 'Bug') AND
-                           status IN ('Open', 'Reopened', 'Dev') AND
+                           status = 'Dev' AND
                            duedate IS NOT NULL'''
         if assignees_filter != '':
             sql_str = sql_str + ' AND assignee IN ('
