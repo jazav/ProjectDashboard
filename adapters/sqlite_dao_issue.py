@@ -65,7 +65,7 @@ class SqliteDaoIssue(DaoIssue):
                                 labels TEXT, epiclink TEXT, timeoriginalestimate REAL, timespent REAL,
                                resolution TEXT, issuetype TEXT, summary TEXT, fixversions TEXT, parent TEXT,
                                created TEXT, resolutiondate TEXT, components TEXT, priority TEXT, creator TEXT,
-                               assignee TEXT, duedate TEXT)''')
+                               assignee TEXT, duedate TEXT, key TEXT)''')
 
         self.connection.commit()
 
@@ -84,17 +84,19 @@ class SqliteDaoIssue(DaoIssue):
                                         labels, epiclink, timeoriginalestimate, timespent,
                                        resolution, issuetype, summary, fixversions, 
                                        parent, created, resolutiondate, components, priority, creator,
-                                       assignee, duedate)'''
+                                       assignee, duedate, key)'''
                 self.cursor.execute(sql_str + ''' VALUES (?,?,?,?,
                                                  ?,?,?,?,
                                                  ?,?,?,?,
                                                  ?,?,?,?,
-                                                 ?,?,?,?)''',
+                                                 ?,?,?,?,
+                                                 ?)''',
                                     (key, value["id"], value["status"], value["project"],
                                      ','+value["labels"]+',', value["epiclink"], value["timeoriginalestimate"], value["timespent"],
                                      value["resolution"],value["issuetype"],value["summary"],','+fixversions+',',
                                      value["parent"], value["created"], value["resolutiondate"], value["components"],
-                                     value["priority"], value["creator"], value["assignee"], value["duedate"]))
+                                     value["priority"], value["creator"], value["assignee"], value["duedate"],
+                                     value["key"]))
                 if 1 == 0 :
                     write_str=sql_str +'''VALUES ("{0}",{1},"{2}","{3}",
                                                  "{4}","{5}","{6}","{7}",
@@ -311,10 +313,14 @@ class SqliteDaoIssue(DaoIssue):
         assignee_list = []
         created_list = []
         duedate_list = []
+        key_list = []
+        issuetype_list = []
         sql_str = '''SELECT summary,
                             assignee,
                             created,
-                            duedate
+                            duedate,
+                            key,
+                            issuetype
                      FROM issues
                      WHERE project IN ('BSSBOX', 'BSSARBA') AND
                            issuetype IN ('Task', 'Sub-task', 'Bug') AND
@@ -335,5 +341,7 @@ class SqliteDaoIssue(DaoIssue):
             assignee_list.append(row[1])
             created_list.append(row[2])
             duedate_list.append(row[3])
+            key_list.append(row[4])
+            issuetype_list.append(row[5])
 
-        return name_list, assignee_list, created_list, duedate_list
+        return name_list, assignee_list, created_list, duedate_list, key_list, issuetype_list

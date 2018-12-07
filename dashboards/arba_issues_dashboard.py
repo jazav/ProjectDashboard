@@ -1,7 +1,7 @@
 from dashboards.dashboard import AbstractDashboard
 import plotly
 import plotly.graph_objs as go
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 def split_on(lst):
@@ -26,16 +26,27 @@ def group_on(lst, splitted):
     return grouped
 
 
+def issue_color(issuetype):
+    return {
+        'Task': 'rgb(255,255,255)',
+        'Sub-task': 'rgb(255,255,255)',
+        'Bug': 'rgb(255,255,255)'
+    }[issuetype]
+
+
 class ArbaIssuesDashboard(AbstractDashboard):
-    name_list, assignee_list, created_list, duedate_list = [], [], [], []
+    name_list, assignee_list, created_list, duedate_list, key_list, issuetype_list = [], [], [], [], [], []
     auto_open, assignees = True, None
     team_list = [],
 
     def prepare(self, data):
-        self.name_list, self.assignee_list, self.created_list, self.duedate_list = data.get_arba_issues(self.assignees)
+        self.name_list, self.assignee_list, self.created_list, self.duedate_list, self.key_list, self.issuetype_list =\
+            data.get_arba_issues(self.assignees)
         self.assignee_list = split_on(self.assignee_list)
         self.duedate_list = group_on(self.duedate_list, self.assignee_list)
         self.name_list = group_on(self.name_list, self.assignee_list)
+        self.key_list = group_on(self.key_list, self.assignee_list)
+        self.issuetype_list = group_on(self.issuetype_list, self.assignee_list)
         # for i in range(len(self.name_list)):
         #     if self.assignee_list[i] not in self.team_dict:
         #         self.team_dict[self.assignee_list[i]] = [[], []]
@@ -81,6 +92,7 @@ class ArbaIssuesDashboard(AbstractDashboard):
                     dash='dash'),
                 opacity=0.4
             ))
+
         for i in range(len(self.assignee_list)):
             for j in range(len(self.assignee_list[i])):
                 annotations.append(dict(
@@ -88,15 +100,34 @@ class ArbaIssuesDashboard(AbstractDashboard):
                     y=self.assignee_list[i][j],
                     xref='x',
                     yref='y',
-                    text=self.name_list[i][j],
+                    xanchor='center',
+                    text=self.key_list[i][j][8:] + ': ' + self.name_list[i][j][:26] + '...',
                     showarrow=True,
                     arrowwidth=0.5,
                     arrowcolor='rgb(115,115,115)',
                     arrowhead=0,
                     ax=-80,
                     # ay=-40 - 20 * (self.duedate_list[i][:j].count(self.duedate_list[i][j]))
-                    ay=-30 - 15 * j
+                    ay=-30 - 15 * j,
+                    font=dict(
+                        size=10
+                    ),
+                    bgcolor=issue_color(self.issuetype_list[i][j]),
+                    opacity=0.8
                 ))
+        annotations.append(dict(
+            xref='x',
+            yref='paper',
+            xanchor='left',
+            x=datetime.now().date(),
+            y=0,
+            # text=datetime.strftime(datetime.now(), '%b %d'),
+            text='Today',
+            showarrow=False,
+            font=dict(
+                color='rgb(255,100,100)'
+            )
+        ))
 
         title = self.dashboard_name
         html_file = self.png_dir + "{0}.html".format(title)
@@ -108,7 +139,12 @@ class ArbaIssuesDashboard(AbstractDashboard):
             title=title,
             autosize=True,
             xaxis=dict(
-                range=[start_date, end_date]
+                type='date',
+                range=[start_date, end_date],
+                dtick=86400000,
+            ),
+            yaxis=dict(
+                automargin=True
             ),
             shapes=[dict(
                 type='line',
