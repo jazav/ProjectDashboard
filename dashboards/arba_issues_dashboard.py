@@ -95,7 +95,7 @@ class ArbaIssuesDashboard(AbstractDashboard):
                     arrowhead=0,
                     ax=-80,
                     # ay=-40 - 20 * (self.duedate_list[i][:j].count(self.duedate_list[i][j]))
-                    ay=-40 - 15 * j
+                    ay=-30 - 15 * j
                 ))
 
         title = self.dashboard_name
