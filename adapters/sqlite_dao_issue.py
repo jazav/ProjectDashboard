@@ -65,7 +65,7 @@ class SqliteDaoIssue(DaoIssue):
                                 labels TEXT, epiclink TEXT, timeoriginalestimate REAL, timespent REAL,
                                resolution TEXT, issuetype TEXT, summary TEXT, fixversions TEXT, parent TEXT,
                                created TEXT, resolutiondate TEXT, components TEXT, priority TEXT, creator TEXT,
-                               assignee TEXT, duedate TEXT, key TEXT)''')
+                               assignee TEXT, duedate TEXT)''')
 
         self.connection.commit()
 
@@ -84,19 +84,17 @@ class SqliteDaoIssue(DaoIssue):
                                         labels, epiclink, timeoriginalestimate, timespent,
                                        resolution, issuetype, summary, fixversions, 
                                        parent, created, resolutiondate, components, priority, creator,
-                                       assignee, duedate, key)'''
+                                       assignee, duedate)'''
                 self.cursor.execute(sql_str + ''' VALUES (?,?,?,?,
                                                  ?,?,?,?,
                                                  ?,?,?,?,
                                                  ?,?,?,?,
-                                                 ?,?,?,?,
-                                                 ?)''',
+                                                 ?,?,?,?)''',
                                     (key, value["id"], value["status"], value["project"],
                                      ','+value["labels"]+',', value["epiclink"], value["timeoriginalestimate"], value["timespent"],
                                      value["resolution"],value["issuetype"],value["summary"],','+fixversions+',',
                                      value["parent"], value["created"], value["resolutiondate"], value["components"],
-                                     value["priority"], value["creator"], value["assignee"], value["duedate"],
-                                     value["key"]))
+                                     value["priority"], value["creator"], value["assignee"], value["duedate"]))
                 if 1 == 0 :
                     write_str=sql_str +'''VALUES ("{0}",{1},"{2}","{3}",
                                                  "{4}","{5}","{6}","{7}",
@@ -313,14 +311,10 @@ class SqliteDaoIssue(DaoIssue):
         assignee_list = []
         created_list = []
         duedate_list = []
-        key_list = []
-        issuetype_list = []
         sql_str = '''SELECT summary,
                             assignee,
                             created,
-                            duedate,
-                            key,
-                            issuetype
+                            duedate
                      FROM issues
                      WHERE project IN ('BSSBOX', 'BSSARBA') AND
                            issuetype IN ('Task', 'Sub-task', 'Bug') AND
@@ -328,11 +322,9 @@ class SqliteDaoIssue(DaoIssue):
                            duedate IS NOT NULL'''
         if assignees_filter != '':
             sql_str = sql_str + ' AND assignee IN ('
-            assignees_filter = assignees_filter.split(',')
-            assignees_filter = [item.strip() for item in assignees_filter]
-            for assignee in assignees_filter:
+            for assignee in assignees_filter.split(', '):
                 sql_str = sql_str + '\'' + assignee + '\''
-                if assignee != assignees_filter[-1]:
+                if assignee != assignees_filter.split(', ')[-1]:
                     sql_str = sql_str + ', '
                 else:
                     sql_str = sql_str + ')'
@@ -343,7 +335,5 @@ class SqliteDaoIssue(DaoIssue):
             assignee_list.append(row[1])
             created_list.append(row[2])
             duedate_list.append(row[3])
-            key_list.append(row[4])
-            issuetype_list.append(row[5])
 
-        return name_list, assignee_list, created_list, duedate_list, key_list, issuetype_list
+        return name_list, assignee_list, created_list, duedate_list
