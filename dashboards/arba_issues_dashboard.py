@@ -68,7 +68,8 @@ class ArbaIssuesDashboard(AbstractDashboard):
             raise ValueError('There is no issues to show')
 
         data, annotations = [], []
-        start_date, end_date = '2018-12-01', '2019-01-01'
+        start_date = str((datetime.now() - timedelta(days=8)).date())
+        end_date = str((datetime.now() + timedelta(days=22)).date())
         for i in range(len(self.assignee_list)):
             for j in range(len(self.assignee_list[i])):
                 data.append(go.Scatter(
@@ -112,6 +113,9 @@ class ArbaIssuesDashboard(AbstractDashboard):
                     font=dict(
                         size=10
                     ),
+                    bordercolor='rgb(115,115,115)',
+                    borderwidth=1,
+                    borderpad=1,
                     bgcolor=issue_color(self.issuetype_list[i][j]),
                     opacity=0.8
                 ))
@@ -142,6 +146,9 @@ class ArbaIssuesDashboard(AbstractDashboard):
                 type='date',
                 range=[start_date, end_date],
                 dtick=86400000,
+                # rangeslider=dict(
+                #     visible=True
+                # )
             ),
             yaxis=dict(
                 automargin=True
