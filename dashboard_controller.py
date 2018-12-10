@@ -263,7 +263,12 @@ class DashboardController:
         data_dao = dc.get_issue_sqllite(query=None, expand=None)
 
         dashboard = ArbaIssuesDashboard()
-        dashboard.dashboard_name = 'ARBA issues tracking'
+        if assignees == 'Anatoly.Akimov, Maksim.Grushka, YKudryavtseva, Mariia.Levanova, Elizaveta.Silina,' \
+                        'Artem.Lavrentev':
+            dashboard.dashboard_name = 'BA\'s issues tracking'
+        elif assignees == 'Petr.Kolotushkin, Andrey.Markeev, Sergey.Puchnin, Aleksey.Semenyuta, Kirill.Yedigarev,' \
+                          'Aleksey.Yefremov':
+            dashboard.dashboard_name = 'Architects\' issues tracking'
         dashboard.items_on_chart = 10
         dashboard.min_item_tail = 5
         dashboard.plan = plan
