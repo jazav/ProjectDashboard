@@ -328,9 +328,11 @@ class SqliteDaoIssue(DaoIssue):
                            duedate IS NOT NULL'''
         if assignees_filter != '':
             sql_str = sql_str + ' AND assignee IN ('
-            for assignee in assignees_filter.split(', '):
+            assignees_filter = assignees_filter.split(',')
+            assignees_filter = [item.strip() for item in assignees_filter]
+            for assignee in assignees_filter:
                 sql_str = sql_str + '\'' + assignee + '\''
-                if assignee != assignees_filter.split(', ')[-1]:
+                if assignee != assignees_filter[-1]:
                     sql_str = sql_str + ', '
                 else:
                     sql_str = sql_str + ')'

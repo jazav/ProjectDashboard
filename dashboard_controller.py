@@ -255,7 +255,7 @@ class DashboardController:
 
     # By @alanbryn
     @staticmethod
-    def dashboard_arba_issues(plan, fact, auto_open, assignees):
+    def dashboard_arba_issues(plan, fact, auto_open, assignees, teams):
         if not (plan and fact):
             raise ValueError('both of plan and fact parameters are false')
 
@@ -263,12 +263,7 @@ class DashboardController:
         data_dao = dc.get_issue_sqllite(query=None, expand=None)
 
         dashboard = ArbaIssuesDashboard()
-        if assignees == 'Anatoly.Akimov, Maksim.Grushka, YKudryavtseva, Mariia.Levanova, Elizaveta.Silina,' \
-                        'Artem.Lavrentev':
-            dashboard.dashboard_name = 'BA\'s issues tracking'
-        elif assignees == 'Petr.Kolotushkin, Andrey.Markeev, Sergey.Puchnin, Aleksey.Semenyuta, Kirill.Yedigarev,' \
-                          'Aleksey.Yefremov':
-            dashboard.dashboard_name = 'Architects\' issues tracking'
+        dashboard.dashboard_name = teams + 'issues tracking'
         dashboard.items_on_chart = 10
         dashboard.min_item_tail = 5
         dashboard.plan = plan

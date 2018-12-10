@@ -87,6 +87,8 @@ def get_command_namespace(argv):
 
     dashboard_parser.add_argument('-assignees', '-as', action='store', help='Assignees for issues',
                                   required=False, default='')
+
+    dashboard_parser.add_argument('-teams', '-t', action='store', help='BSSBox teams', required=False, default='')
     
     for subparser in [init_parser, update_parser, issue_parser, dashboard_parser]:
         subparser.add_argument('-cache', '-c', action="store", help="cache file", required=False)
@@ -188,7 +190,7 @@ def main(argv):
         if name_space.name == "arba":
             plan, fact = get_plan_fact(parameters=name_space.mode)
             dshc.dashboard_arba_issues(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
-                                       assignees=name_space.assignees)
+                                       assignees=name_space.assignees, teams=name_space.teams)
 
         if name_space.name == "hm":
             dshc.dashboard_heatmap()
