@@ -109,7 +109,7 @@ class ArbaIssuesDashboard(AbstractDashboard):
                     arrowhead=0,
                     ax=-80,
                     # ay=-40 - 20 * (self.duedate_list[i][:j].count(self.duedate_list[i][j]))
-                    ay=-30 - 15 * j,
+                    ay=-20 - 15 * j,
                     font=dict(
                         size=10
                     ),

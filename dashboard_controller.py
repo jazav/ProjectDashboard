@@ -263,7 +263,7 @@ class DashboardController:
         data_dao = dc.get_issue_sqllite(query=None, expand=None)
 
         dashboard = ArbaIssuesDashboard()
-        dashboard.dashboard_name = 'Current ARBA issues'
+        dashboard.dashboard_name = 'ARBA issues tracking'
         dashboard.items_on_chart = 10
         dashboard.min_item_tail = 5
         dashboard.plan = plan
