@@ -12,12 +12,13 @@ import statistics
 class BugsDurationDashboard(AbstractDashboard):
     project_list, name_list, created_list, resolutiondate_list, components_list = [], [], [], [], []
     auto_open, labels, priority, creators = True, None, None, None
-    days_dict, average_list, median_list, max_list = {}, [], [], []
+    days_dict, average_list, median_list, max_list, count_list = {}, [], [], [], []
 
     def prepare(self, data):
         self.average_list.clear()
         self.median_list.clear()
         self.max_list.clear()
+        self.count_list.clear()
         self.project_list, self.name_list, self.created_list, self.resolutiondate_list, self.components_list = \
             data.get_bugs_duration(self.labels, self.priority, self.creators)
 
@@ -48,8 +49,9 @@ class BugsDurationDashboard(AbstractDashboard):
 
         for domain in list(self.days_dict.keys()):
             self.average_list.append(round(statistics.mean(self.days_dict[domain]), 1))
-            self.median_list.append(statistics.median(self.days_dict[domain]))
+            self.median_list.append(round(statistics.median(self.days_dict[domain]), 1))
             self.max_list.append(max(self.days_dict[domain]))
+            self.count_list.append(len(self.days_dict[domain]))
 
     def export_to_plotly(self):
         if len(self.name_list) == 0:
@@ -66,7 +68,7 @@ class BugsDurationDashboard(AbstractDashboard):
                 line=dict(color='black',
                           width=1),
             ),
-            insidetextfont=dict(family='Arial',
+            insidetextfont=dict(family='sans-serif',
                                 size=18,
                                 color='white')
         )
@@ -81,7 +83,7 @@ class BugsDurationDashboard(AbstractDashboard):
                 line=dict(color='black',
                           width=1),
             ),
-            insidetextfont=dict(family='Arial',
+            insidetextfont=dict(family='sans-serif',
                                 size=18,
                                 color='black')
         )
@@ -97,11 +99,11 @@ class BugsDurationDashboard(AbstractDashboard):
                 line=dict(color='black',
                           width=1),
             ),
-            insidetextfont=dict(family='Arial',
+            insidetextfont=dict(family='sans-serif',
                                 size=18,
                                 color='black')
         )
-        traces = [trace_median, trace_avg, trace_max]
+        traces = [trace_median, trace_avg]
 
         plan_fact_str = "pf"
 
@@ -110,34 +112,74 @@ class BugsDurationDashboard(AbstractDashboard):
         file_name = title + ' ' + plan_fact_str
         html_file = self.png_dir + "{0}.html".format(file_name)
 
-        layout = go.Layout(
-            annotations=[
-                dict(
-                    x=1.05,
-                    y=1.03,
-                    xref='paper',
-                    yref='paper',
-                    text='Duration',
-                    showarrow=False,
-                    font=dict(
-                        family='sans-serif',
-                        size=14,
-                        color='black'
-                    )
+        annotations = [dict(
+            x=1.05,
+            y=1.03,
+            xref='paper',
+            yref='paper',
+            text='Duration',
+            showarrow=False,
+            font=dict(
+                family='sans-serif',
+                size=16,
+                color='black'
+            )
+        )]
+        shapes = []
+        for i in range(len(self.days_dict.keys())):
+            annotations.append(dict(
+                x=list(self.days_dict.keys())[i],
+                y=self.average_list[i] + 0.8,
+                xref='x',
+                yref='y',
+                text='Number of bugs: ' + str(self.count_list[i]),
+                showarrow=False,
+                font=dict(
+                    family='sans-serif',
+                    size=16,
+                    color='black'
                 )
-            ],
+            ))
+            annotations.append(dict(
+                x=list(self.days_dict.keys())[i],
+                y=self.average_list[i] + 0.5,
+                xref='x',
+                yref='y',
+                text='Max days in work: ' + str(self.max_list[i]),
+                showarrow=False,
+                font=dict(
+                    family='sans-serif',
+                    size=16,
+                    color='black'
+                )
+            ))
+            shapes.append(dict(
+                type='rect',
+                xref='paper',
+                yref='y',
+                x0=(i+0.5)/len(self.days_dict.keys()) - 0.05,
+                y0=self.average_list[i] + 0.3,
+                x1=(i+0.5)/len(self.days_dict.keys()) + 0.05,
+                y1=self.average_list[i] + 1,
+                line=dict(
+                    color='rgb(0,0,0)',
+                    width=1
+                )
+            ))
+        layout = go.Layout(
+            annotations=annotations,
             legend=dict(
                 x=1,
                 y=1,
                 traceorder='normal',
                 font=dict(
                     family='sans-serif',
-                    size=14,
+                    size=16,
                     color='#000'
                 )
             ),
             showlegend=True,
-            margin=dict(t=50, b=50, r=100, l=6 * 6),
+            margin=dict(t=50, b=50, r=100, l=36),
             autosize=True,
             font=dict(size=12, color='black'),
             barmode='group',
@@ -153,8 +195,14 @@ class BugsDurationDashboard(AbstractDashboard):
                 showticklabels=True,
                 tickangle=0,
                 title='Days between creation and resolution',
+                titlefont=dict(
+                    family='sans-serif',
+                    size=12,
+                    color='black'
+                ),
                 tickfont=dict(
-                    size=14,
+                    family='sans-serif',
+                    size=16,
                     color='black'
 
                 ),
@@ -169,16 +217,19 @@ class BugsDurationDashboard(AbstractDashboard):
                 tickangle=0,
                 showticklabels=True,
                 tickfont=dict(
+                    family='sans-serif',
                     size=16,
                     color='black'
 
                 ),
                 title='Domains',
                 titlefont=dict(
+                    family='sans-serif',
                     size=12,
                     color='black'
                 )
-            )
+            ),
+            shapes=shapes
         )
 
         fig = go.Figure(data=traces, layout=layout)
