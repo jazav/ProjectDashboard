@@ -26,12 +26,25 @@ def group_on(lst, splitted):
     return grouped
 
 
-def issue_color(issuetype):
-    return {
-        'Task': 'rgb(255,255,255)',
-        'Sub-task': 'rgb(255,255,255)',
-        'Bug': 'rgb(255,255,255)'
-    }[issuetype]
+def issue_color(issuetype, part):
+    if part == 'background':
+        return {
+            'Task': 'rgb(75,173,232)',
+            'Sub-task': 'white',
+            'Bug': 'rgb(249,88,58)'
+        }[issuetype]
+    elif part == 'border':
+        return {
+            'Task': 'white',
+            'Sub-task': 'rgb(75,173,232)',
+            'Bug': 'white'
+        }[issuetype]
+    elif part == 'font':
+        return {
+            'Task': 'white',
+            'Sub-task': 'rgb(75,173,232)',
+            'Bug': 'white'
+        }[issuetype]
 
 
 class ArbaIssuesDashboard(AbstractDashboard):
@@ -102,21 +115,22 @@ class ArbaIssuesDashboard(AbstractDashboard):
                     xref='x',
                     yref='y',
                     xanchor='center',
-                    text=self.key_list[i][j][8:] + ': ' + self.name_list[i][j][:26] + '...',
+                    text=self.key_list[i][j][8:] + ': ' + self.name_list[i][j][:30] + '...',
                     showarrow=True,
                     arrowwidth=0.5,
                     arrowcolor='rgb(115,115,115)',
                     arrowhead=0,
                     ax=-80,
                     # ay=-40 - 20 * (self.duedate_list[i][:j].count(self.duedate_list[i][j]))
-                    ay=-25 - 15 * j,
+                    ay=-25 - 18.5 * j,
                     font=dict(
-                        size=10
+                        size=12,
+                        color=issue_color(self.issuetype_list[i][j], 'font')
                     ),
-                    bordercolor='rgb(115,115,115)',
+                    bordercolor=issue_color(self.issuetype_list[i][j], 'border'),
                     borderwidth=1,
                     borderpad=1,
-                    bgcolor=issue_color(self.issuetype_list[i][j]),
+                    bgcolor=issue_color(self.issuetype_list[i][j], 'background'),
                     opacity=0.8
                 ))
         annotations.append(dict(
@@ -146,12 +160,18 @@ class ArbaIssuesDashboard(AbstractDashboard):
                 type='date',
                 range=[start_date, end_date],
                 dtick=86400000,
+                tickfont=dict(
+                    size=14
+                )
                 # rangeslider=dict(
                 #     visible=True
                 # )
             ),
             yaxis=dict(
-                automargin=True
+                automargin=True,
+                tickfont=dict(
+                    size=14
+                )
             ),
             shapes=[dict(
                 type='line',
