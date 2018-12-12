@@ -355,3 +355,38 @@ class SqliteDaoIssue(DaoIssue):
             issuetype_list.append(row[5])
 
         return name_list, assignee_list, created_list, duedate_list, key_list, issuetype_list
+
+    # By @alanbryn
+    def get_bugs(self, projects_filter, priority_filter, fixversion_filter):
+        key_list = []
+        created_list = []
+        status_list = []
+        components_list = []
+        sql_str = '''SELECT key,
+                            created,
+                            status, 
+                            components
+                     FROM issues
+                     WHERE issuetype = "Bug"'''
+        if projects_filter != '':
+            sql_str = sql_str + ' AND project IN ('
+            projects_filter = [item.strip() for item in projects_filter.split(',')]
+            for project in projects_filter:
+                sql_str = sql_str + '\'' + project + '\''
+                if project != projects_filter[-1]:
+                    sql_str = sql_str + ', '
+                else:
+                    sql_str = sql_str + ')'
+        if priority_filter != '':
+            sql_str = sql_str + ' AND priority = \'' + priority_filter + '\''
+        if fixversion_filter != '':
+            sql_str = sql_str + ' AND fixversion = \'' + fixversion_filter + '\''
+        sql_str = sql_str + ' ORDER BY components'
+
+        for row in self.cursor.execute(sql_str):
+            key_list.append(row[0])
+            created_list.append(row[1])
+            status_list.append(row[2])
+            components_list.append(row[3])
+
+        return key_list, created_list, status_list, components_list

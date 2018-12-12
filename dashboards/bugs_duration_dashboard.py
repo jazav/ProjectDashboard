@@ -157,9 +157,9 @@ class BugsDurationDashboard(AbstractDashboard):
                 type='rect',
                 xref='paper',
                 yref='y',
-                x0=(i+0.5)/len(self.days_dict.keys()) - 0.05,
+                x0=(i+0.5)/len(self.days_dict.keys()) - 0.065,
                 y0=self.average_list[i] + 0.3,
-                x1=(i+0.5)/len(self.days_dict.keys()) + 0.05,
+                x1=(i+0.5)/len(self.days_dict.keys()) + 0.065,
                 y1=self.average_list[i] + 1,
                 line=dict(
                     color='rgb(0,0,0)',

@@ -187,6 +187,13 @@ def main(argv):
                                          creators=name_space.creators)
 
         # By @alanbryn
+        if name_space.name == "bug_info":
+            plan, fact = get_plan_fact(parameters=name_space.mode)
+            dshc.dashboard_blockers(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
+                                    priorities=name_space.priorities.split(","), fixversion=name_space.fixversion,
+                                    projects=name_space.projects)
+
+        # By @alanbryn
         if name_space.name == "arba":
             plan, fact = get_plan_fact(parameters=name_space.mode)
             dshc.dashboard_arba_issues(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),

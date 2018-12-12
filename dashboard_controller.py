@@ -11,6 +11,7 @@ from dashboards.feature_progress_dashboard import FeatureProgressDashboard
 from dashboards.feature_progress_domain_dashboard import FeatureProgressDomainDashboard, DashboardType
 from dashboards.bugs_duration_dashboard import BugsDurationDashboard  # By @alanbryn
 from dashboards.arba_issues_dashboard import ArbaIssuesDashboard  # By @alanbryn
+from dashboards.blockers_dashboard import BlockersDashboard  # By @alanbryn
 from dashboards.issue_detail_dashboard import IssueDetailDashboard
 from dashboards.prepare_feature_data import *
 from data_controller import DataController
@@ -272,3 +273,26 @@ class DashboardController:
         dashboard.assignees = assignees
         dashboard.prepare(data=data_dao)
         dashboard.export_to_plot()
+
+    # By @alanbryn
+    @staticmethod
+    def dashboard_blockers(plan, fact, auto_open, priorities, fixversion, projects):
+        if not (plan and fact):
+            raise ValueError('both of plan and fact parameters are false')
+
+        dc = DataController()
+        data_dao = dc.get_issue_sqllite(query=None, expand=None)
+
+        for priority in priorities:
+            dashboard = BlockersDashboard()
+            dashboard.dashboard_name = priority.strip() + ' in ' + fixversion.strip()
+            dashboard.items_on_chart = 10
+            dashboard.min_item_tail = 5
+            dashboard.plan = plan
+            dashboard.fact = fact
+            dashboard.priority = priority
+            dashboard.fixversion = fixversion
+            dashboard.projects = projects
+            dashboard.auto_open = auto_open
+            dashboard.prepare(data=data_dao)
+            dashboard.export_to_plot()
