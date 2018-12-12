@@ -65,14 +65,14 @@ class SqliteDaoIssue(DaoIssue):
                                 labels TEXT, epiclink TEXT, timeoriginalestimate REAL, timespent REAL,
                                resolution TEXT, issuetype TEXT, summary TEXT, fixversions TEXT, parent TEXT,
                                created TEXT, resolutiondate TEXT, components TEXT, priority TEXT, creator TEXT,
-                               assignee TEXT, duedate TEXT)''')
+                               assignee TEXT, duedate TEXT, key TEXT)''')
 
         self.connection.commit()
 
     def insert_issues(self, issues):
         if len(issues) == 0:
             return
-        handle = open("sql.txt", "w")
+        handle = open("sql_insert_issues.sql", "w")
 
         for key, value in issues.items():
             try:
@@ -84,25 +84,31 @@ class SqliteDaoIssue(DaoIssue):
                                         labels, epiclink, timeoriginalestimate, timespent,
                                        resolution, issuetype, summary, fixversions, 
                                        parent, created, resolutiondate, components, priority, creator,
-                                       assignee, duedate)'''
+                                       assignee, duedate, key)'''
                 self.cursor.execute(sql_str + ''' VALUES (?,?,?,?,
                                                  ?,?,?,?,
                                                  ?,?,?,?,
                                                  ?,?,?,?,
-                                                 ?,?,?,?)''',
+                                                 ?,?,?,?,
+                                                 ?)''',
                                     (key, value["id"], value["status"], value["project"],
                                      ','+value["labels"]+',', value["epiclink"], value["timeoriginalestimate"], value["timespent"],
                                      value["resolution"],value["issuetype"],value["summary"],','+fixversions+',',
                                      value["parent"], value["created"], value["resolutiondate"], value["components"],
-                                     value["priority"], value["creator"], value["assignee"], value["duedate"]))
-                if 1 == 0 :
+                                     value["priority"], value["creator"], value["assignee"], value["duedate"],
+                                     value["key"]))
+                if 1 == 0 : # for debug
                     write_str=sql_str +'''VALUES ("{0}",{1},"{2}","{3}",
                                                  "{4}","{5}","{6}","{7}",
                                                  "{8}","{9}","{10}","{11}",
-                                                 "{12}");'''.format(key, value["id"], value["status"], value["project"],
+                                                 "{12}","{13}","{14}","{15}",
+                                                 "{16}","{17}","{18}","{19}",
+                                                 "{20}");'''.format(key, value["id"], value["status"], value["project"],
                                      ','+value["labels"]+',', value["epiclink"], value["timeoriginalestimate"], value["timespent"],
                                      value["resolution"],value["issuetype"],value["summary"].replace('"', "'"),','+fixversions+',',
-                                     value["parent"])
+                                     value["parent"], value["created"], value["resolutiondate"], value["components"],
+                                     value["priority"], value["creator"], value["assignee"], value["duedate"],
+                                     value["key"])
                     #value["summary"].replace('"', "'")
                     handle.write(write_str)
             except:
@@ -157,7 +163,8 @@ class SqliteDaoIssue(DaoIssue):
                                       issues i ON e.issue_key = i.epiclink
                                       LEFT OUTER JOIN
                                       issues st ON i.issue_key = st.parent
-                                WHERE e.issuetype = "Epic" AND 
+                                WHERE e.issuetype = "Epic" AND
+                                      i.labels NOT LIKE "%,off_ss7,%" AND 
                                       st.parent IS NULL  '''
         if project_filter !='':
             sql_str = sql_str + ' AND  i.project = "'''+project_filter+'" '
@@ -199,11 +206,12 @@ class SqliteDaoIssue(DaoIssue):
                                           LEFT JOIN
                                           issues i ON e.issue_key = i.epiclink
                                     WHERE e.issuetype = "Epic" AND 
+                                          i.labels NOT LIKE "%,off_ss7,%" AND
                                           0= (Select sum(st2.timeoriginalestimate) from issues st2 where i.issue_key = st2.parent) '''
         if project_filter != '':
             sql_str = sql_str + ' AND  i.project = "''' + project_filter + '" '
         if label_filter != '':
-             sql_str = sql_str + ' AND e.labels LIKE "%,' + label_filter + ',%"  '
+             sql_str = sql_str + ' AND e.labels LIKE "%,' + label_filter + ',%" AND e.labels NOT LIKE "%,' + 'off_ss7' + ',%" '
         if fixversions_filter != '':
              sql_str = sql_str + ' AND e.fixversions LIKE "%,' + fixversions_filter + ',%"  '
         # add subtasks query with estimates in Subtasks
@@ -243,6 +251,8 @@ class SqliteDaoIssue(DaoIssue):
                                           issues st ON i.issue_key = st.parent
                                     WHERE e.issuetype = "Epic" AND 
                                           st.parent IS NOT NULL  AND 
+                                          i.labels NOT LIKE "%,off_ss7,%" AND
+                                          st.labels NOT LIKE "%,off_ss7,%" AND 
                                           0< (Select sum(st2.timeoriginalestimate) from issues st2 where i.issue_key = st2.parent)'''
         if project_filter != '':
             sql_str = sql_str + ' AND  i.project = "''' + project_filter + '" '
@@ -311,10 +321,14 @@ class SqliteDaoIssue(DaoIssue):
         assignee_list = []
         created_list = []
         duedate_list = []
+        key_list = []
+        issuetype_list = []
         sql_str = '''SELECT summary,
                             assignee,
                             created,
-                            duedate
+                            duedate,
+                            key,
+                            issuetype
                      FROM issues
                      WHERE project IN ('BSSBOX', 'BSSARBA') AND
                            issuetype IN ('Task', 'Sub-task', 'Bug') AND
@@ -322,9 +336,11 @@ class SqliteDaoIssue(DaoIssue):
                            duedate IS NOT NULL'''
         if assignees_filter != '':
             sql_str = sql_str + ' AND assignee IN ('
-            for assignee in assignees_filter.split(', '):
+            assignees_filter = assignees_filter.split(',')
+            assignees_filter = [item.strip() for item in assignees_filter]
+            for assignee in assignees_filter:
                 sql_str = sql_str + '\'' + assignee + '\''
-                if assignee != assignees_filter.split(', ')[-1]:
+                if assignee != assignees_filter[-1]:
                     sql_str = sql_str + ', '
                 else:
                     sql_str = sql_str + ')'
@@ -335,5 +351,7 @@ class SqliteDaoIssue(DaoIssue):
             assignee_list.append(row[1])
             created_list.append(row[2])
             duedate_list.append(row[3])
+            key_list.append(row[4])
+            issuetype_list.append(row[5])
 
-        return name_list, assignee_list, created_list, duedate_list
+        return name_list, assignee_list, created_list, duedate_list, key_list, issuetype_list
