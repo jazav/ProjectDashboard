@@ -276,7 +276,7 @@ class DashboardController:
 
     # By @alanbryn
     @staticmethod
-    def dashboard_blockers(plan, fact, auto_open, priorities, fixversion, projects):
+    def dashboard_blockers(plan, fact, auto_open, priorities, fixversion, projects, statuses):
         if not (plan and fact):
             raise ValueError('both of plan and fact parameters are false')
 
@@ -293,6 +293,7 @@ class DashboardController:
             dashboard.priority = priority
             dashboard.fixversion = fixversion
             dashboard.projects = projects
+            dashboard.statuses = statuses
             dashboard.auto_open = auto_open
             dashboard.prepare(data=data_dao)
-            dashboard.export_to_plot()
+            # dashboard.export_to_plot()

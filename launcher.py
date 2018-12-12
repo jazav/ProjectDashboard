@@ -76,7 +76,7 @@ def get_command_namespace(argv):
                                   help="dashboard_format : HTML or PNG",
                                   required=False, default="HTML")
     
-    # By @alanbryn
+    # By @alanbryn -----------------------------------------------------------------------------------------------------
     dashboard_parser.add_argument('-priorities', '-pr', action='store', help='e.g. priority: Blocker',
                                   required=False, default="")
 
@@ -89,6 +89,10 @@ def get_command_namespace(argv):
                                   required=False, default='')
 
     dashboard_parser.add_argument('-teams', '-t', action='store', help='BSSBox teams', required=False, default='')
+
+    dashboard_parser.add_argument('-statuses', '-st', action='store', help='Issues\' status field', required=False,
+                                  default='')
+    # ------------------------------------------------------------------------------------------------------------------
     
     for subparser in [init_parser, update_parser, issue_parser, dashboard_parser]:
         subparser.add_argument('-cache', '-c', action="store", help="cache file", required=False)
@@ -179,25 +183,24 @@ def main(argv):
                                                    dashboard_type=DashboardType[name_space.dashboard_type.upper()],
                                                    dashboard_format=DashboardFormat[name_space.dashboard_format.upper()])
         
-        # By @alanbryn
+        # By @alanbryn -------------------------------------------------------------------------------------------------
         if name_space.name == "bugs":
             plan, fact = get_plan_fact(parameters=name_space.mode)
             dshc.dashboard_bugs_duration(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
                                          priorities=name_space.priorities.split(","), labels=name_space.labels,
                                          creators=name_space.creators)
 
-        # By @alanbryn
-        if name_space.name == "bug_info":
+        if name_space.name == "bugs_info":
             plan, fact = get_plan_fact(parameters=name_space.mode)
             dshc.dashboard_blockers(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
                                     priorities=name_space.priorities.split(","), fixversion=name_space.fixversion,
-                                    projects=name_space.projects)
+                                    projects=name_space.projects, statuses=name_space.statuses)
 
-        # By @alanbryn
         if name_space.name == "arba":
             plan, fact = get_plan_fact(parameters=name_space.mode)
             dshc.dashboard_arba_issues(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
                                        assignees=name_space.assignees, teams=name_space.teams)
+        # --------------------------------------------------------------------------------------------------------------
 
         if name_space.name == "hm":
             dshc.dashboard_heatmap()
