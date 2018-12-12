@@ -154,7 +154,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
         length_ss = cc.read_supersprint_length(self.fixversion)
 
         if length_ss != 0:
-            will_be_done = 100*(now_dt - cc.read_supersprint_start(self.fixversion)).days / length_ss
+            will_be_done = min(100, 100*(now_dt - cc.read_supersprint_start(self.fixversion)).days / length_ss)
         else:
             will_be_done = 0
         title = "{0} <br>{1} <br> Must be closed today ({4}) in {2}: {3:.2f}%".format(self.dashboard_name,  title_sum, self.fixversion, will_be_done, now_dt.strftime("%d.%m.%y %H:%M"))
