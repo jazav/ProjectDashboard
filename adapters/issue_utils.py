@@ -84,6 +84,8 @@ def get_domain(component):
         'Payment Mangement': 'Billing',
         'DOSA': 'Ordering',
         'GUS_DB_ADAPTER': 'Billing',
+        'Process Engine': 'CRM',
+        'Order Capture': 'CRM',
         '': 'COMPONENTS FIELD IS EMPTY!',
         None: None
     }

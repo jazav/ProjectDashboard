@@ -65,7 +65,7 @@ class SqliteDaoIssue(DaoIssue):
                                 labels TEXT, epiclink TEXT, timeoriginalestimate REAL, timespent REAL,
                                resolution TEXT, issuetype TEXT, summary TEXT, fixversions TEXT, parent TEXT,
                                created TEXT, resolutiondate TEXT, components TEXT, priority TEXT, creator TEXT,
-                               assignee TEXT, duedate TEXT, key TEXT)''')
+                               assignee TEXT, duedate TEXT, key TEXT, updated TEXT)''')
 
         self.connection.commit()
 
@@ -84,19 +84,19 @@ class SqliteDaoIssue(DaoIssue):
                                         labels, epiclink, timeoriginalestimate, timespent,
                                        resolution, issuetype, summary, fixversions, 
                                        parent, created, resolutiondate, components, priority, creator,
-                                       assignee, duedate, key)'''
+                                       assignee, duedate, key, updated)'''
                 self.cursor.execute(sql_str + ''' VALUES (?,?,?,?,
                                                  ?,?,?,?,
                                                  ?,?,?,?,
                                                  ?,?,?,?,
                                                  ?,?,?,?,
-                                                 ?)''',
+                                                 ?,?)''',
                                     (key, value["id"], value["status"], value["project"],
                                      ','+value["labels"]+',', value["epiclink"], value["timeoriginalestimate"], value["timespent"],
                                      value["resolution"],value["issuetype"],value["summary"],','+fixversions+',',
                                      value["parent"], value["created"], value["resolutiondate"], value["components"],
                                      value["priority"], value["creator"], value["assignee"], value["duedate"],
-                                     value["key"]))
+                                     value["key"], value["updated"]))
                 if 1 == 0 : # for debug
                     write_str=sql_str +'''VALUES ("{0}",{1},"{2}","{3}",
                                                  "{4}","{5}","{6}","{7}",
@@ -362,12 +362,19 @@ class SqliteDaoIssue(DaoIssue):
         created_list = []
         status_list = []
         components_list = []
+        projects_list = []
         sql_str = '''SELECT key,
                             created,
-                            status, 
-                            components
+                            CASE
+                                WHEN status in ('Open', 'Reopened') THEN 'Open'
+                                WHEN status in ('Triage', 'In Progress', 'Resolved') THEN 'Dev'
+                                ELSE status
+                            END AS status, 
+                            components,
+                            project
                      FROM issues
-                     WHERE issuetype = "Bug"'''
+                     WHERE issuetype = "Bug" AND
+                           strftime('%Y-%m-%d', updated) > date('now', 'start of month')'''
         if projects_filter != '':
             sql_str = sql_str + ' AND project IN ('
             projects_filter = [item.strip() for item in projects_filter.split(',')]
@@ -397,5 +404,6 @@ class SqliteDaoIssue(DaoIssue):
             created_list.append(row[1])
             status_list.append(row[2])
             components_list.append(row[3])
+            projects_list.append(row[4])
 
-        return key_list, created_list, status_list, components_list
+        return key_list, created_list, status_list, components_list, projects_list
