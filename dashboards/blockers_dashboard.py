@@ -4,6 +4,7 @@ import plotly.graph_objs as go
 from plotly import tools
 from datetime import datetime
 from adapters.issue_utils import get_domain, get_domain_by_project
+import textwrap
 
 
 def color_for_status(status):
@@ -44,7 +45,6 @@ class BlockersDashboard(AbstractDashboard):
             self.bugs_annotation_dict[self.components_list[i]]['created'].append(self.created_list[i])
             self.bugs_annotation_dict[self.components_list[i]]['status'].append(self.status_list[i])
             self.statuses_dict[self.components_list[i]][self.status_list[i]] += 1
-        print(self.bugs_annotation_dict)
 
     def export_to_plotly(self):
         if len(self.key_list) == 0:
@@ -54,12 +54,15 @@ class BlockersDashboard(AbstractDashboard):
         titles = []
         for domain, statuses, annotation in zip(self.statuses_dict.keys(), self.statuses_dict.values(),
                                                 self.bugs_annotation_dict.values()):
-            title = ['<textarea cols="20" wrap="hard">']
+            title = ''
             for i in range(len(annotation["key"])):
                 if annotation["status"][i] in ('Open', 'Dev'):
-                    title.append(annotation["key"][i])
-            title.append('</textarea>')
-
+                    if annotation["created"][i].date() == datetime.now().date():
+                        title += '<b>' + annotation["key"][i] + '</b> '
+                    else:
+                        title += '<i>' + annotation["key"][i] + '</i> '
+            title = textwrap.wrap(title, 60)
+            titles.append('<br>'.join(title))
             for status in statuses:
                 trace_dict[domain].append(go.Bar(
                     x=[domain],

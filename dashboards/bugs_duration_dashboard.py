@@ -64,7 +64,7 @@ class BugsDurationDashboard(AbstractDashboard):
             name='average',
             textposition='auto',
             marker=dict(
-                color='rgb(49,130,189)',
+                color='rgb(79,88,175)',
                 line=dict(color='black',
                           width=1),
             ),
@@ -125,46 +125,24 @@ class BugsDurationDashboard(AbstractDashboard):
                 color='black'
             )
         )]
-        shapes = []
         for i in range(len(self.days_dict.keys())):
             annotations.append(dict(
                 x=list(self.days_dict.keys())[i],
-                y=self.average_list[i] + 0.8,
+                y=self.average_list[i] + 0.6,
                 xref='x',
                 yref='y',
-                text='Number of bugs: ' + str(self.count_list[i]),
+                text='Number of bugs: <b>' + str(self.count_list[i]) + '</b><br>Max days in work: <b>' + str(self.max_list[i]) + '</b>',
                 showarrow=False,
                 font=dict(
                     family='sans-serif',
                     size=16,
                     color='black'
-                )
-            ))
-            annotations.append(dict(
-                x=list(self.days_dict.keys())[i],
-                y=self.average_list[i] + 0.5,
-                xref='x',
-                yref='y',
-                text='Max days in work: ' + str(self.max_list[i]),
-                showarrow=False,
-                font=dict(
-                    family='sans-serif',
-                    size=16,
-                    color='black'
-                )
-            ))
-            shapes.append(dict(
-                type='rect',
-                xref='paper',
-                yref='y',
-                x0=(i+0.5)/len(self.days_dict.keys()) - 0.065,
-                y0=self.average_list[i] + 0.3,
-                x1=(i+0.5)/len(self.days_dict.keys()) + 0.065,
-                y1=self.average_list[i] + 1,
-                line=dict(
-                    color='rgb(0,0,0)',
-                    width=1
-                )
+                ),
+                bordercolor='black',
+                borderwidth=1,
+                borderpad=5,
+                bgcolor='white',
+                opacity=1
             ))
         layout = go.Layout(
             annotations=annotations,
@@ -228,8 +206,7 @@ class BugsDurationDashboard(AbstractDashboard):
                     size=12,
                     color='black'
                 )
-            ),
-            shapes=shapes
+            )
         )
 
         fig = go.Figure(data=traces, layout=layout)
