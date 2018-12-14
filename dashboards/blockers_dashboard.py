@@ -51,18 +51,23 @@ class BlockersDashboard(AbstractDashboard):
             raise ValueError('There is no issues to show')
 
         trace_dict = {domain: [] for domain in self.statuses_dict.keys()}
-        titles = []
+        annotations_open, annotations_dev = [], []
         for domain, statuses, annotation in zip(self.statuses_dict.keys(), self.statuses_dict.values(),
                                                 self.bugs_annotation_dict.values()):
-            title = ''
+            annotation_open, annotation_dev = 'Open: ', 'Dev: '
             for i in range(len(annotation["key"])):
-                if annotation["status"][i] in ('Open', 'Dev'):
+                if annotation["status"][i] == 'Open':
                     if annotation["created"][i].date() == datetime.now().date():
-                        title += '<b>' + annotation["key"][i] + '</b> '
+                        annotation_open += '<b>' + annotation["key"][i] + '</b> '
                     else:
-                        title += '<i>' + annotation["key"][i] + '</i> '
-            title = textwrap.wrap(title, 60)
-            titles.append('<br>'.join(title))
+                        annotation_open += '<i>' + annotation["key"][i] + '</i> '
+                elif annotation["status"][i] == 'Dev':
+                    if annotation["created"][i].date() == datetime.now().date():
+                        annotation_dev += '<b>' + annotation["key"][i] + '</b> '
+                    else:
+                        annotation_dev += '<i>' + annotation["key"][i] + '</i> '
+            annotations_open.append('<br>'.join(textwrap.wrap(annotation_open, 60)))
+            annotations_dev.append('<br>'.join(textwrap.wrap(annotation_dev, 60)))
             for status in statuses:
                 trace_dict[domain].append(go.Bar(
                     x=[domain],
@@ -85,7 +90,7 @@ class BlockersDashboard(AbstractDashboard):
             xaxis = 'xaxis' + str(i+1)
             fig["layout"][xaxis].update(
                 showticklabels=False,
-                title=titles[i]
+                title=annotations_open[i] + '<br>' + annotations_dev[i]
             )
 
         title = self.dashboard_name
