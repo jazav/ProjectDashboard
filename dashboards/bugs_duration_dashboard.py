@@ -64,7 +64,7 @@ class BugsDurationDashboard(AbstractDashboard):
             name='average',
             textposition='auto',
             marker=dict(
-                color='rgb(79,88,175)',
+                color='rgb(126,135,215)',
                 line=dict(color='black',
                           width=1),
             ),

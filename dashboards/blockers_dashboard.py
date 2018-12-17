@@ -83,9 +83,7 @@ class BlockersDashboard(AbstractDashboard):
                     ),
                     showlegend=True if domain == list(self.statuses_dict.keys())[0] else False
                 ))
-        print(list(self.statuses_dict.keys()))
         cols = math.ceil(len(self.statuses_dict.keys())/2)
-        print(cols)
         fig = tools.make_subplots(rows=2, cols=cols, subplot_titles=list(self.statuses_dict.keys()))
         for traces, i in zip(trace_dict.values(), range(len(trace_dict.keys()))):
             row, col = int(i // cols + 1), int(i % cols + 1)
@@ -101,6 +99,7 @@ class BlockersDashboard(AbstractDashboard):
         # html_file = self.png_dir + "{0}.html".format(title)
         html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 
+        fig["layout"].update(title='<b>{0} as of {1}</b>'.format(title, datetime.now().strftime("%d.%m.%y %H:%M")))
         plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
 
     def export_to_plot(self):

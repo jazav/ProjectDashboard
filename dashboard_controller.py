@@ -285,7 +285,7 @@ class DashboardController:
 
         for priority in priorities:
             dashboard = BlockersDashboard()
-            dashboard.dashboard_name = priority.strip() + ' in ' + fixversion.strip()
+            dashboard.dashboard_name = priority.strip() + 's in ' + fixversion.strip()
             dashboard.items_on_chart = 10
             dashboard.min_item_tail = 5
             dashboard.plan = plan
