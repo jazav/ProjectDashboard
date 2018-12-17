@@ -132,7 +132,7 @@ class BugsDurationDashboard(AbstractDashboard):
                 y=self.average_list[i] + 0.6,
                 xref='x',
                 yref='y',
-                text='Number of bugs: <b>' + str(self.count_list[i]) + '</b><br>Max days in work: <b>' + str(self.max_list[i]) + '</b>',
+                text='Bugs number: <b>' + str(self.count_list[i]) + '</b><br>Max duration: <b>' + str(self.max_list[i]) + '</b>',
                 showarrow=False,
                 font=dict(
                     family='sans-serif',
