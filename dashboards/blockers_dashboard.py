@@ -5,6 +5,7 @@ from plotly import tools
 from datetime import datetime
 from adapters.issue_utils import get_domain, get_domain_by_project
 import textwrap
+import math
 
 
 def color_for_status(status):
@@ -34,7 +35,7 @@ class BlockersDashboard(AbstractDashboard):
                     self.created_list.append(self.created_list[i])
                     self.project_list.append(self.project_list[i])
         for i in range(len(self.key_list)):
-            if self.components_list[i] != ['']:
+            if self.components_list[i] != [''] and get_domain(*self.components_list[i]) != 'OTHERS':
                 self.components_list[i] = get_domain(*self.components_list[i])
             else:
                 self.components_list[i] = get_domain_by_project(self.project_list[i])
@@ -54,20 +55,20 @@ class BlockersDashboard(AbstractDashboard):
         annotations_open, annotations_dev = [], []
         for domain, statuses, annotation in zip(self.statuses_dict.keys(), self.statuses_dict.values(),
                                                 self.bugs_annotation_dict.values()):
-            annotation_open, annotation_dev = 'Open: ', 'Dev: '
+            annotation_open, annotation_dev = '<b>Open:</b> ', '<b>Dev:</b> '
             for i in range(len(annotation["key"])):
                 if annotation["status"][i] == 'Open':
                     if annotation["created"][i].date() == datetime.now().date():
-                        annotation_open += '<b>' + annotation["key"][i] + '</b> '
+                        annotation_open += annotation["key"][i] + '<sup><b>!</b></sup> '
                     else:
-                        annotation_open += '<i>' + annotation["key"][i] + '</i> '
+                        annotation_open += annotation["key"][i] + ' '
                 elif annotation["status"][i] == 'Dev':
                     if annotation["created"][i].date() == datetime.now().date():
-                        annotation_dev += '<b>' + annotation["key"][i] + '</b> '
+                        annotation_dev += annotation["key"][i] + '<sup><b>!</b></sup> '
                     else:
-                        annotation_dev += '<i>' + annotation["key"][i] + '</i> '
-            annotations_open.append('<br>'.join(textwrap.wrap(annotation_open, 60)))
-            annotations_dev.append('<br>'.join(textwrap.wrap(annotation_dev, 60)))
+                        annotation_dev += annotation["key"][i] + ' '
+            annotations_open.append('<br>'.join(textwrap.wrap(annotation_open, 42)))
+            annotations_dev.append('<br>'.join(textwrap.wrap(annotation_dev, 42)))
             for status in statuses:
                 trace_dict[domain].append(go.Bar(
                     x=[domain],
@@ -82,9 +83,12 @@ class BlockersDashboard(AbstractDashboard):
                     ),
                     showlegend=True if domain == list(self.statuses_dict.keys())[0] else False
                 ))
-        fig = tools.make_subplots(rows=2, cols=4, subplot_titles=list(self.statuses_dict.keys()))
+        print(list(self.statuses_dict.keys()))
+        cols = math.ceil(len(self.statuses_dict.keys())/2)
+        print(cols)
+        fig = tools.make_subplots(rows=2, cols=cols, subplot_titles=list(self.statuses_dict.keys()))
         for traces, i in zip(trace_dict.values(), range(len(trace_dict.keys()))):
-            row, col = int(i // 4 + 1), int(i % 4 + 1)
+            row, col = int(i // cols + 1), int(i % cols + 1)
             for trace in traces:
                 fig.append_trace(trace, row, col)
             xaxis = 'xaxis' + str(i+1)
@@ -94,7 +98,8 @@ class BlockersDashboard(AbstractDashboard):
             )
 
         title = self.dashboard_name
-        html_file = self.png_dir + "{0}.html".format(title)
+        # html_file = self.png_dir + "{0}.html".format(title)
+        html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 
         plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
 

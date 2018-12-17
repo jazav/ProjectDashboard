@@ -110,7 +110,8 @@ class BugsDurationDashboard(AbstractDashboard):
         title = self.dashboard_name + (' in ' + self.labels
                                        if self.labels != '' else '') + (' created by QC' if self.creators != '' else '')
         file_name = title + ' ' + plan_fact_str
-        html_file = self.png_dir + "{0}.html".format(file_name)
+        # html_file = self.png_dir + "{0}.html".format(file_name)
+        html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 
         annotations = [dict(
             x=1.05,

@@ -148,7 +148,8 @@ class ArbaIssuesDashboard(AbstractDashboard):
         ))
 
         title = self.dashboard_name
-        html_file = self.png_dir + "{0}.html".format(title)
+        # html_file = self.png_dir + "{0}.html".format(title)
+        html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 
         layout = go.Layout(
             barmode='group',
