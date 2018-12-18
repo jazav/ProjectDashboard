@@ -12,6 +12,7 @@ from dashboards.feature_progress_domain_dashboard import FeatureProgressDomainDa
 from dashboards.bugs_duration_dashboard import BugsDurationDashboard  # By @alanbryn
 from dashboards.arba_issues_dashboard import ArbaIssuesDashboard  # By @alanbryn
 from dashboards.blockers_dashboard import BlockersDashboard  # By @alanbryn
+from dashboards.arba_review_dashboard import ArbaReviewDashboard # By @alanbryn
 from dashboards.issue_detail_dashboard import IssueDetailDashboard
 from dashboards.prepare_feature_data import *
 from data_controller import DataController
@@ -256,23 +257,35 @@ class DashboardController:
 
     # By @alanbryn
     @staticmethod
-    def dashboard_arba_issues(plan, fact, auto_open, assignees, teams):
+    def dashboard_arba_issues(plan, fact, auto_open, assignees, teams, details):
         if not (plan and fact):
             raise ValueError('both of plan and fact parameters are false')
 
         dc = DataController()
         data_dao = dc.get_issue_sqllite(query=None, expand=None)
 
-        dashboard = ArbaIssuesDashboard()
-        dashboard.dashboard_name = teams + ' issues tracking'
-        dashboard.items_on_chart = 10
-        dashboard.min_item_tail = 5
-        dashboard.plan = plan
-        dashboard.fact = fact
-        dashboard.auto_open = auto_open
-        dashboard.assignees = assignees
-        dashboard.prepare(data=data_dao)
-        dashboard.export_to_plot()
+        if details == 'issues':
+            dashboard = ArbaIssuesDashboard()
+            dashboard.dashboard_name = teams + ' issues tracking'
+            dashboard.items_on_chart = 10
+            dashboard.min_item_tail = 5
+            dashboard.plan = plan
+            dashboard.fact = fact
+            dashboard.auto_open = auto_open
+            dashboard.assignees = assignees
+            dashboard.prepare(data=data_dao)
+            dashboard.export_to_plot()
+        elif details == 'review':
+            dashboard = ArbaReviewDashboard()
+            dashboard.dashboard_name = teams + ' review'
+            dashboard.items_on_chart = 10
+            dashboard.min_item_tail = 5
+            dashboard.plan = plan
+            dashboard.fact = fact
+            dashboard.auto_open = auto_open
+            dashboard.assignees = assignees
+            dashboard.prepare(data=data_dao)
+            dashboard.export_to_plot()
 
     # By @alanbryn
     @staticmethod

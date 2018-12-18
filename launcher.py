@@ -199,7 +199,8 @@ def main(argv):
         if name_space.name == "arba":
             plan, fact = get_plan_fact(parameters=name_space.mode)
             dshc.dashboard_arba_issues(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
-                                       assignees=name_space.assignees, teams=name_space.teams)
+                                       assignees=name_space.assignees, teams=name_space.teams,
+                                       details=name_space.details)
         # --------------------------------------------------------------------------------------------------------------
 
         if name_space.name == "hm":
