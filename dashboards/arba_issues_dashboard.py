@@ -50,7 +50,7 @@ def issue_color(issuetype, part):
 class ArbaIssuesDashboard(AbstractDashboard):
     name_list, assignee_list, created_list, duedate_list, key_list, issuetype_list = [], [], [], [], [], []
     auto_open, assignees = True, None
-    team_list = [],
+    team_list = []
 
     def prepare(self, data):
         self.name_list, self.assignee_list, self.created_list, self.duedate_list, self.key_list, self.issuetype_list =\

@@ -407,3 +407,38 @@ class SqliteDaoIssue(DaoIssue):
             projects_list.append(row[4])
 
         return key_list, created_list, status_list, components_list, projects_list
+
+    # By @alanbryn
+    def get_arba_review(self, assignees_filter):
+        key_list = []
+        assignee_list = []
+        issuetype_list = []
+        status_list = []
+        duedate_list = []
+        sql_str = '''SELECT key,
+                            assignee.
+                            issuetype,
+                            status,
+                            duedate
+                     FROM issues
+                     WHERE strftime('%Y-%m-%d', created) > strftime('%Y-%m-%d', '2018-10-01')'''
+        if assignees_filter != '':
+            sql_str = sql_str + ' AND assignee IN ('
+            assignees_filter = assignees_filter.split(',')
+            assignees_filter = [item.strip() for item in assignees_filter]
+            for assignee in assignees_filter:
+                sql_str = sql_str + '\'' + assignee + '\''
+                if assignee != assignees_filter[-1]:
+                    sql_str = sql_str + ', '
+                else:
+                    sql_str = sql_str + ')'
+        sql_str = sql_str + ' ORDER BY assignee'
+
+        for row in self.cursor.execute(sql_str):
+            key_list.append(row[0])
+            assignee_list.append(row[1])
+            issuetype_list.append(row[2])
+            status_list.append(row[3])
+            duedate_list.append(row[4])
+
+        return key_list, assignee_list, issuetype_list, status_list, duedate_list
