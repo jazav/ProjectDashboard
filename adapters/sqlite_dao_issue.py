@@ -416,7 +416,7 @@ class SqliteDaoIssue(DaoIssue):
         status_list = []
         duedate_list = []
         sql_str = '''SELECT key,
-                            assignee.
+                            assignee,
                             issuetype,
                             status,
                             duedate
