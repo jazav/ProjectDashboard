@@ -10,8 +10,8 @@ import math
 
 def color_for_status(status):
     return {
-        'Open': 'rgb(75,103,132)',
-        'Dev': 'rgb(254,210,92)',
+        'Open': 'rgb(217,98,89)',
+        'In Fix': 'rgb(254,210,92)',
         'Closed': 'rgb(29,137,49)'
     }[status]
 
@@ -41,7 +41,7 @@ class BlockersDashboard(AbstractDashboard):
                 self.components_list[i] = get_domain_by_project(self.project_list[i])
             if self.components_list[i] not in self.bugs_annotation_dict.keys():
                 self.bugs_annotation_dict[self.components_list[i]] = {'key': [], 'created': [], 'status': []}
-                self.statuses_dict[self.components_list[i]] = {'Open': 0, 'Dev': 0, 'Closed': 0}
+                self.statuses_dict[self.components_list[i]] = {'Open': 0, 'In Fix': 0, 'Closed': 0}
             self.bugs_annotation_dict[self.components_list[i]]['key'].append(self.key_list[i])
             self.bugs_annotation_dict[self.components_list[i]]['created'].append(self.created_list[i])
             self.bugs_annotation_dict[self.components_list[i]]['status'].append(self.status_list[i])
@@ -52,23 +52,23 @@ class BlockersDashboard(AbstractDashboard):
             raise ValueError('There is no issues to show')
 
         trace_dict = {domain: [] for domain in self.statuses_dict.keys()}
-        annotations_open, annotations_dev = [], []
+        annotations_open, annotations_fix = [], []
         for domain, statuses, annotation in zip(self.statuses_dict.keys(), self.statuses_dict.values(),
                                                 self.bugs_annotation_dict.values()):
-            annotation_open, annotation_dev = '<b>Open:</b> ', '<b>Dev:</b> '
+            annotation_open, annotation_fix = '<b>Open:</b> ', '<b>In Fix:</b> '
             for i in range(len(annotation["key"])):
                 if annotation["status"][i] == 'Open':
                     if annotation["created"][i].date() == datetime.now().date():
                         annotation_open += annotation["key"][i] + '<sup><b>!</b></sup> '
                     else:
                         annotation_open += annotation["key"][i] + ' '
-                elif annotation["status"][i] == 'Dev':
+                elif annotation["status"][i] == 'In Fix':
                     if annotation["created"][i].date() == datetime.now().date():
-                        annotation_dev += annotation["key"][i] + '<sup><b>!</b></sup> '
+                        annotation_fix += annotation["key"][i] + '<sup><b>!</b></sup> '
                     else:
-                        annotation_dev += annotation["key"][i] + ' '
+                        annotation_fix += annotation["key"][i] + ' '
             annotations_open.append('<br>'.join(textwrap.wrap(annotation_open, 42)))
-            annotations_dev.append('<br>'.join(textwrap.wrap(annotation_dev, 42)))
+            annotations_fix.append('<br>'.join(textwrap.wrap(annotation_fix, 42)))
             for status in statuses:
                 trace_dict[domain].append(go.Bar(
                     x=[domain],
@@ -92,7 +92,7 @@ class BlockersDashboard(AbstractDashboard):
             xaxis = 'xaxis' + str(i+1)
             fig["layout"][xaxis].update(
                 showticklabels=False,
-                title=annotations_open[i] + '<br>' + annotations_dev[i]
+                title=annotations_open[i] + '<br>' + annotations_fix[i]
             )
 
         title = self.dashboard_name

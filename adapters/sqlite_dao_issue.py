@@ -367,7 +367,7 @@ class SqliteDaoIssue(DaoIssue):
                             created,
                             CASE
                                 WHEN status in ('Open', 'Reopened') THEN 'Open'
-                                WHEN status in ('Triage', 'In Progress', 'Resolved') THEN 'Dev'
+                                WHEN status in ('Triage', 'In Progress', 'Resolved') THEN 'In Fix'
                                 ELSE status
                             END AS status, 
                             components,
