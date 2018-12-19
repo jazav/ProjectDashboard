@@ -67,8 +67,8 @@ class BlockersDashboard(AbstractDashboard):
                         annotation_fix += '<b>' + annotation["key"][i] + '</b> '
                     else:
                         annotation_fix += annotation["key"][i] + ' '
-            annotations_open.append('<br>'.join(textwrap.wrap(annotation_open, 35)))
-            annotations_fix.append('<br>'.join(textwrap.wrap(annotation_fix, 35)))
+            annotations_open.append('<br>'.join(textwrap.wrap(annotation_open, 33)))
+            annotations_fix.append('<br>'.join(textwrap.wrap(annotation_fix, 33)))
             for status in statuses:
                 trace_dict[domain].append(go.Bar(
                     x=[domain],
