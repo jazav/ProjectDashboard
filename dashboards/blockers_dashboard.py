@@ -55,20 +55,20 @@ class BlockersDashboard(AbstractDashboard):
         annotations_open, annotations_fix = [], []
         for domain, statuses, annotation in zip(self.statuses_dict.keys(), self.statuses_dict.values(),
                                                 self.bugs_annotation_dict.values()):
-            annotation_open, annotation_fix = '<b>Open:</b> ', '<b>In Fix:</b> '
+            annotation_open, annotation_fix = '', ''
             for i in range(len(annotation["key"])):
                 if annotation["status"][i] == 'Open':
                     if annotation["created"][i].date() == datetime.now().date():
-                        annotation_open += annotation["key"][i] + '<sup><b>!</b></sup> '
+                        annotation_open += '<b>' + annotation["key"][i] + '</b> '
                     else:
                         annotation_open += annotation["key"][i] + ' '
                 elif annotation["status"][i] == 'In Fix':
                     if annotation["created"][i].date() == datetime.now().date():
-                        annotation_fix += annotation["key"][i] + '<sup><b>!</b></sup> '
+                        annotation_fix += '<b>' + annotation["key"][i] + '</b> '
                     else:
                         annotation_fix += annotation["key"][i] + ' '
-            annotations_open.append('<br>'.join(textwrap.wrap(annotation_open, 42)))
-            annotations_fix.append('<br>'.join(textwrap.wrap(annotation_fix, 42)))
+            annotations_open.append('<br>'.join(textwrap.wrap(annotation_open, 35)))
+            annotations_fix.append('<br>'.join(textwrap.wrap(annotation_fix, 35)))
             for status in statuses:
                 trace_dict[domain].append(go.Bar(
                     x=[domain],
@@ -92,7 +92,11 @@ class BlockersDashboard(AbstractDashboard):
             xaxis = 'xaxis' + str(i+1)
             fig["layout"][xaxis].update(
                 showticklabels=False,
-                title=annotations_open[i] + '<br>' + annotations_fix[i]
+                title='<b>Open:</b> ' + annotations_open[i] + '<br>' + '<b>In Fix:</b> ' + annotations_fix[i],
+                titlefont=dict(
+                    size=12
+                ),
+                automargin=True
             )
 
         title = self.dashboard_name
