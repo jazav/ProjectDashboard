@@ -19,6 +19,7 @@ class BugsDurationDashboard(AbstractDashboard):
         self.median_list.clear()
         self.max_list.clear()
         self.count_list.clear()
+        self.days_dict.clear()
         self.project_list, self.name_list, self.created_list, self.resolutiondate_list, self.components_list = \
             data.get_bugs_duration(self.labels, self.priority, self.creators)
 
@@ -42,10 +43,12 @@ class BugsDurationDashboard(AbstractDashboard):
                 self.days_dict[self.components_list[i]] = []
             self.days_dict[self.components_list[i]].append(int(numpy.busday_count(self.created_list[i],
                                                                                   self.resolutiondate_list[i])) + 1)
-        try:
-            del self.days_dict["OTHERS"]
-        except KeyError:
-            print('Key not in domains')
+
+        daysdict = {}
+        for domain, days in self.days_dict.items():
+            if domain in ('Billing', 'CRM', 'DFE', 'Infra', 'NWM', 'Ordering', 'PRM', 'PSC'):
+                daysdict[domain] = days
+        self.days_dict = daysdict
 
         for domain in list(self.days_dict.keys()):
             self.average_list.append(round(statistics.mean(self.days_dict[domain]), 1))
@@ -129,7 +132,7 @@ class BugsDurationDashboard(AbstractDashboard):
         for i in range(len(self.days_dict.keys())):
             annotations.append(dict(
                 x=list(self.days_dict.keys())[i],
-                y=self.average_list[i] + 0.6,
+                y=self.average_list[i] + max(self.average_list)/20,
                 xref='x',
                 yref='y',
                 text='Bugs number: <b>' + str(self.count_list[i]) + '</b><br>Max duration: <b>' + str(self.max_list[i]) + '</b>',

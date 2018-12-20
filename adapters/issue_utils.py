@@ -86,6 +86,7 @@ def get_domain(component):
         'GUS_DB_ADAPTER': 'Billing',
         'Process Engine': 'CRM',
         'Order Capture': 'CRM',
+        'Analytics': 'ARBA',
         '': 'COMPONENTS FIELD IS EMPTY!',
         None: None
     }
