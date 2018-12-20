@@ -55,7 +55,7 @@ class BlockersDashboard(AbstractDashboard):
         annotations_open, annotations_fix = [], []
         for domain, statuses, annotation in zip(self.statuses_dict.keys(), self.statuses_dict.values(),
                                                 self.bugs_annotation_dict.values()):
-            annotation_open, annotation_fix = '', ''
+            annotation_open, annotation_fix = '<b>Open:</b> ', '<b>In Fix:</b> '
             for i in range(len(annotation["key"])):
                 if annotation["status"][i] == 'Open':
                     if annotation["created"][i].date() == datetime.now().date():
@@ -92,7 +92,7 @@ class BlockersDashboard(AbstractDashboard):
             xaxis = 'xaxis' + str(i+1)
             fig["layout"][xaxis].update(
                 showticklabels=False,
-                title='<b>Open:</b> ' + annotations_open[i] + '<br>' + '<b>In Fix:</b> ' + annotations_fix[i],
+                title=annotations_open[i] + '<br>' + annotations_fix[i],
                 titlefont=dict(
                     size=12
                 ),
