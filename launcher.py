@@ -184,7 +184,7 @@ def main(argv):
                                                    dashboard_format=DashboardFormat[name_space.dashboard_format.upper()])
         
         # By @alanbryn -------------------------------------------------------------------------------------------------
-        if name_space.name == "bugs":
+        if name_space.name == "bugs_duration":
             plan, fact = get_plan_fact(parameters=name_space.mode)
             dshc.dashboard_bugs_duration(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
                                          priorities=name_space.priorities.split(","), labels=name_space.labels,
