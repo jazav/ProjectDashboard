@@ -20,17 +20,20 @@ def domain_position(row, col):
     )
 
 class ArbaReviewDashboard(AbstractDashboard):
-    key_list, assignee_list, issuetype_list, status_list, duedate_list = [], [], [], [], []
+    key_list, assignee_list, issuetype_list, status_list, duedate_list, timeoriginalestimate_list, timespent_list =\
+        [], [], [], [], [], [], []
     auto_open, assignees = True, None
 
     def prepare(self, data):
-        self.key_list, self.assignee_list, self.issuetype_list, self.status_list, self.duedate_list =\
-            data.get_arba_review(self.assignees)
+        self.key_list, self.assignee_list, self.issuetype_list, self.status_list, self.duedate_list,\
+            self.timeoriginalestimate_list, self.timespent_list = data.get_arba_review(self.assignees)
         self.assignee_list = split_on(self.assignee_list)
         self.key_list = group_on(self.key_list, self.assignee_list)
         self.issuetype_list = group_on(self.issuetype_list, self.assignee_list)
         self.status_list = group_on(self.status_list, self.assignee_list)
         self.duedate_list = group_on(self.duedate_list, self.assignee_list)
+        self.timeoriginalestimate_list = group_on(self.timeoriginalestimate_list, self.assignee_list)
+        self.timespent_list = group_on(self.timespent_list, self.assignee_list)
 
     def export_to_plotly(self):
         if len(self.key_list) == 0:
@@ -65,6 +68,7 @@ class ArbaReviewDashboard(AbstractDashboard):
         for assignee, i in zip(table_dict.keys(), range(len(table_dict.keys()))):
             open_bugs, closed_bugs = '', ''
             not_duedated, overdue_tasks, overdue_subtasks, overdue_bugs = '', '', '', ''
+            original_est_sum, spent_sum = 0, 0
             for j in range(len(self.assignee_list[i])):
                 if self.issuetype_list[i][j] == 'Bug' and self.status_list[i][j] in ('Open', 'Reopened', 'Dev'):
                     open_bugs += '{0}, '.format(self.key_list[i][j])
@@ -81,6 +85,10 @@ class ArbaReviewDashboard(AbstractDashboard):
                             overdue_subtasks += '{0}, '.format(self.key_list[i][j])
                         elif self.issuetype_list[i][j] == 'Bug':
                             overdue_bugs += '{0}, '.format(self.key_list[i][j])
+                elif self.issuetype_list[i][j] == 'Sub-task' and self.status_list[i][j] in ('Closed', 'Resolved'):
+                    original_est_sum += self.timeoriginalestimate_list[i][j]
+                    spent_sum += self.timespent_list[i][j]
+            est_acc = round((original_est_sum/spent_sum*100), 2)
             row, col = int(i // cols + 1), int(i % cols + 1)
             table_dict[assignee] = go.Table(
                 domain=domain_position(row, col),
@@ -99,7 +107,7 @@ class ArbaReviewDashboard(AbstractDashboard):
                              '<b>Overdue tasks:</b>', '<b>Overdue sub-tasks:</b>', '<b>Overdue bugs:</b>',
                              '<b>Estimation accuracy:</b>', '<b>Focus Factor:</b>'],
                             [open_bugs[:-2], closed_bugs[:-2], not_duedated[:-2], overdue_tasks[:-2],
-                             overdue_subtasks[:-2], overdue_bugs[:-2], '', '']],
+                             overdue_subtasks[:-2], overdue_bugs[:-2], '{0}%'.format(est_acc), '']],
                     align=['right', 'left'],
                     fill=dict(
                         color=[['rgb(255,255,255)', 'rgb(255,255,255)', 'rgb(240,240,240)', 'rgb(240,240,240)',
