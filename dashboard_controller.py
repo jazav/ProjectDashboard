@@ -298,7 +298,8 @@ class DashboardController:
 
         for priority in priorities:
             dashboard = BugsDashboard()
-            dashboard.dashboard_name = priority.strip() + 's in ' + fixversion.strip()
+            dashboard.dashboard_name = '{0}s in {1}'.format(priority.strip(), fixversion.strip()) if labels == ''\
+                else 'Showstoppers in {0}'.format(fixversion.strip())
             dashboard.items_on_chart = 10
             dashboard.min_item_tail = 5
             dashboard.plan = plan
@@ -307,6 +308,7 @@ class DashboardController:
             dashboard.fixversion = fixversion
             dashboard.projects = projects
             dashboard.statuses = statuses
+            dashboard.labels = labels
             dashboard.auto_open = auto_open
             dashboard.prepare(data=data_dao)
             dashboard.export_to_plot()
