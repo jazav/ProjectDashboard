@@ -11,7 +11,7 @@ from dashboards.feature_progress_dashboard import FeatureProgressDashboard
 from dashboards.feature_progress_domain_dashboard import FeatureProgressDomainDashboard, DashboardType
 from dashboards.bugs_duration_dashboard import BugsDurationDashboard  # By @alanbryn
 from dashboards.arba_issues_dashboard import ArbaIssuesDashboard  # By @alanbryn
-from dashboards.blockers_dashboard import BlockersDashboard  # By @alanbryn
+from dashboards.bugs_dashboard import BugsDashboard  # By @alanbryn
 from dashboards.arba_review_dashboard import ArbaReviewDashboard # By @alanbryn
 from dashboards.issue_detail_dashboard import IssueDetailDashboard
 from dashboards.prepare_feature_data import *
@@ -289,7 +289,7 @@ class DashboardController:
 
     # By @alanbryn
     @staticmethod
-    def dashboard_blockers(plan, fact, auto_open, priorities, fixversion, projects, statuses):
+    def dashboard_bugs(plan, fact, auto_open, priorities, fixversion, projects, statuses, labels):
         if not (plan and fact):
             raise ValueError('both of plan and fact parameters are false')
 
@@ -297,13 +297,13 @@ class DashboardController:
         data_dao = dc.get_issue_sqllite(query=None, expand=None)
 
         for priority in priorities:
-            dashboard = BlockersDashboard()
+            dashboard = BugsDashboard()
             dashboard.dashboard_name = priority.strip() + 's in ' + fixversion.strip()
             dashboard.items_on_chart = 10
             dashboard.min_item_tail = 5
             dashboard.plan = plan
             dashboard.fact = fact
-            dashboard.priority = priority
+            dashboard.priority = priority.strip()
             dashboard.fixversion = fixversion
             dashboard.projects = projects
             dashboard.statuses = statuses

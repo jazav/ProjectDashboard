@@ -16,12 +16,14 @@ def color_for_status(status):
     }[status]
 
 
-class BlockersDashboard(AbstractDashboard):
+class BugsDashboard(AbstractDashboard):
     key_list, created_list, status_list, components_list, project_list = [], [], [], [], []
     auto_open, priority, fixversion, projects, statuses = True, None, None, None, None
     bugs_annotation_dict, statuses_dict = {}, {}
 
     def prepare(self, data):
+        self.key_list.clear(), self.created_list.clear(), self.status_list.clear(), self.components_list.clear(),\
+            self.project_list.clear(), self.bugs_annotation_dict.clear(), self.statuses_dict.clear()
         self.key_list, self.created_list, self.status_list, self.components_list, self.project_list =\
             data.get_bugs(self.projects, self.priority, self.fixversion, self.statuses)
         for i in range(len(self.key_list)):

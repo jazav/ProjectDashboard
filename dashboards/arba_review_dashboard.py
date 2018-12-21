@@ -89,15 +89,9 @@ class ArbaReviewDashboard(AbstractDashboard):
                 header=dict(
                     values=[[assignee],
                             ['']],
-                    fill=dict(
-                        color=['white']
-                    ),
-                    line=dict(
-                        width=0
-                    ),
-                    font=dict(
-                        size=16
-                    ),
+                    fill=dict(color=['white']),
+                    line=dict(width=0),
+                    font=dict(size=16),
                     height=35
                 ),
                 cells=dict(
@@ -111,9 +105,7 @@ class ArbaReviewDashboard(AbstractDashboard):
                         color=[['rgb(255,255,255)', 'rgb(255,255,255)', 'rgb(240,240,240)', 'rgb(240,240,240)',
                                'rgb(240,240,240)', 'rgb(240,240,240)', 'rgb(224,224,224)', 'rgb(224,224,224)']]
                     ),
-                    line=dict(
-                        color='black'
-                    ),
+                    line=dict(color='black'),
                     height=35
                 )
             )
