@@ -96,7 +96,7 @@ class BugsDashboard(AbstractDashboard):
                 showticklabels=False,
                 title=annotations_open[i] + '<br>' + annotations_fix[i],
                 titlefont=dict(
-                    size=12
+                    size=10
                 ),
                 automargin=True
             )
