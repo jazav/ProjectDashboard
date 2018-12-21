@@ -407,7 +407,6 @@ class SqliteDaoIssue(DaoIssue):
                 else:
                     sql_str = sql_str + ')'
         sql_str = sql_str + ' ORDER BY components'
-        print(sql_str)
 
         for row in self.cursor.execute(sql_str):
             key_list.append(row[0])
