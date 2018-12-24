@@ -426,13 +426,15 @@ class SqliteDaoIssue(DaoIssue):
         duedate_list = []
         timeoriginalestimate_list = []
         timespent_list = []
+        epiclink_list = []
         sql_str = '''SELECT key,
                             assignee,
                             issuetype,
                             status,
                             duedate,
                             timeoriginalestimate,
-                            timespent
+                            timespent,
+                            epiclink
                      FROM issues
                      WHERE strftime('%Y-%m-%d', created) > strftime('%Y-%m-%d', '2018-10-01')'''
         if assignees_filter != '':
@@ -455,5 +457,7 @@ class SqliteDaoIssue(DaoIssue):
             duedate_list.append(row[4])
             timeoriginalestimate_list.append(row[5])
             timespent_list.append(row[6])
+            epiclink_list.append(row[7])
 
-        return key_list, assignee_list, issuetype_list, status_list, duedate_list, timeoriginalestimate_list, timespent_list
+        return key_list, assignee_list, issuetype_list, status_list, duedate_list, timeoriginalestimate_list,\
+            timespent_list, epiclink_list
