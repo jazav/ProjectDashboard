@@ -9,12 +9,18 @@ import math
 import textwrap
 
 
-def domain_position(row, col):
-    x_pos = {1: [0, 0.32],
-             2: [0.34, 0.66],
-             3: [0.68, 1]}
-    y_pos = {1: [0.55, 1],
-             2: [0, 0.45]}
+def domain_position(row, col, rows):
+    delta = 0.005
+    length = (1-(rows-1)*delta)/rows
+    start, end, y_pos = 0, length, {}
+    for i in range(1, rows+1):
+        y_pos[i] = [start, end]
+        start = end + delta
+        end = start + length
+    x_pos = {
+        1: [0, 0.49],
+        2: [0.51, 1]
+    }
     return dict(
         x=x_pos[col],
         y=y_pos[row]
@@ -67,10 +73,11 @@ class ArbaReviewDashboard(AbstractDashboard):
         #     for j in range(len(table['layout']['annotations'])):
         #         table['layout']['annotations'][j].update(xref=xref, yref=yref)
         #     fig['layout']['annotations'] += table['layout']['annotations']
-        cols = math.ceil(len(table_dict.keys()) / 2)
+        rows = math.ceil(len(table_dict.keys())/2)
         for assignee, i in zip(table_dict.keys(), range(len(table_dict.keys()))):
-            open_bugs, resolved_bugs = '', ''
-            not_duedated, overdue_tasks, overdue_subtasks, overdue_bugs = '', '', '', ''
+            open_bugs, infix_bugs, resolved_bugs = '<b>Open:</b> ', '<b>In Fix:</b> ', '<b>Resolved:</b> '
+            not_duedated, overdue_tasks, overdue_subtasks, overdue_bugs =\
+                '<b>Duedate:</b> ', '<b>Tasks:</b> ', '<b>Sub-tasks:</b> ', '<b>Overdue:</b> '
             original_est_sum, spent_sum, all_spent, neg_spent = 0, 0, 0, 0
             for j in range(len(self.assignee_list[i])):
                 all_spent += self.timespent_list[i][j]
@@ -78,27 +85,29 @@ class ArbaReviewDashboard(AbstractDashboard):
                     neg_spent += self.timespent_list[i][j]
                 if self.issuetype_list[i][j] == 'Bug':
                     neg_spent += self.timespent_list[i][j]
-                    if self.status_list[i][j] in ('Open', 'Reopened', 'Dev'):
-                        open_bugs += '{0}, <br>'.format(self.key_list[i][j])
+                    if self.status_list[i][j] in ('Open', 'Reopened'):
+                        open_bugs += '{0}, '.format(self.key_list[i][j])
+                    elif self.status_list[i][j] == 'Dev':
+                        infix_bugs += '{0}, '.format(self.key_list[i][j])
                     elif self.status_list[i][j] in ('Closed', 'Resolved'):
-                        resolved_bugs += '{0}, <br>'.format(self.key_list[i][j])
+                        resolved_bugs += '{0}, '.format(self.key_list[i][j])
                 if self.status_list[i][j] not in ('Closed', 'Resolved'):
                     if self.duedate_list[i][j] is None and self.issuetype_list[i][j] != 'Epic':
                         not_duedated += '{0}, '.format(self.key_list[i][j])
                     if self.duedate_list[i][j] is not None and datetime.strptime(
                             self.duedate_list[i][j][:11].strip(), '%Y-%m-%d').date() < datetime.now().date():
                         if self.issuetype_list[i][j] == 'Task':
-                            overdue_tasks += '{0}, <br>'.format(self.key_list[i][j])
+                            overdue_tasks += '{0}, '.format(self.key_list[i][j])
                         elif self.issuetype_list[i][j] == 'Sub-task':
-                            overdue_subtasks += '{0}, <br>'.format(self.key_list[i][j])
+                            overdue_subtasks += '{0}, '.format(self.key_list[i][j])
                         elif self.issuetype_list[i][j] == 'Bug':
-                            overdue_bugs += '{0}, <br>'.format(self.key_list[i][j])
+                            overdue_bugs += '{0}, '.format(self.key_list[i][j])
                 if self.issuetype_list[i][j] == 'Sub-task' and self.status_list[i][j] in ('Closed', 'Resolved'):
                     original_est_sum += self.timeoriginalestimate_list[i][j]
                     spent_sum += self.timespent_list[i][j]
             est_acc = 100 - math.fabs(100 - round((original_est_sum/spent_sum*100), 2))
             ff = round((1-neg_spent/all_spent), 2)
-            row, col = int(i // cols + 1), int(i % cols + 1)
+            edit = lambda inf: '{0}—  '.format(inf) if inf[-5:] == '</b> ' else '<br>'.join(textwrap.wrap(inf, 35))
             # table_dict[assignee] = go.Table(
             #     domain=domain_position(row, col),
             #     columnorder=[1, 2, 3, 4],
@@ -126,27 +135,29 @@ class ArbaReviewDashboard(AbstractDashboard):
             #         )
             #     )
             # )
+            row, col = int((i % rows) + 1), int((i // rows) + 1)
             table_dict[assignee] = go.Table(
-                domain=domain_position(row, col),
+                domain=domain_position(row, col, rows),
                 columnorder=[1, 2, 3, 4],
-                # columnwidth=[80, 180],
+                # columnwidth=[2, 4, 4, 4],
                 header=dict(
                     values=[['<b>{0}</b>'.format(assignee)],
                             ['<b>Bugs</b>'],
                             ['<b>Overdue</b>'],
-                            ['<b>W/o duedate</b>']
+                            ['<b>W/o</b>']
                             ],
                     fill=dict(color=['grey']),
                     font=dict(size=14, color='white')
                 ),
                 cells=dict(
-                    values=[['<b>Estimate accuracy:</b><br>{0}%<br><b>Focus factor:</b><br>{1}'
+                    values=[['<b>Estimate accuracy:</b> {0}%<br><b>Focus factor:</b> {1}'
                             .format(est_acc, ff)],
-                            ['<b>Open:</b><br>{0}<br><b>Resolved:</b><br>{1}<br><b>Overdue:</b><br>{2}'
-                            .format(open_bugs[:-6], resolved_bugs[:-6], overdue_bugs[:-6])],
-                            ['<b>Tasks:</b><br>{0}<br><b>Sub-tasks:</b><br>{1}'
-                            .format(overdue_tasks[:-6], overdue_subtasks[:-6])],
-                            ['{0}'.format(not_duedated[:-2])]
+                            ['{0}<br>{1}<br>{2}<br>{3}'
+                            .format(edit(open_bugs)[:-2], edit(infix_bugs)[:-2],
+                                    edit(resolved_bugs)[:-2], edit(overdue_bugs)[:-2])],
+                            ['{0}<br>{1}'
+                            .format(edit(overdue_tasks)[:-2], edit(overdue_subtasks)[:-2])],
+                            ['{0}'.format(edit(not_duedated)[:-2])]
                             ],
                     align=['left'] * 4,
                     # fill=dict(
