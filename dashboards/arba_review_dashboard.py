@@ -141,7 +141,7 @@ class ArbaReviewDashboard(AbstractDashboard):
                 columnorder=[1, 2, 3, 4],
                 # columnwidth=[2, 4, 4, 4],
                 header=dict(
-                    values=[['<b>{0}</b>'.format(assignee)],
+                    values=[['<b>{0}</b>'.format(' '.join(assignee.split('.')))],
                             ['<b>Bugs</b>'],
                             ['<b>Overdue</b>'],
                             ['<b>W/o</b>']
@@ -160,6 +160,7 @@ class ArbaReviewDashboard(AbstractDashboard):
                             ['{0}'.format(edit(not_duedated)[:-2])]
                             ],
                     align=['left'] * 4,
+                    font=dict(size=10)
                     # fill=dict(
                     #     color=[]
                     # )
@@ -167,9 +168,14 @@ class ArbaReviewDashboard(AbstractDashboard):
             )
 
         title = self.dashboard_name
-        html_file = self.png_dir + "{0}.html".format(title)
+        # html_file = self.png_dir + "{0}.html".format(title)
+        html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 
-        fig = go.Figure(data=list(table_dict.values()))
+        layout = dict(
+            title='<b>{0} as of {1}</b>'.format(title, datetime.now().strftime("%d.%m.%y %H:%M"))
+        )
+
+        fig = go.Figure(data=list(table_dict.values()), layout=layout)
         plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
 
     def export_to_plot(self):
