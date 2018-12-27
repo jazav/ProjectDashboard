@@ -260,7 +260,7 @@ class SqliteDaoIssue(DaoIssue):
              sql_str = sql_str + ' AND e.labels LIKE "%,' + label_filter + ',%"  '
         if fixversions_filter != '':
              sql_str = sql_str + ' AND e.fixversions LIKE "%,' + fixversions_filter + ',%"  '
-        sql_str = sql_str + ' ) GROUP BY ' + group_by +' HAVING SUM(timeoriginalestimate) > 0 '
+        sql_str = sql_str + ' ) GROUP BY ' + group_by + ' HAVING SUM(timeoriginalestimate) > 0 '
 
         for row in self.cursor.execute(sql_str):
             prj_list.append(row[0] if row[0] is not None else "")

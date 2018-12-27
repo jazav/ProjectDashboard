@@ -12,7 +12,8 @@ from dashboards.feature_progress_domain_dashboard import FeatureProgressDomainDa
 from dashboards.bugs_duration_dashboard import BugsDurationDashboard  # By @alanbryn
 from dashboards.arba_issues_dashboard import ArbaIssuesDashboard  # By @alanbryn
 from dashboards.bugs_dashboard import BugsDashboard  # By @alanbryn
-from dashboards.arba_review_dashboard import ArbaReviewDashboard # By @alanbryn
+from dashboards.arba_review_dashboard import ArbaReviewDashboard  # By @alanbryn
+from dashboards.sprint_dashboard import SprintDashboard  # By @alanbryn
 from dashboards.issue_detail_dashboard import IssueDetailDashboard
 from dashboards.prepare_feature_data import *
 from data_controller import DataController
@@ -312,3 +313,23 @@ class DashboardController:
             dashboard.auto_open = auto_open
             dashboard.prepare(data=data_dao)
             dashboard.export_to_plot()
+
+    # By @alanbryn
+    @staticmethod
+    def dashboard_sprint(plan, fact, auto_open, fixversion):
+        if not (plan and fact):
+            raise ValueError('both of plan and fact parameters are false')
+
+        dc = DataController()
+        data_dao = dc.get_issue_sqllite(query=None, expand=None)
+
+        dashboard = SprintDashboard()
+        dashboard.dashboard_name = ''
+        dashboard.items_on_chart = 10
+        dashboard.min_item_tail = 5
+        dashboard.plan = plan
+        dashboard.fact = fact
+        dashboard.fixversion = fixversion
+        dashboard.auto_open = auto_open
+        dashboard.prepare(data=data_dao)
+        dashboard.export_to_plot()

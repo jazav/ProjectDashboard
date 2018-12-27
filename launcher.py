@@ -201,6 +201,11 @@ def main(argv):
             dshc.dashboard_arba_issues(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
                                        assignees=name_space.assignees, teams=name_space.teams,
                                        details=name_space.details)
+
+        if name_space.name == "sprint":
+            plan, fact = get_plan_fact(parameters=name_space.mode)
+            dshc.dashboard_sprint(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
+                                  fixversion=name_space.fixversion)
         # --------------------------------------------------------------------------------------------------------------
 
         if name_space.name == "hm":
