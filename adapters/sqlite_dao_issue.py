@@ -501,7 +501,11 @@ class SqliteDaoIssue(DaoIssue):
         sql_str = sql_str + '''UNION ALL
                                    SELECT key,
                                           project,
-                                          status,
+                                          CASE
+                                              WHEN status in ('Open', 'Reopened') THEN 'Open'
+                                              WHEN status in ('Closed') THEN 'Closed'
+                                              ELSE 'In Fix'
+                                          END status,
                                           components,
                                           timeoriginalestimate,
                                           timespent,
