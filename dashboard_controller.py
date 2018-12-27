@@ -332,4 +332,4 @@ class DashboardController:
         dashboard.fixversion = fixversion
         dashboard.auto_open = auto_open
         dashboard.prepare(data=data_dao)
-        dashboard.export_to_plot()
+        # dashboard.export_to_plot()

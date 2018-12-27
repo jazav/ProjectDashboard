@@ -93,10 +93,10 @@ def get_domain(component):
     if component in component_to_domain.keys():
         return component_to_domain[component]
     else:
-        return 'OTHERS'
+        return 'Others'
 
 def get_domain_by_project(project):
-    return {
+    project_to_domain = {
         'BSSARBA': 'ARBA',
         'BSSBFAM': 'Billing',
         'Billing': 'Billing',
@@ -130,7 +130,11 @@ def get_domain_by_project(project):
         'IOTCMP': 'IOT',
         'IOTAEP': 'IOT',
         None: None
-    }[project]
+    }
+    if project in project_to_domain.keys():
+        return project_to_domain[project]
+    else:
+        return 'Others'
 
 
 def get_domains(components):
