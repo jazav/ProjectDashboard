@@ -324,7 +324,7 @@ class DashboardController:
         data_dao = dc.get_issue_sqllite(query=None, expand=None)
 
         dashboard = SprintDashboard()
-        dashboard.dashboard_name = ''
+        dashboard.dashboard_name = 'Bugs and accuracy'
         dashboard.items_on_chart = 10
         dashboard.min_item_tail = 5
         dashboard.plan = plan
@@ -332,4 +332,4 @@ class DashboardController:
         dashboard.fixversion = fixversion
         dashboard.auto_open = auto_open
         dashboard.prepare(data=data_dao)
-        # dashboard.export_to_plot()
+        dashboard.export_to_plot()

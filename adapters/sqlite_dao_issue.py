@@ -477,7 +477,7 @@ class SqliteDaoIssue(DaoIssue):
                           issues t ON e.issue_key = t.epiclink
                      WHERE e.issuetype = "Epic" AND
                            t.issuetype != "Bug" AND
-                           t.project NOT IN ("RDQC", "RNDDOC", "BSSARBA")'''
+                           t.project NOT IN ("RDQC", "RNDDOC", "BSSARBA", "BSSBOX")'''
         if fixversion_filter != '':
             sql_str = sql_str + ' AND e.fixversions LIKE "%' + fixversion_filter + '%"'
         sql_str = sql_str + '''UNION ALL
@@ -495,7 +495,7 @@ class SqliteDaoIssue(DaoIssue):
                                     issues st ON t.issue_key = st.parent
                                WHERE e.issuetype = "Epic" AND
                                      st.issuetype != "Sub-bug" AND
-                                     st.project NOT IN ("RDQC", "RNDDOC", "BSSARBA")'''
+                                     st.project NOT IN ("RDQC", "RNDDOC", "BSSARBA", "BSSBOX")'''
         if fixversion_filter != '':
             sql_str = sql_str + ' AND e.fixversions LIKE "%' + fixversion_filter + '%"'
         sql_str = sql_str + '''UNION ALL
@@ -513,8 +513,8 @@ class SqliteDaoIssue(DaoIssue):
                                    FROM issues
                                    WHERE issuetype = "Bug" AND
                                          project = "BSSBOX"'''
-        if fixversion_filter != '':
-            sql_str = sql_str + ' AND fixversions LIKE "%' + fixversion_filter + '%"'
+        # if fixversion_filter != '':
+        #     sql_str = sql_str + ' AND fixversions LIKE "%' + fixversion_filter + '%"'
 
         for row in self.cursor.execute(sql_str):
             key_list.append(row[0])

@@ -1,5 +1,32 @@
 from dashboards.dashboard import AbstractDashboard
 from adapters.issue_utils import get_domain_by_project, get_domain
+import math
+import plotly.plotly
+import plotly.graph_objs as go
+
+
+def domain_position(row, col, cols):
+    # delta = 0.05
+    # length = round(((0.6-(cols-1)*delta)/cols), 2)
+    # start, end, x_pos = 0.4, length, {}
+    # for i in range(1, cols+1):
+    #     x_pos[i] = [start, end]
+    #     start = end + delta
+    #     end = start + length
+    x_pos = {
+        1: [0, 0.16],
+        2: [0.17, 0.33],
+        3: [0.34, 0.5]
+    }
+    y_pos = {
+        1: [0.68, 1],
+        2: [0.34, 0.66],
+        3: [0, 0.32]
+    }
+    return dict(
+        x=x_pos[col],
+        y=y_pos[row]
+    )
 
 
 class SprintDashboard(AbstractDashboard):
@@ -40,5 +67,82 @@ class SprintDashboard(AbstractDashboard):
                 if self.domain_list[i] not in self.bugs_dict.keys():
                     self.bugs_dict[self.domain_list[i]] = {'Open': 0, 'In Fix': 0, 'Closed': 0}
                 self.bugs_dict[self.domain_list[i]][self.status_list[i]] += 1
-        print(self.bugs_dict)
-        print(self.accuracy_dict)
+
+    def export_to_plotly(self):
+        if len(self.key_list) == 0:
+            raise ValueError('There is no issues to show')
+
+        data = []
+        cols = math.ceil(len(self.bugs_dict.keys()) / 3)
+        for domain, i in zip(self.bugs_dict.keys(), range(len(self.bugs_dict.keys()))):
+            row, col = int((i // cols) + 1), int((i % cols) + 1)
+            print(row, col)
+            print(domain_position(row, col, cols))
+            data.append(go.Pie(
+                labels=list(self.bugs_dict[domain].keys()),
+                values=list(self.bugs_dict[domain].values()),
+                hoverinfo='label+percent',
+                textinfo='label+value',
+                hole=0.4,
+                domain=domain_position(row, col, cols),
+                marker=dict(
+                    colors=['rgb(75,103,132)', 'rgb(254,210,92)', 'rgb(29,137,49)']
+                ),
+                showlegend=False,
+                title=domain,
+                titleposition='middle center'
+            ))
+        timeoriginalestimate, timespent, annotations = [], [], []
+        for domain in self.accuracy_dict.keys():
+            timeoriginalestimate.append(self.accuracy_dict[domain]['Plan'])
+            timespent.append(self.accuracy_dict[domain]['Fact'])
+        data.append(go.Bar(
+            orientation='h',
+            y=list(self.accuracy_dict.keys()),
+            x=timeoriginalestimate,
+            xaxis='x1',
+            yaxis='y1',
+            name='Original Estimate',
+            showlegend=False
+        ))
+        data.append(go.Bar(
+            orientation='h',
+            y=list(self.accuracy_dict.keys()),
+            x=timespent,
+            xaxis='x1',
+            yaxis='y1',
+            name='Spent Time',
+            showlegend=False
+        ))
+        for domain in self.accuracy_dict.keys():
+            est_acc = 100 - math.fabs(
+                100 - (self.accuracy_dict[domain]['Plan'] / self.accuracy_dict[domain]['Fact'] * 100))
+            annotations.append(dict(
+                x=self.accuracy_dict[domain]['Fact'] + max(timespent)/7,
+                y=domain,
+                xref='x1',
+                yref='y1',
+                showarrow=False,
+                text='Est.accuracy:<br>{0:.2f}%'.format(est_acc),
+                align='center',
+                bordercolor='black',
+                borderwidth=2,
+                borderpad=4
+            ))
+
+        axis = dict()
+        layout = dict(
+            annotations=annotations,
+            xaxis1=dict(axis, **dict(domain=[0.55, 1], anchor='y1')),
+            yaxis1=dict(axis, **dict(domain=[0, 1]), anchor='x1', ticksuffix='  ')
+        )
+
+        title = self.dashboard_name
+        # html_file = self.png_dir + "{0}.html".format(title)
+        html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
+
+        fig = go.Figure(data=data, layout=layout)
+        plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
+
+    def export_to_plot(self):
+        self.export_to_plotly()
