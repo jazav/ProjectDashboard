@@ -324,7 +324,7 @@ class DashboardController:
         data_dao = dc.get_issue_sqllite(query=None, expand=None)
 
         dashboard = SprintDashboard()
-        dashboard.dashboard_name = 'All bugs in BSSBox and Estimate Accuracy'
+        dashboard.dashboard_name = 'All bugs in BSSBox and Accuracy factor'
         dashboard.items_on_chart = 10
         dashboard.min_item_tail = 5
         dashboard.plan = plan
