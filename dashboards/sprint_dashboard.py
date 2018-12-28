@@ -76,8 +76,6 @@ class SprintDashboard(AbstractDashboard):
         cols = math.ceil(len(self.bugs_dict.keys()) / 3)
         for domain, i in zip(self.bugs_dict.keys(), range(len(self.bugs_dict.keys()))):
             row, col = int((i // cols) + 1), int((i % cols) + 1)
-            print(row, col)
-            print(domain_position(row, col, cols))
             data.append(go.Pie(
                 labels=list(self.bugs_dict[domain].keys()),
                 values=list(self.bugs_dict[domain].values()),
@@ -103,7 +101,9 @@ class SprintDashboard(AbstractDashboard):
             xaxis='x1',
             yaxis='y1',
             name='Original Estimate',
-            showlegend=False
+            showlegend=False,
+            text=list(map(lambda x: round(x, 2), timeoriginalestimate)),
+            textposition='auto'
         ))
         data.append(go.Bar(
             orientation='h',
@@ -112,7 +112,9 @@ class SprintDashboard(AbstractDashboard):
             xaxis='x1',
             yaxis='y1',
             name='Spent Time',
-            showlegend=False
+            showlegend=False,
+            text=list(map(lambda x: round(x, 2), timespent)),
+            textposition='auto'
         ))
         for domain in self.accuracy_dict.keys():
             est_acc = 100 - math.fabs(
@@ -123,7 +125,7 @@ class SprintDashboard(AbstractDashboard):
                 xref='x1',
                 yref='y1',
                 showarrow=False,
-                text='Est.accuracy:<br>{0:.2f}%'.format(est_acc),
+                text='Accuracy factor:<br>{0:.2f}%'.format(est_acc),
                 align='center',
                 bordercolor='black',
                 borderwidth=2,
@@ -132,6 +134,7 @@ class SprintDashboard(AbstractDashboard):
 
         axis = dict()
         layout = dict(
+            title=self.dashboard_name,
             annotations=annotations,
             xaxis1=dict(axis, **dict(domain=[0.55, 1], anchor='y1')),
             yaxis1=dict(axis, **dict(domain=[0, 1]), anchor='x1', ticksuffix='  ')
