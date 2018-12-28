@@ -126,7 +126,7 @@ class SprintDashboard(AbstractDashboard):
                 xref='x1',
                 yref='y1',
                 showarrow=False,
-                text='Accuracy factor:<br>{0:.1f}'.format(acc_fac),
+                text='Accuracy factor:<br>{0:.1f}%'.format(acc_fac),
                 align='center',
                 bordercolor='black',
                 borderwidth=2,
