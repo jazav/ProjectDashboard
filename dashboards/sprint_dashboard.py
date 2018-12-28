@@ -117,15 +117,16 @@ class SprintDashboard(AbstractDashboard):
             textposition='auto'
         ))
         for domain in self.accuracy_dict.keys():
-            est_acc = 100 - math.fabs(
-                100 - (self.accuracy_dict[domain]['Plan'] / self.accuracy_dict[domain]['Fact'] * 100))
+            # est_acc = 100 - math.fabs(
+            #     100 - (self.accuracy_dict[domain]['Plan'] / self.accuracy_dict[domain]['Fact'] * 100))
+            acc_fac = self.accuracy_dict[domain]['Fact'] / self.accuracy_dict[domain]['Plan']
             annotations.append(dict(
                 x=self.accuracy_dict[domain]['Fact'] + max(timespent)/7,
                 y=domain,
                 xref='x1',
                 yref='y1',
                 showarrow=False,
-                text='Accuracy factor:<br>{0:.2f}%'.format(est_acc),
+                text='Accuracy factor:<br>{0:.1f}'.format(acc_fac),
                 align='center',
                 bordercolor='black',
                 borderwidth=2,
