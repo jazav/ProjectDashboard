@@ -121,7 +121,7 @@ class SprintDashboard(AbstractDashboard):
             #     100 - (self.accuracy_dict[domain]['Plan'] / self.accuracy_dict[domain]['Fact'] * 100))
             acc_fac = self.accuracy_dict[domain]['Fact'] / self.accuracy_dict[domain]['Plan']
             annotations.append(dict(
-                x=self.accuracy_dict[domain]['Fact'] + max(timespent)/7,
+                x=self.accuracy_dict[domain]['Fact'] + max(timespent)/5,
                 y=domain,
                 xref='x1',
                 yref='y1',
