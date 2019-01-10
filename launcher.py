@@ -92,6 +92,9 @@ def get_command_namespace(argv):
 
     dashboard_parser.add_argument('-statuses', '-st', action='store', help='Issues\' status field', required=False,
                                   default='')
+
+    dashboard_parser.add_argument('-repository', '-rep', action='store', help='Online or offline plot saving',
+                                  required=False, default='offline')
     # ------------------------------------------------------------------------------------------------------------------
     
     for subparser in [init_parser, update_parser, issue_parser, dashboard_parser]:
