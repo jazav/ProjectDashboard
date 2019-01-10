@@ -191,7 +191,7 @@ def main(argv):
             plan, fact = get_plan_fact(parameters=name_space.mode)
             dshc.dashboard_bugs_duration(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
                                          priorities=name_space.priorities.split(","), labels=name_space.labels,
-                                         creators=name_space.creators)
+                                         creators=name_space.creators, repository=name_space.repository.lower())
 
         if name_space.name == "bugs_info":
             plan, fact = get_plan_fact(parameters=name_space.mode)

@@ -11,7 +11,7 @@ import statistics
 
 class BugsDurationDashboard(AbstractDashboard):
     project_list, name_list, created_list, resolutiondate_list, components_list = [], [], [], [], []
-    auto_open, labels, priority, creators = True, None, None, None
+    auto_open, labels, priority, creators, repository = True, None, None, None, None
     days_dict, average_list, median_list, max_list, count_list = {}, [], [], [], []
 
     def prepare(self, data):
@@ -59,6 +59,8 @@ class BugsDurationDashboard(AbstractDashboard):
     def export_to_plotly(self):
         if len(self.name_list) == 0:
             raise ValueError('There is no issues to show')
+
+        plotly.tools.set_credentials_file(username='Rnd-Rnd', api_key='GFSxsbDP8rOiakf0rs8U')
 
         trace_avg = go.Bar(
             x=list(self.days_dict.keys()),
@@ -110,8 +112,8 @@ class BugsDurationDashboard(AbstractDashboard):
 
         plan_fact_str = "pf"
 
-        title = self.dashboard_name + (' in ' + self.labels
-                                       if self.labels != '' else '') + (' created by QC' if self.creators != '' else '')
+        title = self.dashboard_name + (' in ' + self.labels if self.labels != '' else '')\
+            + (' created by QC' if self.creators != '' else '')
         file_name = title + ' ' + plan_fact_str
         # html_file = self.png_dir + "{0}.html".format(file_name)
         html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
@@ -165,7 +167,7 @@ class BugsDurationDashboard(AbstractDashboard):
             autosize=True,
             font=dict(size=12, color='black'),
             barmode='group',
-            title=title,
+            title=title + (' <sup>in cloud</sup>' if self.repository == 'online' else ''),
             plot_bgcolor='white',
             yaxis=dict(
                 rangemode="tozero",
@@ -214,7 +216,10 @@ class BugsDurationDashboard(AbstractDashboard):
         )
 
         fig = go.Figure(data=traces, layout=layout)
-        plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
+        if self.repository == 'offline':
+            plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
+        elif self.repository == 'online':
+            plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
 
     def export_to_plot(self):
         self.export_to_plotly()

@@ -235,7 +235,7 @@ class DashboardController:
     
     # By @alanbryn
     @staticmethod
-    def dashboard_bugs_duration(plan, fact, auto_open, priorities, labels, creators):
+    def dashboard_bugs_duration(plan, fact, auto_open, priorities, labels, creators, repository):
         if not (plan and fact):
             raise ValueError('both of plan and fact parameters are false')
 
@@ -250,6 +250,7 @@ class DashboardController:
             dashboard.plan = plan
             dashboard.fact = fact
             dashboard.auto_open = auto_open
+            dashboard.repository = repository
             dashboard.priority = priority.strip()
             dashboard.creators = creators
             dashboard.labels = labels
