@@ -103,7 +103,7 @@ class SqliteDaoIssue(DaoIssue):
                                                  "{8}","{9}","{10}","{11}",
                                                  "{12}","{13}","{14}","{15}",
                                                  "{16}","{17}","{18}","{19}",
-                                                 "{20}");'''.format(key, value["id"], value["status"], value["project"],
+                                                 "{20}");'''.format(key, value["id"], value[ "status"], value["project"],
                                      ','+value["labels"]+',', value["epiclink"], value["timeoriginalestimate"], value["timespent"],
                                      value["resolution"],value["issuetype"],value["summary"].replace('"', "'"),','+fixversions+',',
                                      value["parent"], value["created"], value["resolutiondate"], value["components"],
@@ -269,7 +269,13 @@ class SqliteDaoIssue(DaoIssue):
             open_list.append(round(row[3]))
             dev_list.append(round(row[4]) if row[4] is not None else 0)
             domain_list.append(row[5])
-
+        if len(prj_list) == 0:
+            prj_list.append("")
+            name_list.append("")
+            close_list.append(0)
+            open_list.append(0)
+            dev_list.append(0)
+            domain_list.append("")
         return open_list, dev_list, close_list, name_list, prj_list, domain_list
 
     # By @alanbryn
