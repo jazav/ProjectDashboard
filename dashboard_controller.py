@@ -14,6 +14,7 @@ from dashboards.arba_issues_dashboard import ArbaIssuesDashboard  # By @alanbryn
 from dashboards.bugs_dashboard import BugsDashboard  # By @alanbryn
 from dashboards.arba_review_dashboard import ArbaReviewDashboard  # By @alanbryn
 from dashboards.sprint_dashboard import SprintDashboard  # By @alanbryn
+from dashboards.bugs_progress_dashboard import BugsProgressDashboard  # By @alanbryn
 from dashboards.issue_detail_dashboard import IssueDetailDashboard
 from dashboards.prepare_feature_data import *
 from data_controller import DataController
@@ -332,5 +333,25 @@ class DashboardController:
         dashboard.fact = fact
         dashboard.fixversion = fixversion
         dashboard.auto_open = auto_open
+        dashboard.prepare(data=data_dao)
+        dashboard.export_to_plot()
+
+    # By @alanbryn
+    @staticmethod
+    def dashboard_bugs_progress(plan, fact, auto_open, repository):
+        if not (plan and fact):
+            raise ValueError('both of plan and fact parameters are false')
+
+        dc = DataController()
+        data_dao = dc.get_issue_sqllite(query=None, expand=None)
+
+        dashboard = BugsProgressDashboard()
+        dashboard.dashboard_name = 'BSSBox bugs progress'
+        dashboard.items_on_chart = 20
+        dashboard.min_item_tail = 5
+        dashboard.plan = plan
+        dashboard.fact = fact
+        dashboard.auto_open = auto_open
+        dashboard.repository = repository
         dashboard.prepare(data=data_dao)
         dashboard.export_to_plot()

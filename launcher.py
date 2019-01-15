@@ -209,6 +209,11 @@ def main(argv):
             plan, fact = get_plan_fact(parameters=name_space.mode)
             dshc.dashboard_sprint(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
                                   fixversion=name_space.fixversion)
+
+        if name_space.name == "bugs_progress":
+            plan, fact = get_plan_fact(parameters=name_space.mode)
+            dshc.dashboard_bugs_progress(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
+                                         repository=name_space.repository.lower())
         # --------------------------------------------------------------------------------------------------------------
 
         if name_space.name == "hm":
