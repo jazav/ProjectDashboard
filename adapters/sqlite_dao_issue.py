@@ -540,6 +540,7 @@ class SqliteDaoIssue(DaoIssue):
                          CASE
                              WHEN status in ('Open', 'Reopened') THEN 'Open'
                              WHEN status in ('Closed') THEN 'Closed'
+                             WHEN status in ('Resolved') THEN 'Resolved'
                              ELSE 'In Fix'
                          END status
                      FROM issues
