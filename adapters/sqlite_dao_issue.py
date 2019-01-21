@@ -545,7 +545,8 @@ class SqliteDaoIssue(DaoIssue):
                          END status
                      FROM issues
                      WHERE issuetype = "Bug" AND
-                           project = "BSSBOX"'''
+                           project = "BSSBOX" AND
+                           components != "Business Analysis"'''
 
         for row in self.cursor.execute(sql_str):
             status_list.append(row[0])
