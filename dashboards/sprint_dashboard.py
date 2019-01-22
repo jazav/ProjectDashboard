@@ -101,7 +101,7 @@ class SprintDashboard(AbstractDashboard):
             xaxis='x1',
             yaxis='y1',
             name='Original Estimate',
-            showlegend=False,
+            showlegend=True,
             text=list(map(lambda x: round(x, 2), timeoriginalestimate)),
             textposition='auto'
         ))
@@ -112,7 +112,7 @@ class SprintDashboard(AbstractDashboard):
             xaxis='x1',
             yaxis='y1',
             name='Spent Time',
-            showlegend=False,
+            showlegend=True,
             text=list(map(lambda x: round(x, 2), timespent)),
             textposition='auto'
         ))
@@ -135,7 +135,12 @@ class SprintDashboard(AbstractDashboard):
 
         axis = dict()
         layout = dict(
-            title=self.dashboard_name,
+            legend=dict(
+                orientation='h',
+                x=0.695,
+                y=1.05
+            ),
+            title=self.dashboard_name + ' <sup>(fact/plan)</sup>',
             annotations=annotations,
             xaxis1=dict(axis, **dict(domain=[0.55, 1], anchor='y1')),
             yaxis1=dict(axis, **dict(domain=[0, 1]), anchor='x1', ticksuffix='  ')

@@ -29,6 +29,9 @@ class BugsProgressDashboard(AbstractDashboard):
             data.writerow([str(datetime.datetime.now().date())] + list(map(str, self.bugs_statuses.values())))
 
     def export_to_plotly(self):
+        if len(self.status_list) == 0:
+            raise ValueError('There is no issues to show')
+
         plotly.tools.set_credentials_file(username='Rnd-Rnd', api_key='GFSxsbDP8rOiakf0rs8U')
         bugs_statuses_progress = {'Open': [], 'In Fix': [], 'Resolved': [], 'Closed': []}
         dates = []
