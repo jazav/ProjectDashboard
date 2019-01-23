@@ -162,6 +162,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
 
         file_name1 = self.dashboard_name + ' ' + ("" if (self.dashboard_type == DashboardType.DOMAIN or self.project != "") else (self.dashboard_type.name +" "))+plan_fact_str
         file_name = self.png_dir + "{0}_{1}".format(file_name1, self.project)
+        # file_name = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}_{1}".format(file_name1, self.project)
         layout = go.Layout(
             annotations=[
                 dict(

@@ -65,7 +65,7 @@ class SqliteDaoIssue(DaoIssue):
                                 labels TEXT, epiclink TEXT, timeoriginalestimate REAL, timespent REAL,
                                resolution TEXT, issuetype TEXT, summary TEXT, fixversions TEXT, parent TEXT,
                                created TEXT, resolutiondate TEXT, components TEXT, priority TEXT, creator TEXT,
-                               assignee TEXT, duedate TEXT, key TEXT)''')
+                               assignee TEXT, duedate TEXT, key TEXT, updated TEXT)''')
 
         self.connection.commit()
 
@@ -84,26 +84,26 @@ class SqliteDaoIssue(DaoIssue):
                                         labels, epiclink, timeoriginalestimate, timespent,
                                        resolution, issuetype, summary, fixversions, 
                                        parent, created, resolutiondate, components, priority, creator,
-                                       assignee, duedate, key)'''
+                                       assignee, duedate, key, updated)'''
                 self.cursor.execute(sql_str + ''' VALUES (?,?,?,?,
                                                  ?,?,?,?,
                                                  ?,?,?,?,
                                                  ?,?,?,?,
                                                  ?,?,?,?,
-                                                 ?)''',
+                                                 ?,?)''',
                                     (key, value["id"], value["status"], value["project"],
                                      ','+value["labels"]+',', value["epiclink"], value["timeoriginalestimate"], value["timespent"],
                                      value["resolution"],value["issuetype"],value["summary"],','+fixversions+',',
                                      value["parent"], value["created"], value["resolutiondate"], value["components"],
                                      value["priority"], value["creator"], value["assignee"], value["duedate"],
-                                     value["key"]))
+                                     value["key"], value["updated"]))
                 if 1 == 0 : # for debug
                     write_str=sql_str +'''VALUES ("{0}",{1},"{2}","{3}",
                                                  "{4}","{5}","{6}","{7}",
                                                  "{8}","{9}","{10}","{11}",
                                                  "{12}","{13}","{14}","{15}",
                                                  "{16}","{17}","{18}","{19}",
-                                                 "{20}");'''.format(key, value["id"], value["status"], value["project"],
+                                                 "{20}");'''.format(key, value["id"], value[ "status"], value["project"],
                                      ','+value["labels"]+',', value["epiclink"], value["timeoriginalestimate"], value["timespent"],
                                      value["resolution"],value["issuetype"],value["summary"].replace('"', "'"),','+fixversions+',',
                                      value["parent"], value["created"], value["resolutiondate"], value["components"],
@@ -260,7 +260,7 @@ class SqliteDaoIssue(DaoIssue):
              sql_str = sql_str + ' AND e.labels LIKE "%,' + label_filter + ',%"  '
         if fixversions_filter != '':
              sql_str = sql_str + ' AND e.fixversions LIKE "%,' + fixversions_filter + ',%"  '
-        sql_str = sql_str + ' ) GROUP BY ' + group_by +' HAVING SUM(timeoriginalestimate) > 0 '
+        sql_str = sql_str + ' ) GROUP BY ' + group_by + ' HAVING SUM(timeoriginalestimate) > 0 '
 
         for row in self.cursor.execute(sql_str):
             prj_list.append(row[0] if row[0] is not None else "")
@@ -269,7 +269,13 @@ class SqliteDaoIssue(DaoIssue):
             open_list.append(round(row[3]))
             dev_list.append(round(row[4]) if row[4] is not None else 0)
             domain_list.append(row[5])
-
+        if len(prj_list) == 0:
+            prj_list.append("")
+            name_list.append("")
+            close_list.append(0)
+            open_list.append(0)
+            dev_list.append(0)
+            domain_list.append("")
         return open_list, dev_list, close_list, name_list, prj_list, domain_list
 
     # By @alanbryn
@@ -355,3 +361,194 @@ class SqliteDaoIssue(DaoIssue):
             issuetype_list.append(row[5])
 
         return name_list, assignee_list, created_list, duedate_list, key_list, issuetype_list
+
+    # By @alanbryn
+    def get_bugs(self, projects_filter, priority_filter, fixversion_filter, statuses_filter, labels_filter):
+        key_list = []
+        created_list = []
+        status_list = []
+        components_list = []
+        projects_list = []
+        sql_str = '''SELECT key,
+                            created,
+                            CASE
+                                WHEN status in ('Open', 'Reopened') THEN 'Open'
+                                WHEN status in ('Triage', 'In Progress', 'Resolved') THEN 'In Fix'
+                                ELSE status
+                            END AS status, 
+                            components,
+                            project
+                     FROM issues
+                     WHERE issuetype = "Bug" AND
+                           strftime('%Y-%m-%d', updated) > date('now', 'start of month')'''
+        if projects_filter != '':
+            sql_str = sql_str + ' AND project IN ('
+            projects_filter = [item.strip() for item in projects_filter.split(',')]
+            for project in projects_filter:
+                sql_str = sql_str + '\'' + project + '\''
+                if project != projects_filter[-1]:
+                    sql_str = sql_str + ', '
+                else:
+                    sql_str = sql_str + ')'
+        if priority_filter != '':
+            sql_str = sql_str + ' AND priority LIKE \'%' + priority_filter + '%\''
+        if fixversion_filter != '':
+            sql_str = sql_str + ' AND fixversions LIKE \'%' + fixversion_filter + '%\''
+        if statuses_filter != '':
+            sql_str = sql_str + ' AND status IN ('
+            statuses_filter = [item.strip() for item in statuses_filter.split(',')]
+            for status in statuses_filter:
+                sql_str = sql_str + '\'' + status + '\''
+                if status != statuses_filter[-1]:
+                    sql_str = sql_str + ', '
+                else:
+                    sql_str = sql_str + ')'
+        if labels_filter != '':
+            sql_str = sql_str + ' AND (labels LIKE \'%'
+            labels_filter = [item.strip() for item in labels_filter.split(',')]
+            for label in labels_filter:
+                sql_str = sql_str + label + '%\''
+                if label != labels_filter[-1]:
+                    sql_str = sql_str + ' OR labels LIKE \'%'
+                else:
+                    sql_str = sql_str + ')'
+        sql_str = sql_str + ' ORDER BY components'
+
+        for row in self.cursor.execute(sql_str):
+            key_list.append(row[0])
+            created_list.append(row[1])
+            status_list.append(row[2])
+            components_list.append(row[3])
+            projects_list.append(row[4])
+
+        return key_list, created_list, status_list, components_list, projects_list
+
+    # By @alanbryn
+    def get_arba_review(self, assignees_filter):
+        key_list = []
+        assignee_list = []
+        issuetype_list = []
+        status_list = []
+        duedate_list = []
+        timeoriginalestimate_list = []
+        timespent_list = []
+        epiclink_list = []
+        sql_str = '''SELECT key,
+                            assignee,
+                            issuetype,
+                            status,
+                            duedate,
+                            timeoriginalestimate,
+                            timespent,
+                            epiclink
+                     FROM issues
+                     WHERE strftime('%Y-%m-%d', created) > strftime('%Y-%m-%d', '2018-10-01')'''
+        if assignees_filter != '':
+            sql_str = sql_str + ' AND assignee IN ('
+            assignees_filter = assignees_filter.split(',')
+            assignees_filter = [item.strip() for item in assignees_filter]
+            for assignee in assignees_filter:
+                sql_str = sql_str + '\'' + assignee + '\''
+                if assignee != assignees_filter[-1]:
+                    sql_str = sql_str + ', '
+                else:
+                    sql_str = sql_str + ')'
+        sql_str = sql_str + ' ORDER BY assignee'
+
+        for row in self.cursor.execute(sql_str):
+            key_list.append(row[0])
+            assignee_list.append(row[1])
+            issuetype_list.append(row[2])
+            status_list.append(row[3])
+            duedate_list.append(row[4])
+            timeoriginalestimate_list.append(row[5])
+            timespent_list.append(row[6])
+            epiclink_list.append(row[7])
+
+        return key_list, assignee_list, issuetype_list, status_list, duedate_list, timeoriginalestimate_list,\
+            timespent_list, epiclink_list
+
+    def get_sprint_info(self, fixversion_filter):
+        key_list, project_list, status_list, components_list, timeoriginalestimate_list, timespent_list, issuetype_list\
+            = [], [], [], [], [], [], []
+        sql_str = '''SELECT t.key,
+                            t.project,
+                            t.status,
+                            t.components,
+                            t.timeoriginalestimate,
+                            t.timespent,
+                            t.issuetype
+                     FROM issues  e
+                          JOIN
+                          issues t ON e.issue_key = t.epiclink
+                     WHERE e.issuetype = "Epic" AND
+                           t.issuetype != "Bug" AND
+                           t.project NOT IN ("RDQC", "RNDDOC", "BSSARBA", "BSSBOX")'''
+        if fixversion_filter != '':
+            sql_str = sql_str + ' AND e.fixversions LIKE "%' + fixversion_filter + '%"'
+        sql_str = sql_str + '''UNION ALL
+                                   SELECT st.key,
+                                   st.project,
+                                   st.status,
+                                   st.components,
+                                   st.timeoriginalestimate,
+                                   st.timespent,
+                                   st.issuetype
+                               FROM issues e
+                                    JOIN
+                                    issues t ON e.issue_key = t.epiclink
+                                    JOIN
+                                    issues st ON t.issue_key = st.parent
+                               WHERE e.issuetype = "Epic" AND
+                                     st.issuetype != "Sub-bug" AND
+                                     st.project NOT IN ("RDQC", "RNDDOC", "BSSARBA", "BSSBOX")'''
+        if fixversion_filter != '':
+            sql_str = sql_str + ' AND e.fixversions LIKE "%' + fixversion_filter + '%"'
+        sql_str = sql_str + '''UNION ALL
+                                   SELECT key,
+                                          project,
+                                          CASE
+                                              WHEN status in ('Open', 'Reopened') THEN 'Open'
+                                              WHEN status in ('Closed') THEN 'Closed'
+                                              ELSE 'In Fix'
+                                          END status,
+                                          components,
+                                          timeoriginalestimate,
+                                          timespent,
+                                          issuetype
+                                   FROM issues
+                                   WHERE issuetype = "Bug" AND
+                                         project = "BSSBOX"'''
+        # if fixversion_filter != '':
+        #     sql_str = sql_str + ' AND fixversions LIKE "%' + fixversion_filter + '%"'
+
+        for row in self.cursor.execute(sql_str):
+            key_list.append(row[0])
+            project_list.append(row[1])
+            status_list.append(row[2])
+            components_list.append(row[3])
+            timeoriginalestimate_list.append(row[4])
+            timespent_list.append(row[5])
+            issuetype_list.append(row[6])
+
+        return key_list, project_list, status_list, components_list, timeoriginalestimate_list, timespent_list,\
+            issuetype_list
+
+    def get_bugs_progress(self):
+        status_list = []
+        sql_str = '''SELECT
+                         CASE
+                             WHEN status in ('Open', 'Reopened') THEN 'Open'
+                             WHEN status in ('Closed') THEN 'Closed'
+                             WHEN status in ('Resolved') THEN 'Resolved'
+                             ELSE 'In Fix'
+                         END status
+                     FROM issues
+                     WHERE issuetype = "Bug" AND
+                           project = "BSSBOX" AND
+                           components != "Business Analysis"'''
+
+        for row in self.cursor.execute(sql_str):
+            status_list.append(row[0])
+
+        return status_list

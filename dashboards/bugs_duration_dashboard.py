@@ -11,7 +11,7 @@ import statistics
 
 class BugsDurationDashboard(AbstractDashboard):
     project_list, name_list, created_list, resolutiondate_list, components_list = [], [], [], [], []
-    auto_open, labels, priority, creators = True, None, None, None
+    auto_open, labels, priority, creators, repository = True, None, None, None, None
     days_dict, average_list, median_list, max_list, count_list = {}, [], [], [], []
 
     def prepare(self, data):
@@ -19,6 +19,7 @@ class BugsDurationDashboard(AbstractDashboard):
         self.median_list.clear()
         self.max_list.clear()
         self.count_list.clear()
+        self.days_dict.clear()
         self.project_list, self.name_list, self.created_list, self.resolutiondate_list, self.components_list = \
             data.get_bugs_duration(self.labels, self.priority, self.creators)
 
@@ -42,10 +43,12 @@ class BugsDurationDashboard(AbstractDashboard):
                 self.days_dict[self.components_list[i]] = []
             self.days_dict[self.components_list[i]].append(int(numpy.busday_count(self.created_list[i],
                                                                                   self.resolutiondate_list[i])) + 1)
-        try:
-            del self.days_dict["OTHERS"]
-        except KeyError:
-            print('Key not in domains')
+
+        daysdict = {}
+        for domain, days in self.days_dict.items():
+            if domain in ('Billing', 'CRM', 'DFE', 'Infra', 'NWM', 'Ordering', 'PRM', 'PSC'):
+                daysdict[domain] = days
+        self.days_dict = daysdict
 
         for domain in list(self.days_dict.keys()):
             self.average_list.append(round(statistics.mean(self.days_dict[domain]), 1))
@@ -57,6 +60,8 @@ class BugsDurationDashboard(AbstractDashboard):
         if len(self.name_list) == 0:
             raise ValueError('There is no issues to show')
 
+        plotly.tools.set_credentials_file(username='Rnd-Rnd', api_key='GFSxsbDP8rOiakf0rs8U')
+
         trace_avg = go.Bar(
             x=list(self.days_dict.keys()),
             y=self.average_list,
@@ -64,7 +69,7 @@ class BugsDurationDashboard(AbstractDashboard):
             name='average',
             textposition='auto',
             marker=dict(
-                color='rgb(49,130,189)',
+                color='rgb(126,135,215)',
                 line=dict(color='black',
                           width=1),
             ),
@@ -107,10 +112,11 @@ class BugsDurationDashboard(AbstractDashboard):
 
         plan_fact_str = "pf"
 
-        title = self.dashboard_name + (' in ' + self.labels
-                                       if self.labels != '' else '') + (' created by QC' if self.creators != '' else '')
+        title = self.dashboard_name + (' in ' + self.labels if self.labels != '' else '')\
+            + (' created by QC' if self.creators != '' else '')
         file_name = title + ' ' + plan_fact_str
-        html_file = self.png_dir + "{0}.html".format(file_name)
+        # html_file = self.png_dir + "{0}.html".format(file_name)
+        html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 
         annotations = [dict(
             x=1.05,
@@ -125,46 +131,24 @@ class BugsDurationDashboard(AbstractDashboard):
                 color='black'
             )
         )]
-        shapes = []
         for i in range(len(self.days_dict.keys())):
             annotations.append(dict(
                 x=list(self.days_dict.keys())[i],
-                y=self.average_list[i] + 0.8,
+                y=self.average_list[i] + max(self.average_list)/20,
                 xref='x',
                 yref='y',
-                text='Number of bugs: ' + str(self.count_list[i]),
+                text='Bugs number: <b>' + str(self.count_list[i]) + '</b><br>Max duration: <b>' + str(self.max_list[i]) + '</b>',
                 showarrow=False,
                 font=dict(
                     family='sans-serif',
                     size=16,
                     color='black'
-                )
-            ))
-            annotations.append(dict(
-                x=list(self.days_dict.keys())[i],
-                y=self.average_list[i] + 0.5,
-                xref='x',
-                yref='y',
-                text='Max days in work: ' + str(self.max_list[i]),
-                showarrow=False,
-                font=dict(
-                    family='sans-serif',
-                    size=16,
-                    color='black'
-                )
-            ))
-            shapes.append(dict(
-                type='rect',
-                xref='paper',
-                yref='y',
-                x0=(i+0.5)/len(self.days_dict.keys()) - 0.05,
-                y0=self.average_list[i] + 0.3,
-                x1=(i+0.5)/len(self.days_dict.keys()) + 0.05,
-                y1=self.average_list[i] + 1,
-                line=dict(
-                    color='rgb(0,0,0)',
-                    width=1
-                )
+                ),
+                bordercolor='black',
+                borderwidth=1,
+                borderpad=5,
+                bgcolor='white',
+                opacity=1
             ))
         layout = go.Layout(
             annotations=annotations,
@@ -183,7 +167,7 @@ class BugsDurationDashboard(AbstractDashboard):
             autosize=True,
             font=dict(size=12, color='black'),
             barmode='group',
-            title=title,
+            title=title + (' <sup>in cloud</sup>' if self.repository == 'online' else ''),
             plot_bgcolor='white',
             yaxis=dict(
                 rangemode="tozero",
@@ -228,12 +212,14 @@ class BugsDurationDashboard(AbstractDashboard):
                     size=12,
                     color='black'
                 )
-            ),
-            shapes=shapes
+            )
         )
 
         fig = go.Figure(data=traces, layout=layout)
-        plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
+        if self.repository == 'offline':
+            plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
+        elif self.repository == 'online':
+            plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
 
     def export_to_plot(self):
         self.export_to_plotly()
