@@ -196,8 +196,8 @@ def main(argv):
         if name_space.name == "bugs_info":
             plan, fact = get_plan_fact(parameters=name_space.mode)
             dshc.dashboard_bugs(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
-                                priorities=name_space.priorities.split(","), fixversion=name_space.fixversion,
-                                projects=name_space.projects, statuses=name_space.statuses, labels=name_space.labels)
+                                priorities=name_space.priorities.split(","), projects=name_space.projects,
+                                statuses=name_space.statuses, labels=name_space.labels)
 
         if name_space.name == "arba":
             plan, fact = get_plan_fact(parameters=name_space.mode)

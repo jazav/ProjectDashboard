@@ -18,14 +18,14 @@ def color_for_status(status):
 
 class BugsDashboard(AbstractDashboard):
     key_list, created_list, status_list, components_list, project_list = [], [], [], [], []
-    auto_open, priority, fixversion, projects, statuses, labels = True, None, None, None, None, None
+    auto_open, priority, projects, statuses, labels = True, None, None, None, None
     bugs_annotation_dict, statuses_dict = {}, {}
 
     def prepare(self, data):
         self.key_list.clear(), self.created_list.clear(), self.status_list.clear(), self.components_list.clear(),\
             self.project_list.clear(), self.bugs_annotation_dict.clear(), self.statuses_dict.clear()
         self.key_list, self.created_list, self.status_list, self.components_list, self.project_list =\
-            data.get_bugs(self.projects, self.priority, self.fixversion, self.statuses, self.labels)
+            data.get_bugs(self.projects, self.priority, self.statuses, self.labels)
         for i in range(len(self.key_list)):
             self.created_list[i] = datetime.strptime(self.created_list[i][:11].strip(), '%Y-%m-%d')
             self.components_list[i] = self.components_list[i].split(',')
@@ -94,9 +94,11 @@ class BugsDashboard(AbstractDashboard):
             xaxis = 'xaxis' + str(i+1)
             fig["layout"][xaxis].update(
                 showticklabels=False,
-                title=annotations_open[i] + '<br>' + annotations_fix[i],
-                titlefont=dict(
-                    size=10
+                title=dict(
+                    text=annotations_open[i] + '<br>' + annotations_fix[i],
+                    font=dict(
+                        size=10
+                    )
                 ),
                 automargin=True
             )

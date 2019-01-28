@@ -292,7 +292,7 @@ class DashboardController:
 
     # By @alanbryn
     @staticmethod
-    def dashboard_bugs(plan, fact, auto_open, priorities, fixversion, projects, statuses, labels):
+    def dashboard_bugs(plan, fact, auto_open, priorities, projects, statuses, labels):
         if not (plan and fact):
             raise ValueError('both of plan and fact parameters are false')
 
@@ -301,14 +301,13 @@ class DashboardController:
 
         for priority in priorities:
             dashboard = BugsDashboard()
-            dashboard.dashboard_name = '{0}s in {1}'.format(priority.strip(), fixversion.strip()) if labels == ''\
-                else 'Showstoppers in {0}'.format(fixversion.strip())
+            dashboard.dashboard_name = '{0}s in BSSBox'.format(priority.strip()) if labels == ''\
+                else 'Showstoppers in BSSBox'
             dashboard.items_on_chart = 10
             dashboard.min_item_tail = 5
             dashboard.plan = plan
             dashboard.fact = fact
             dashboard.priority = priority.strip()
-            dashboard.fixversion = fixversion
             dashboard.projects = projects
             dashboard.statuses = statuses
             dashboard.labels = labels

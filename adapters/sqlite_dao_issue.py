@@ -363,7 +363,7 @@ class SqliteDaoIssue(DaoIssue):
         return name_list, assignee_list, created_list, duedate_list, key_list, issuetype_list
 
     # By @alanbryn
-    def get_bugs(self, projects_filter, priority_filter, fixversion_filter, statuses_filter, labels_filter):
+    def get_bugs(self, projects_filter, priority_filter, statuses_filter, labels_filter):
         key_list = []
         created_list = []
         status_list = []
@@ -392,8 +392,6 @@ class SqliteDaoIssue(DaoIssue):
                     sql_str = sql_str + ')'
         if priority_filter != '':
             sql_str = sql_str + ' AND priority LIKE \'%' + priority_filter + '%\''
-        if fixversion_filter != '':
-            sql_str = sql_str + ' AND fixversions LIKE \'%' + fixversion_filter + '%\''
         if statuses_filter != '':
             sql_str = sql_str + ' AND status IN ('
             statuses_filter = [item.strip() for item in statuses_filter.split(',')]
