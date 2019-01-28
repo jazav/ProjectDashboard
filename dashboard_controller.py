@@ -292,7 +292,7 @@ class DashboardController:
 
     # By @alanbryn
     @staticmethod
-    def dashboard_bugs(plan, fact, auto_open, priorities, projects, statuses, labels):
+    def dashboard_bugs(plan, fact, auto_open, priorities, projects, statuses, labels, repository):
         if not (plan and fact):
             raise ValueError('both of plan and fact parameters are false')
 
@@ -311,13 +311,14 @@ class DashboardController:
             dashboard.projects = projects
             dashboard.statuses = statuses
             dashboard.labels = labels
+            dashboard.repository = repository
             dashboard.auto_open = auto_open
             dashboard.prepare(data=data_dao)
             dashboard.export_to_plot()
 
     # By @alanbryn
     @staticmethod
-    def dashboard_sprint(plan, fact, auto_open, fixversion):
+    def dashboard_sprint(plan, fact, auto_open, fixversion, repository):
         if not (plan and fact):
             raise ValueError('both of plan and fact parameters are false')
 
@@ -325,12 +326,13 @@ class DashboardController:
         data_dao = dc.get_issue_sqllite(query=None, expand=None)
 
         dashboard = SprintDashboard()
-        dashboard.dashboard_name = 'All bugs in BSSBox and Accuracy factor'
+        dashboard.dashboard_name = 'All bugs in BSSBox and Accuracy factor (fact to plan ratio)'
         dashboard.items_on_chart = 10
         dashboard.min_item_tail = 5
         dashboard.plan = plan
         dashboard.fact = fact
         dashboard.fixversion = fixversion
+        dashboard.repository = repository
         dashboard.auto_open = auto_open
         dashboard.prepare(data=data_dao)
         dashboard.export_to_plot()

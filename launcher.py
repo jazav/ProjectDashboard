@@ -197,7 +197,8 @@ def main(argv):
             plan, fact = get_plan_fact(parameters=name_space.mode)
             dshc.dashboard_bugs(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
                                 priorities=name_space.priorities.split(","), projects=name_space.projects,
-                                statuses=name_space.statuses, labels=name_space.labels)
+                                statuses=name_space.statuses, labels=name_space.labels,
+                                repository=name_space.repository.lower())
 
         if name_space.name == "arba":
             plan, fact = get_plan_fact(parameters=name_space.mode)
@@ -208,7 +209,7 @@ def main(argv):
         if name_space.name == "sprint":
             plan, fact = get_plan_fact(parameters=name_space.mode)
             dshc.dashboard_sprint(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
-                                  fixversion=name_space.fixversion)
+                                  fixversion=name_space.fixversion, repository=name_space.repository.lower())
 
         if name_space.name == "bugs_progress":
             plan, fact = get_plan_fact(parameters=name_space.mode)
