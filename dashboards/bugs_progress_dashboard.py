@@ -92,13 +92,18 @@ class BugsProgressDashboard(AbstractDashboard):
                 domain=[0, 1],
                 type='date',
                 dtick=86400000,
-                title=dict(
-                    text='Date',
-                    font=dict(
-                        size=12,
-                        color='black'
-                    )
+                title='Date',
+                titlefont=dict(
+                    size=12,
+                    color='black'
                 ),
+                # title=dict(
+                #     text='Date',
+                #     font=dict(
+                #         size=12,
+                #         color='black'
+                #     )
+                # ),
                 tickfont=dict(
                     size=16,
                     color='black'
@@ -109,13 +114,18 @@ class BugsProgressDashboard(AbstractDashboard):
                 domain=[0.55, 1],
                 anchor='x1',
                 showline=True,
-                title=dict(
-                    text='Number of bugs',
-                    font=dict(
-                        size=12,
-                        color='black'
-                    )
+                title='Number of bugs',
+                titlefont=dict(
+                    size=12,
+                    color='black'
                 ),
+                # title=dict(
+                #     text='Number of bugs',
+                #     font=dict(
+                #         size=12,
+                #         color='black'
+                #     )
+                # ),
                 tickfont=dict(
                     size=16,
                     color='black'
@@ -125,13 +135,18 @@ class BugsProgressDashboard(AbstractDashboard):
                 domain=[0, 1],
                 type='date',
                 dtick=86400000,
-                title=dict(
-                    text='Date',
-                    font=dict(
-                        size=12,
-                        color='black'
-                    )
+                title='Date',
+                titlefont=dict(
+                    size=12,
+                    color='black'
                 ),
+                # title=dict(
+                #     text='Date',
+                #     font=dict(
+                #         size=12,
+                #         color='black'
+                #     )
+                # ),
                 tickfont=dict(
                     size=16,
                     color='black'
@@ -142,13 +157,18 @@ class BugsProgressDashboard(AbstractDashboard):
                 domain=[0, 0.45],
                 anchor='x2',
                 showline=True,
-                title=dict(
-                    text='Number of bugs',
-                    font=dict(
-                        size=12,
-                        color='black'
-                    )
+                title='Number of bugs',
+                titlefont=dict(
+                    size=12,
+                    color='black'
                 ),
+                # title=dict(
+                #     text='Number of bugs',
+                #     font=dict(
+                #         size=12,
+                #         color='black'
+                #     )
+                # ),
                 tickfont=dict(
                     size=16,
                     color='black'
