@@ -95,6 +95,8 @@ def get_command_namespace(argv):
 
     dashboard_parser.add_argument('-repository', '-rep', action='store', help='Online or offline plot saving',
                                   required=False, default='offline')
+    dashboard_parser.add_argument('-mssql', '-mssql', action='store', help='File in SQL_queries repository',
+                                  required=False, default='')
     # ------------------------------------------------------------------------------------------------------------------
     
     for subparser in [init_parser, update_parser, issue_parser, dashboard_parser]:
@@ -215,6 +217,10 @@ def main(argv):
             plan, fact = get_plan_fact(parameters=name_space.mode)
             dshc.dashboard_bugs_progress(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
                                          repository=name_space.repository.lower())
+
+        if name_space.name == "bssbox_bugs_tracking":
+            dshc.dashboard_bssbox_bugs_tracking(auto_open=(name_space.auto_open.upper() == 'TRUE'),
+                                                repository=name_space.repository.lower(), mssql_query=name_space.mssql)
         # --------------------------------------------------------------------------------------------------------------
 
         if name_space.name == "hm":

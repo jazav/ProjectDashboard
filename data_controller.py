@@ -138,3 +138,8 @@ class DataController:
         dao_issue = get_sqlite_dao()
         dao_issue.insert_issues(issue_dict)
         return dao_issue
+
+    # By @alanbryn
+    @staticmethod
+    def get_issues_mssql(query):
+        pass

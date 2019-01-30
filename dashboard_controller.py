@@ -15,6 +15,7 @@ from dashboards.bugs_dashboard import BugsDashboard  # By @alanbryn
 from dashboards.arba_review_dashboard import ArbaReviewDashboard  # By @alanbryn
 from dashboards.sprint_dashboard import SprintDashboard  # By @alanbryn
 from dashboards.bugs_progress_dashboard import BugsProgressDashboard  # By @alanbryn
+from dashboards.bssbox_bugs_tracking_dashboard import BssboxBugsTrackingDashboard  # By @alanbryn
 from dashboards.issue_detail_dashboard import IssueDetailDashboard
 from dashboards.prepare_feature_data import *
 from data_controller import DataController
@@ -356,3 +357,17 @@ class DashboardController:
         dashboard.repository = repository
         dashboard.prepare(data=data_dao)
         dashboard.export_to_plot()
+
+    # By @alanbryn
+    @staticmethod
+    def dashboard_bssbox_bugs_tracking(auto_open, repository, mssql_query):
+
+        dc = DataController()
+        data = dc.get_issues_mssql(query=mssql_query)
+
+        dashboard = BssboxBugsTrackingDashboard()
+        dashboard.dashboard_name = 'BSSBox bugs tracking'
+        dashboard.auto_open = auto_open
+        dashboard.repository = repository
+        dashboard.prepare(data=data)
+        # dashboard.export_to_plot()
