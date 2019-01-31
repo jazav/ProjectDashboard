@@ -154,5 +154,10 @@ class DataController:
             cursor = self.mssql_database.cursor()
             cursor.execute(sql_str)
 
-            for row in cursor:
-                print(row)
+        data = {}
+        for column in cursor.description:
+            data[column[0]] = []
+        for row in cursor:
+            for el, key in zip(row, data.keys()):
+                data[key].append(el)
+        return data
