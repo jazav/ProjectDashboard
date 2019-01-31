@@ -220,7 +220,8 @@ def main(argv):
 
         if name_space.name == "bssbox_bugs_tracking":
             dshc.dashboard_bssbox_bugs_tracking(auto_open=(name_space.auto_open.upper() == 'TRUE'),
-                                                repository=name_space.repository.lower(), mssql_query=name_space.mssql)
+                                                repository=name_space.repository.lower(),
+                                                mssql_query_file=name_space.mssql.lower())
         # --------------------------------------------------------------------------------------------------------------
 
         if name_space.name == "hm":

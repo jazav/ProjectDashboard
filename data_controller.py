@@ -6,6 +6,8 @@ import config_controller
 from adapters.jira_adapter import HISTORY_EXPAND
 from adapters.file_cache import DAY_AGE_READ_FORMAT
 from datetime import datetime
+import pyodbc
+import os
 
 from adapters.sqlite_dao_issue import get_sqlite_dao
 
@@ -16,6 +18,11 @@ class DataController:
     _cacheable = None
     _cache_adapter = None
     _jira_adapter = None
+
+    mssql_database = pyodbc.connect("Driver={ODBC Driver 17 for SQL Server};"
+                                    "Server=SRV-SQL-MIRROR\\JIRAREPORT;"
+                                    "Database=srv-jira-prod-report;"
+                                    "uid=rndview;pwd=V2f6A8Uf")
 
     def __init__(self, cacheable=True):
         self._cacheable = cacheable
@@ -140,6 +147,12 @@ class DataController:
         return dao_issue
 
     # By @alanbryn
-    @staticmethod
-    def get_issues_mssql(query):
-        pass
+    def get_issues_mssql(self, mssql_query_file):
+        path = os.path.abspath('./SQL_queries/{}.txt'.format(mssql_query_file))
+        with open(path, 'r') as query:
+            sql_str = query.read()
+            cursor = self.mssql_database.cursor()
+            cursor.execute(sql_str)
+
+            for row in cursor:
+                print(row)

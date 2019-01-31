@@ -360,14 +360,14 @@ class DashboardController:
 
     # By @alanbryn
     @staticmethod
-    def dashboard_bssbox_bugs_tracking(auto_open, repository, mssql_query):
+    def dashboard_bssbox_bugs_tracking(auto_open, repository, mssql_query_file):
 
         dc = DataController()
-        data = dc.get_issues_mssql(query=mssql_query)
+        data = dc.get_issues_mssql(mssql_query_file=mssql_query_file)
 
-        dashboard = BssboxBugsTrackingDashboard()
-        dashboard.dashboard_name = 'BSSBox bugs tracking'
-        dashboard.auto_open = auto_open
-        dashboard.repository = repository
-        dashboard.prepare(data=data)
-        # dashboard.export_to_plot()
+        # dashboard = BssboxBugsTrackingDashboard()
+        # dashboard.dashboard_name = 'BSSBox bugs tracking'
+        # dashboard.auto_open = auto_open
+        # dashboard.repository = repository
+        # dashboard.prepare(data=data)
+        # # dashboard.export_to_plot()
