@@ -379,8 +379,8 @@ class SqliteDaoIssue(DaoIssue):
                             components,
                             project
                      FROM issues
-                     WHERE issuetype = "Bug" AND'''
-                           # strftime('%Y-%m-%d', updated) > date('now', 'start of month')'''
+                     WHERE issuetype = "Bug"'''
+                           #  AND strftime('%Y-%m-%d', updated) > date('now', 'start of month')'''
         if projects_filter != '':
             sql_str = sql_str + ' AND project IN ('
             projects_filter = [item.strip() for item in projects_filter.split(',')]

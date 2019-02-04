@@ -86,7 +86,7 @@ class SprintDashboard(AbstractDashboard):
                 hole=0.4,
                 domain=domain_position(row, col, cols),
                 marker=dict(
-                    colors=['rgb(75,103,132)', 'rgb(254,210,92)', 'rgb(29,137,49)']
+                    colors=['rgb(217,98,89)', 'rgb(254,210,92)', 'rgb(29,137,49)']
                 ),
                 showlegend=False,
                 title=domain,
