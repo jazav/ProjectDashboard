@@ -18,14 +18,14 @@ def color_for_status(status):
 
 class BugsDashboard(AbstractDashboard):
     key_list, created_list, status_list, components_list, project_list = [], [], [], [], []
-    auto_open, priority, fixversion, projects, statuses, labels = True, None, None, None, None, None
+    auto_open, priority, projects, statuses, labels, repository = True, None, None, None, None, None
     bugs_annotation_dict, statuses_dict = {}, {}
 
     def prepare(self, data):
         self.key_list.clear(), self.created_list.clear(), self.status_list.clear(), self.components_list.clear(),\
             self.project_list.clear(), self.bugs_annotation_dict.clear(), self.statuses_dict.clear()
         self.key_list, self.created_list, self.status_list, self.components_list, self.project_list =\
-            data.get_bugs(self.projects, self.priority, self.fixversion, self.statuses, self.labels)
+            data.get_bugs(self.projects, self.priority, self.statuses, self.labels)
         for i in range(len(self.key_list)):
             self.created_list[i] = datetime.strptime(self.created_list[i][:11].strip(), '%Y-%m-%d')
             self.components_list[i] = self.components_list[i].split(',')
@@ -52,6 +52,8 @@ class BugsDashboard(AbstractDashboard):
     def export_to_plotly(self):
         if len(self.key_list) == 0:
             raise ValueError('There is no issues to show')
+
+        plotly.tools.set_credentials_file(username='Rnd-Rnd', api_key='GFSxsbDP8rOiakf0rs8U')
 
         trace_dict = {domain: [] for domain in self.statuses_dict.keys()}
         annotations_open, annotations_fix = [], []
@@ -98,6 +100,12 @@ class BugsDashboard(AbstractDashboard):
                 titlefont=dict(
                     size=10
                 ),
+                # title=dict(
+                #     text=annotations_open[i] + '<br>' + annotations_fix[i],
+                #     font=dict(
+                #         size=10
+                #     )
+                # ),
                 automargin=True
             )
 
@@ -105,8 +113,12 @@ class BugsDashboard(AbstractDashboard):
         # html_file = self.png_dir + "{0}.html".format(title)
         html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 
-        fig["layout"].update(title='<b>{0} as of {1}</b>'.format(title, datetime.now().strftime("%d.%m.%y %H:%M")))
-        plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
+        fig["layout"].update(title='<b>{0} as of {1}</b>'.format(title, datetime.now().strftime("%d.%m.%y %H:%M"))
+                                   + (' <sup>in cloud</sup>' if self.repository == 'online' else ''))
+        if self.repository == 'offline':
+            plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
+        elif self.repository == 'online':
+            plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
 
     def export_to_plot(self):
         self.export_to_plotly()

@@ -30,7 +30,7 @@ def domain_position(row, col, cols):
 
 
 class SprintDashboard(AbstractDashboard):
-    auto_open, fixversion = True, None
+    auto_open, fixversion, repository = True, None, None
     key_list, project_list, status_list, components_list, timeoriginalestimate_list, timespent_list, issuetype_list = \
         [], [], [], [], [], [], []
     domain_list, bugs_dict, accuracy_dict = [], {}, {}
@@ -72,6 +72,8 @@ class SprintDashboard(AbstractDashboard):
         if len(self.key_list) == 0:
             raise ValueError('There is no issues to show')
 
+        plotly.tools.set_credentials_file(username='Rnd-Rnd', api_key='GFSxsbDP8rOiakf0rs8U')
+
         data = []
         cols = math.ceil(len(self.bugs_dict.keys()) / 3)
         for domain, i in zip(self.bugs_dict.keys(), range(len(self.bugs_dict.keys()))):
@@ -101,7 +103,7 @@ class SprintDashboard(AbstractDashboard):
             xaxis='x1',
             yaxis='y1',
             name='Original Estimate',
-            showlegend=False,
+            showlegend=True,
             text=list(map(lambda x: round(x, 2), timeoriginalestimate)),
             textposition='auto'
         ))
@@ -112,7 +114,7 @@ class SprintDashboard(AbstractDashboard):
             xaxis='x1',
             yaxis='y1',
             name='Spent Time',
-            showlegend=False,
+            showlegend=True,
             text=list(map(lambda x: round(x, 2), timespent)),
             textposition='auto'
         ))
@@ -135,7 +137,12 @@ class SprintDashboard(AbstractDashboard):
 
         axis = dict()
         layout = dict(
-            title=self.dashboard_name,
+            legend=dict(
+                orientation='h',
+                x=0.695,
+                y=1.05
+            ),
+            title=self.dashboard_name + (' <sup>in cloud</sup>' if self.repository == 'online' else ''),
             annotations=annotations,
             xaxis1=dict(axis, **dict(domain=[0.55, 1], anchor='y1')),
             yaxis1=dict(axis, **dict(domain=[0, 1]), anchor='x1', ticksuffix='  ')
@@ -146,7 +153,10 @@ class SprintDashboard(AbstractDashboard):
         html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 
         fig = go.Figure(data=data, layout=layout)
-        plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
+        if self.repository == 'offline':
+            plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
+        elif self.repository == 'online':
+            plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
 
     def export_to_plot(self):
         self.export_to_plotly()

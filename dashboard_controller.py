@@ -14,6 +14,8 @@ from dashboards.arba_issues_dashboard import ArbaIssuesDashboard  # By @alanbryn
 from dashboards.bugs_dashboard import BugsDashboard  # By @alanbryn
 from dashboards.arba_review_dashboard import ArbaReviewDashboard  # By @alanbryn
 from dashboards.sprint_dashboard import SprintDashboard  # By @alanbryn
+from dashboards.bugs_progress_dashboard import BugsProgressDashboard  # By @alanbryn
+from dashboards.bssbox_bugs_tracking_dashboard import BssboxBugsTrackingDashboard  # By @alanbryn
 from dashboards.issue_detail_dashboard import IssueDetailDashboard
 from dashboards.prepare_feature_data import *
 from data_controller import DataController
@@ -291,7 +293,7 @@ class DashboardController:
 
     # By @alanbryn
     @staticmethod
-    def dashboard_bugs(plan, fact, auto_open, priorities, fixversion, projects, statuses, labels):
+    def dashboard_bugs(plan, fact, auto_open, priorities, projects, statuses, labels, repository):
         if not (plan and fact):
             raise ValueError('both of plan and fact parameters are false')
 
@@ -300,24 +302,24 @@ class DashboardController:
 
         for priority in priorities:
             dashboard = BugsDashboard()
-            dashboard.dashboard_name = '{0}s in {1}'.format(priority.strip(), fixversion.strip()) if labels == ''\
-                else 'Showstoppers in {0}'.format(fixversion.strip())
+            dashboard.dashboard_name = '{0}s in BSSBox'.format(priority.strip()) if labels == ''\
+                else 'Showstoppers in BSSBox'
             dashboard.items_on_chart = 10
             dashboard.min_item_tail = 5
             dashboard.plan = plan
             dashboard.fact = fact
             dashboard.priority = priority.strip()
-            dashboard.fixversion = fixversion
             dashboard.projects = projects
             dashboard.statuses = statuses
             dashboard.labels = labels
+            dashboard.repository = repository
             dashboard.auto_open = auto_open
             dashboard.prepare(data=data_dao)
             dashboard.export_to_plot()
 
     # By @alanbryn
     @staticmethod
-    def dashboard_sprint(plan, fact, auto_open, fixversion):
+    def dashboard_sprint(plan, fact, auto_open, fixversion, repository):
         if not (plan and fact):
             raise ValueError('both of plan and fact parameters are false')
 
@@ -325,12 +327,47 @@ class DashboardController:
         data_dao = dc.get_issue_sqllite(query=None, expand=None)
 
         dashboard = SprintDashboard()
-        dashboard.dashboard_name = 'All bugs in BSSBox and Accuracy factor'
+        dashboard.dashboard_name = 'All bugs in BSSBox and Accuracy factor (fact to plan ratio)'
         dashboard.items_on_chart = 10
         dashboard.min_item_tail = 5
         dashboard.plan = plan
         dashboard.fact = fact
         dashboard.fixversion = fixversion
+        dashboard.repository = repository
         dashboard.auto_open = auto_open
         dashboard.prepare(data=data_dao)
+        dashboard.export_to_plot()
+
+    # By @alanbryn
+    @staticmethod
+    def dashboard_bugs_progress(plan, fact, auto_open, repository):
+        if not (plan and fact):
+            raise ValueError('both of plan and fact parameters are false')
+
+        dc = DataController()
+        data_dao = dc.get_issue_sqllite(query=None, expand=None)
+
+        dashboard = BugsProgressDashboard()
+        dashboard.dashboard_name = 'BSSBox bugs progress'
+        dashboard.items_on_chart = 20
+        dashboard.min_item_tail = 5
+        dashboard.plan = plan
+        dashboard.fact = fact
+        dashboard.auto_open = auto_open
+        dashboard.repository = repository
+        dashboard.prepare(data=data_dao)
+        dashboard.export_to_plot()
+
+    # By @alanbryn
+    @staticmethod
+    def dashboard_bssbox_bugs_tracking(auto_open, repository, mssql_query_file):
+
+        dc = DataController()
+        data = dc.get_issues_mssql(mssql_query_file=mssql_query_file)
+
+        dashboard = BssboxBugsTrackingDashboard()
+        dashboard.dashboard_name = 'BSSBox bugs tracking'
+        dashboard.auto_open = auto_open
+        dashboard.repository = repository
+        dashboard.prepare(data=data)
         dashboard.export_to_plot()

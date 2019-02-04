@@ -184,6 +184,14 @@ class BugsDurationDashboard(AbstractDashboard):
                     size=12,
                     color='black'
                 ),
+                # title=dict(
+                #     text='Days between creation and resolution',
+                #     font=dict(
+                #         family='sans-serif',
+                #         size=12,
+                #         color='black'
+                #     )
+                # ),
                 tickfont=dict(
                     family='sans-serif',
                     size=16,
@@ -212,6 +220,14 @@ class BugsDurationDashboard(AbstractDashboard):
                     size=12,
                     color='black'
                 )
+                # title=dict(
+                #     text='Domains',
+                #     font=dict(
+                #         family='sans-serif',
+                #         size=12,
+                #         color='black'
+                #     )
+                # )
             )
         )
 

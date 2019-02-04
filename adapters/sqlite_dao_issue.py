@@ -363,7 +363,7 @@ class SqliteDaoIssue(DaoIssue):
         return name_list, assignee_list, created_list, duedate_list, key_list, issuetype_list
 
     # By @alanbryn
-    def get_bugs(self, projects_filter, priority_filter, fixversion_filter, statuses_filter, labels_filter):
+    def get_bugs(self, projects_filter, priority_filter, statuses_filter, labels_filter):
         key_list = []
         created_list = []
         status_list = []
@@ -379,8 +379,8 @@ class SqliteDaoIssue(DaoIssue):
                             components,
                             project
                      FROM issues
-                     WHERE issuetype = "Bug" AND
-                           strftime('%Y-%m-%d', updated) > date('now', 'start of month')'''
+                     WHERE issuetype = "Bug" AND'''
+                           # strftime('%Y-%m-%d', updated) > date('now', 'start of month')'''
         if projects_filter != '':
             sql_str = sql_str + ' AND project IN ('
             projects_filter = [item.strip() for item in projects_filter.split(',')]
@@ -392,8 +392,6 @@ class SqliteDaoIssue(DaoIssue):
                     sql_str = sql_str + ')'
         if priority_filter != '':
             sql_str = sql_str + ' AND priority LIKE \'%' + priority_filter + '%\''
-        if fixversion_filter != '':
-            sql_str = sql_str + ' AND fixversions LIKE \'%' + fixversion_filter + '%\''
         if statuses_filter != '':
             sql_str = sql_str + ' AND status IN ('
             statuses_filter = [item.strip() for item in statuses_filter.split(',')]
@@ -533,3 +531,22 @@ class SqliteDaoIssue(DaoIssue):
 
         return key_list, project_list, status_list, components_list, timeoriginalestimate_list, timespent_list,\
             issuetype_list
+
+    def get_bugs_progress(self):
+        status_list = []
+        sql_str = '''SELECT
+                         CASE
+                             WHEN status in ('Open', 'Reopened') THEN 'Open'
+                             WHEN status in ('Closed') THEN 'Closed'
+                             WHEN status in ('Resolved') THEN 'Resolved'
+                             ELSE 'In Fix'
+                         END status
+                     FROM issues
+                     WHERE issuetype = "Bug" AND
+                           project = "BSSBOX" AND
+                           components != "Business Analysis"'''
+
+        for row in self.cursor.execute(sql_str):
+            status_list.append(row[0])
+
+        return status_list
