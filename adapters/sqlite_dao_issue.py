@@ -476,9 +476,9 @@ class SqliteDaoIssue(DaoIssue):
                             t.timeoriginalestimate,
                             t.timespent,
                             t.issuetype
-                     FROM issues  e
+                     FROM issues e
                           JOIN
-                          issues t ON e.issue_key = t.epiclink
+                          issues t ON e.key = t.epiclink
                      WHERE e.issuetype = "Epic" AND
                            t.issuetype != "Bug" AND
                            t.project NOT IN ("RDQC", "RNDDOC", "BSSARBA", "BSSBOX")'''
@@ -494,9 +494,9 @@ class SqliteDaoIssue(DaoIssue):
                                    st.issuetype
                                FROM issues e
                                     JOIN
-                                    issues t ON e.issue_key = t.epiclink
+                                    issues t ON e.key = t.epiclink
                                     JOIN
-                                    issues st ON t.issue_key = st.parent
+                                    issues st ON t.key = st.parent
                                WHERE e.issuetype = "Epic" AND
                                      st.issuetype != "Sub-bug" AND
                                      st.project NOT IN ("RDQC", "RNDDOC", "BSSARBA", "BSSBOX")'''

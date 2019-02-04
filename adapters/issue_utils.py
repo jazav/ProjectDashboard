@@ -129,6 +129,7 @@ def get_domain_by_project(project):
         'IOTCMPGF': 'IOT',
         'IOTCMP': 'IOT',
         'IOTAEP': 'IOT',
+        'BSSPRMP': 'DFE',
         None: None
     }
     if project in project_to_domain.keys():

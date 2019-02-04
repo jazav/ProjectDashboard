@@ -38,7 +38,6 @@ class SprintDashboard(AbstractDashboard):
     def prepare(self, data):
         self.key_list, self.project_list, self.status_list, self.components_list, self.timeoriginalestimate_list,\
          self.timespent_list, self.issuetype_list = data.get_sprint_info(self.fixversion)
-        print(len(self.key_list))
         for i in range(len(self.key_list)):
             if self.issuetype_list[i] == 'Bug':
                 self.components_list[i] = self.components_list[i].split(',')
