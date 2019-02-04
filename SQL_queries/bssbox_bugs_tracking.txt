@@ -1,5 +1,5 @@
-SELECT CONCAT_WS('-', prj.pkey, ji.issuenum) AS 'jira_key', ji.SUMMARY AS 'summary', pr.pname AS 'priority', ist.pname AS 'status', cmp.cname AS 'component',
-	(CASE WHEN CONCAT_WS('-', prj.pkey, ji.issuenum) IN (reopened.jira_key) THEN reopened.change_date ELSE CONVERT(date, ji.CREATED) END) AS 'start'
+SELECT CONCAT_WS('-', prj.pkey, ji.issuenum) AS 'Key', ji.SUMMARY AS 'Summary', pr.pname AS 'Priority', ist.pname AS 'Status', cmp.cname AS 'Domain',
+	(CASE WHEN CONCAT_WS('-', prj.pkey, ji.issuenum) IN (reopened.jira_key) THEN reopened.change_date ELSE CONVERT(date, ji.CREATED) END) AS 'Days on fix'
 FROM [srv-jira-prod-report].[dbo].[jiraissue] AS ji
 	INNER JOIN [srv-jira-prod-report].[dbo].[project] AS prj ON prj.ID = ji.PROJECT
 	INNER JOIN [srv-jira-prod-report].[dbo].[issuetype] AS it ON it.ID = ji.issuetype
@@ -31,6 +31,6 @@ FROM [srv-jira-prod-report].[dbo].[jiraissue] AS ji
 WHERE prj.pname = 'BSSBOX'
 	AND it.pname = 'Bug'
 	AND pr.pname IN ('Critical', 'Blocker')
-	AND ji.CREATED > '2019-01-09 00:00:00.000'
+	AND ji.CREATED > '2019-01-28 00:00:00.000'
 	AND ist.pname NOT IN ('Closed', 'Resolved')
-ORDER BY start
+	AND na.ASSOCIATION_TYPE = 'IssueComponent'

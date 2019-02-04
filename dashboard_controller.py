@@ -370,4 +370,4 @@ class DashboardController:
         dashboard.auto_open = auto_open
         dashboard.repository = repository
         dashboard.prepare(data=data)
-        # dashboard.export_to_plot()
+        dashboard.export_to_plot()
