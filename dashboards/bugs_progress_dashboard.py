@@ -77,7 +77,7 @@ class BugsProgressDashboard(AbstractDashboard):
                 ),
                 marker=dict(
                     color=color_for_status(status),
-                    size=8
+                    size=6
                 ),
                 xaxis='x2',
                 yaxis='y2',
@@ -151,7 +151,9 @@ class BugsProgressDashboard(AbstractDashboard):
                     size=16,
                     color='black'
                 ),
-                anchor='y2'
+                anchor='y2',
+                # range=[dates[0], dates[-1]]
+                autorange=True
             ),
             yaxis2=dict(
                 domain=[0, 0.45],
