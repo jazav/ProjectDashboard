@@ -45,8 +45,8 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
         header_values = [['<b>{}</b>'.format(head)] for head in self.prepared_data.keys()]
         cells_values = [value for value in self.prepared_data.values()]
         data = [go.Table(
-            columnorder=[1, 2, 3, 4, 5, 6],
-            columnwidth=[1, 4, 1, 1, 1, 1],
+            columnorder=[1, 2, 3, 4, 5, 6, 7],
+            columnwidth=[1, 4, 2, 1, 1, 1, 1],
             header=dict(
                 values=header_values,
                 fill=dict(color=['grey']),
@@ -54,7 +54,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
             ),
             cells=dict(
                 values=cells_values,
-                align=['center', 'left', 'center', 'center', 'center', 'center'],
+                align=['center', 'left', 'center', 'center', 'center', 'center', 'center'],
                 fill=dict(color=alert_action(days=self.prepared_data['Days on fix'],
                                              priorities=self.prepared_data['Priority'])),
                 height=25

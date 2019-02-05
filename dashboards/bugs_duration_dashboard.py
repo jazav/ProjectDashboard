@@ -112,7 +112,7 @@ class BugsDurationDashboard(AbstractDashboard):
 
         plan_fact_str = "pf"
 
-        title = self.dashboard_name + (' in ' + self.labels if self.labels != '' else '')\
+        title = self.dashboard_name + (self.priority.strip() if self.labels == '' else 'Showstoppers')\
             + (' created by QC' if self.creators != '' else '')
         file_name = title + ' ' + plan_fact_str
         # html_file = self.png_dir + "{0}.html".format(file_name)

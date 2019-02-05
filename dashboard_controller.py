@@ -246,7 +246,7 @@ class DashboardController:
 
         for priority in priorities:
             dashboard = BugsDurationDashboard()
-            dashboard.dashboard_name = 'Bugs Life Cycle for ' + priority.strip()
+            dashboard.dashboard_name = 'Bugs Life Cycle for '
             dashboard.items_on_chart = 10
             dashboard.min_item_tail = 5
             dashboard.plan = plan
