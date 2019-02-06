@@ -1,12 +1,10 @@
-SELECT CONCAT_WS('-', prj_b.pkey, ji_b.issuenum) AS 'Key', ji_b.SUMMARY AS 'Summary', ji_b.ASSIGNEE AS 'Assignee', pr_b.pname AS 'Priority', ist_b.pname AS 'Status', cmp_b.cname AS 'Domain',
-	(CASE WHEN CONCAT_WS('-', prj_b.pkey, ji_b.issuenum) IN (reopened.jira_key) THEN reopened.change_date ELSE CONVERT(date, ji_b.CREATED) END) AS 'Days on fix'
+SELECT CONCAT_WS('-', prj_b.pkey, ji_b.issuenum) AS 'Key', ji_b.SUMMARY AS 'Summary', ji_b.ASSIGNEE AS 'Assignee', pr_b.pname AS 'Priority', ist_b.pname AS 'Status', component.component AS 'Domain',
+	(CASE WHEN CONCAT_WS('-', prj_b.pkey, ji_b.issuenum) IN (reopened.jira_key) THEN reopened.change_date ELSE CONVERT(date, ji_b.CREATED) END) AS 'Days on fix', CONVERT(date, ji_b.RESOLUTIONDATE) AS 'Resolved'
 FROM [srv-jira-prod-report].[dbo].[jiraissue] AS ji_b
 	INNER JOIN [srv-jira-prod-report].[dbo].[project] AS prj_b ON prj_b.ID = ji_b.PROJECT
 	INNER JOIN [srv-jira-prod-report].[dbo].[issuetype] AS it_b ON it_b.ID = ji_b.issuetype
 	INNER JOIN [srv-jira-prod-report].[dbo].[issuestatus] AS ist_b ON ist_b.ID = ji_b.issuestatus
 	INNER JOIN [srv-jira-prod-report].[dbo].[priority] AS pr_b ON pr_b.ID = ji_b.PRIORITY
-	INNER JOIN [srv-jira-prod-report].[dbo].[nodeassociation] AS na_b ON na_b.SOURCE_NODE_ID = ji_b.ID
-	INNER JOIN [srv-jira-prod-report].[dbo].[component] AS cmp_b ON cmp_b.ID = na_b.SINK_NODE_ID
 	FULL JOIN (
 		SELECT bugs.jira_key, MAX(CONVERT(date, chg.CREATED)) AS 'change_date'
 		FROM [srv-jira-prod-report].[dbo].[changegroup] AS chg
@@ -29,10 +27,22 @@ FROM [srv-jira-prod-report].[dbo].[jiraissue] AS ji_b
 			AND CONVERT(varchar, chi.NEWSTRING) = 'Reopened'
 		GROUP BY jira_key
 		) AS reopened ON reopened.jira_key = CONCAT_WS('-', prj_b.pkey, ji_b.issuenum)
+	FULL JOIN (
+		SELECT CONCAT_WS('-', prj_c.pkey, ji_c.issuenum) AS 'jira_key', cmp_c.cname AS 'component'
+		FROM [srv-jira-prod-report].[dbo].[jiraissue] AS ji_c
+			INNER JOIN [srv-jira-prod-report].[dbo].[project] AS prj_c ON prj_c.ID = ji_c.PROJECT
+			INNER JOIN [srv-jira-prod-report].[dbo].[issuetype] AS it_c ON it_c.ID = ji_c.issuetype
+			INNER JOIN [srv-jira-prod-report].[dbo].[issuestatus] AS ist_c ON ist_c.ID = ji_c.issuestatus
+			INNER JOIN [srv-jira-prod-report].[dbo].[priority] AS pr_c ON pr_c.ID = ji_c.PRIORITY
+			INNER JOIN [srv-jira-prod-report].[dbo].[nodeassociation] AS na_c ON na_c.SOURCE_NODE_ID = ji_c.ID
+			INNER JOIN [srv-jira-prod-report].[dbo].[component] AS cmp_c ON cmp_c.ID = na_c.SINK_NODE_ID
+		WHERE prj_c.pname = 'BSSBOX'
+			AND it_c.pname = 'Bug'
+			AND pr_c.pname IN ('Critical', 'Blocker')
+			AND ji_c.CREATED > '2019-01-28 00:00:00.000'
+			AND na_c.ASSOCIATION_TYPE = 'IssueComponent'
+	) AS component ON component.jira_key = CONCAT_WS('-', prj_b.pkey, ji_b.issuenum)
 WHERE prj_b.pname = 'BSSBOX'
 	AND it_b.pname = 'Bug'
 	AND pr_b.pname IN ('Critical', 'Blocker')
 	AND ji_b.CREATED > '2019-01-28 00:00:00.000'
-	AND ist_b.pname NOT IN ('Closed', 'Resolved')
-	AND na_b.ASSOCIATION_TYPE = 'IssueComponent'
-ORDER BY status

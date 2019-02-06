@@ -6,7 +6,7 @@ import config_controller
 from adapters.jira_adapter import HISTORY_EXPAND
 from adapters.file_cache import DAY_AGE_READ_FORMAT
 from datetime import datetime
-import os
+# import os
 # import pyodbc
 
 from adapters.sqlite_dao_issue import get_sqlite_dao

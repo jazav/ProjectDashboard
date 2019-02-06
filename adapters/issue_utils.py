@@ -87,6 +87,10 @@ def get_domain(component):
         'Process Engine': 'CRM',
         'Order Capture': 'CRM',
         'Analytics': 'ARBA',
+        'Notification Engine': 'Infra',
+        'File Storage': 'Ordering',
+        'Digital API': 'DFE',
+        'Interaction Management': 'CRM',
         '': 'COMPONENTS FIELD IS EMPTY!',
         None: None
     }
