@@ -8,7 +8,7 @@ FROM [srv-jira-prod-report].[dbo].[jiraissue] AS ji_b
 	INNER JOIN [srv-jira-prod-report].[dbo].[nodeassociation] AS na_b ON na_b.SOURCE_NODE_ID = ji_b.ID
 	INNER JOIN [srv-jira-prod-report].[dbo].[component] AS cmp_b ON cmp_b.ID = na_b.SINK_NODE_ID
 	FULL JOIN (
-		SELECT bugs.jira_key, CONVERT(date, chg.CREATED) AS 'change_date'
+		SELECT bugs.jira_key, MAX(CONVERT(date, chg.CREATED)) AS 'change_date'
 		FROM [srv-jira-prod-report].[dbo].[changegroup] AS chg
 			INNER JOIN [srv-jira-prod-report].[dbo].[changeitem] AS chi ON chi.groupid = chg.ID,
 			(
@@ -27,6 +27,7 @@ FROM [srv-jira-prod-report].[dbo].[jiraissue] AS ji_b
 		WHERE chi.FIELD = 'status'
 			AND chg.issueid IN (bugs.ID)
 			AND CONVERT(varchar, chi.NEWSTRING) = 'Reopened'
+		GROUP BY jira_key
 		) AS reopened ON reopened.jira_key = CONCAT_WS('-', prj_b.pkey, ji_b.issuenum)
 WHERE prj_b.pname = 'BSSBOX'
 	AND it_b.pname = 'Bug'
@@ -34,4 +35,4 @@ WHERE prj_b.pname = 'BSSBOX'
 	AND ji_b.CREATED > '2019-01-28 00:00:00.000'
 	AND ist_b.pname NOT IN ('Closed', 'Resolved')
 	AND na_b.ASSOCIATION_TYPE = 'IssueComponent'
-ORDER BY jira_key
+ORDER BY status

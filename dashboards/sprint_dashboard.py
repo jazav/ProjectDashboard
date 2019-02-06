@@ -163,7 +163,9 @@ class SprintDashboard(AbstractDashboard):
                 base=base,
                 marker=dict(
                     color=color_for_status(status)
-                )
+                ),
+                offset=-0.25,
+                width=0.5
             ))
             base += self.all_bugs[status]
 
@@ -179,7 +181,7 @@ class SprintDashboard(AbstractDashboard):
             annotations=annotations,
             xaxis1=dict(axis, **dict(domain=[0.55, 1], anchor='y1')),
             yaxis1=dict(axis, **dict(domain=[0, 1], anchor='x1', ticksuffix='  ')),
-            xaxis2=dict(axis, **dict(domain=[0, 0.5], anchor='y2')),
+            xaxis2=dict(axis, **dict(domain=[0.025, 0.5], anchor='y2')),
             yaxis2=dict(axis, **dict(domain=[0, 0.19], anchor='x2', ticksuffix='  '))
         )
 
