@@ -4,7 +4,6 @@ import datetime
 import numpy
 import plotly
 import plotly.graph_objs as go
-import math
 
 
 def alert_action(days, priorities):
@@ -23,27 +22,10 @@ def alert_action(days, priorities):
     return color
 
 
-def domain_position(row, col, rows):
-    delta = 0.02
-    length = ((0.99-(rows-1)*delta)/rows)
-    start, end, y_pos = 0.99-length, 0.99, {}
-    for i in range(1, rows+1):
-        y_pos[i] = [start, end]
-        end = start - delta
-        start = end - length
-    x_pos = {
-        1: [0.76, 0.87],
-        2: [0.88, 0.99]
-    }
-    return dict(
-        x=x_pos[col],
-        y=y_pos[row]
-    )
-
-
 class BssboxBugsTrackingDashboard(AbstractDashboard):
     auto_open, repository = True, None
-    tracking_data, pivot_data, all_bugs = {}, {}, {}
+    tracking_data, pivot_data, all_bugs, overdue_data = {}, {}, {}, {}
+    jql_all = 'https://jira.billing.ru/issues/?jql=key in ('
 
     def prepare(self, data):
         self.tracking_data = {key: [] for key in list(data.keys()) if key != 'Resolved'}
@@ -65,10 +47,13 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
             else:
                 if data['Domain'][i] not in self.pivot_data.keys():
                     self.pivot_data[data['Domain'][i]] = {'On time': 0, 'Overdue': 0}
+                    self.overdue_data[data['Domain'][i]] = 'https://jira.billing.ru/issues/?jql=key in ('
                 if data['Priority'][i] == 'Blocker':
                     if data['Days on fix'][i] > 1:
                         self.pivot_data[data['Domain'][i]]['Overdue'] += 1
                         self.all_bugs['BSSBox']['Overdue'] += 1
+                        self.overdue_data[data['Domain'][i]] += '{}, '.format(data['Key'][i])
+                        self.jql_all += '{}, '.format(data['Key'][i])
                     else:
                         self.pivot_data[data['Domain'][i]]['On time'] += 1
                         self.all_bugs['BSSBox']['On time'] += 1
@@ -76,9 +61,13 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                     if data['Days on fix'][i] > 2:
                         self.pivot_data[data['Domain'][i]]['Overdue'] += 1
                         self.all_bugs['BSSBox']['Overdue'] += 1
+                        self.overdue_data[data['Domain'][i]] += '{}, '.format(data['Key'][i])
+                        self.jql_all += '{}, '.format(data['Key'][i])
                     else:
                         self.pivot_data[data['Domain'][i]]['On time'] += 1
                         self.all_bugs['BSSBox']['On time'] += 1
+        self.overdue_data = {domain: '{})'.format(jql[:-2]) for domain, jql in self.overdue_data.items()}
+        self.jql_all = '{})'.format(self.jql_all[:-2])
 
     def export_to_plotly(self):
         if len(self.tracking_data['Key']) == 0:
@@ -119,9 +108,9 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
             showlegend=False,
             text=list(map(lambda el: 'On time: <b>{}</b> '.format(el),
                           [value['On time'] for value in self.pivot_data.values()])),
-            textposition='auto',
+            textposition='inside',
             marker=dict(
-                color='rgb(232,232,232)'
+                color='rgb(232,232,232)',
             )
         ), go.Bar(
             orientation='h',
@@ -131,39 +120,48 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
             yaxis='y1',
             name='Overdue',
             showlegend=False,
-            text=list(map(lambda el: '<a href = "https://jira.billing.ru/">Overdue: <b>{}</b> </a>'.format(el),
-                          [value['Overdue'] for value in self.pivot_data.values()])),
-            textposition='auto',
+            text=list(map(lambda el, link: '<a href = "{}">Overdue: <b>{}</b> </a>'.format(link, el),
+                          [value['Overdue'] for value in self.pivot_data.values()], self.overdue_data.values())),
+            textposition='inside',
+            marker=dict(
+                color='rgb(255,204,204)'
+            )
+        ), go.Bar(
+            orientation='h',
+            y=list(self.all_bugs.keys()),
+            x=[value['On time'] for value in self.all_bugs.values()],
+            xaxis='x2',
+            yaxis='y2',
+            name='On time',
+            showlegend=False,
+            text=list(map(lambda el: 'On time: <b>{}</b> '.format(el),
+                          [value['On time'] for value in self.all_bugs.values()])),
+            textposition='inside',
+            marker=dict(
+                color='rgb(232,232,232)',
+            )
+        ), go.Bar(
+            orientation='h',
+            y=list(self.all_bugs.keys()),
+            x=[value['Overdue'] for value in self.all_bugs.values()],
+            xaxis='x2',
+            yaxis='y2',
+            name='Overdue',
+            showlegend=False,
+            text=list(map(lambda el: '<a href = "{}">Overdue: <b>{}</b> </a>'.format(self.jql_all, el),
+                          [value['Overdue'] for value in self.all_bugs.values()])),
+            textposition='inside',
             marker=dict(
                 color='rgb(255,204,204)'
             )
         )]
-        # rows = math.ceil(len(self.pivot_data.keys()) / 2)
-        # for domain, i in zip(self.pivot_data.keys(), range(len(self.pivot_data.keys()))):
-        #     row, col = int((i % rows) + 1), int((i // rows) + 1)
-        #     data.append(go.Pie(
-        #         labels=list(self.pivot_data[domain].keys()),
-        #         values=list(self.pivot_data[domain].values()),
-        #         hoverinfo='label+percent',
-        #         textinfo='label+value',
-        #         textposition='inside',
-        #         hole=0.4,
-        #         domain=domain_position(row, col, rows),
-        #         marker=dict(
-        #             colors=['rgb(232,232,232)', 'rgb(255,204,204)'],
-        #             line=dict(width=1)
-        #         ),
-        #         showlegend=False,
-        #         title=domain,
-        #         titleposition='middle center'
-        #     ))
 
         title = self.dashboard_name
         html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 
         axis = dict()
         layout = go.Layout(
-            title='<b>{} ({})</b><br><i>SLA: Blockers - 2 days, Criticals - 1 day</i>'
+            title='<b>{} ({})</b><br><i>SLA: Blockers - 1 day, Criticals - 2 days</i>'
             .format(title, datetime.datetime.now().strftime("%d.%m.%y %H:%M")),
             font=dict(family='Oswald, sans-serif', size=12),
             shapes=[dict(
@@ -185,7 +183,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                 x0=0.73,
                 y0=0,
                 x1=1,
-                y1=0.16,
+                y1=0.15,
                 line=dict(
                     color='rgb(0,0,0)',
                     width=1
@@ -193,6 +191,8 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
             )],
             xaxis1=dict(axis, **dict(domain=[0.77, 0.99], anchor='y1')),
             yaxis1=dict(axis, **dict(domain=[0.2, 0.99], anchor='x1', ticksuffix='  ')),
+            xaxis2=dict(axis, **dict(domain=[0.77, 0.99], anchor='y2')),
+            yaxis2=dict(axis, **dict(domain=[0.03, 0.14], anchor='x2', ticksuffix='  ')),
             barmode='stack'
         )
 
