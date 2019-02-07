@@ -96,16 +96,16 @@ class BugsDashboard(AbstractDashboard):
             xaxis = 'xaxis' + str(i+1)
             fig["layout"][xaxis].update(
                 showticklabels=False,
-                title=annotations_open[i] + '<br>' + annotations_fix[i],
-                titlefont=dict(
-                    size=10
-                ),
-                # title=dict(
-                #     text=annotations_open[i] + '<br>' + annotations_fix[i],
-                #     font=dict(
-                #         size=10
-                #     )
+                # title=annotations_open[i] + '<br>' + annotations_fix[i],
+                # titlefont=dict(
+                #     size=10
                 # ),
+                title=dict(
+                    text=annotations_open[i] + '<br>' + annotations_fix[i],
+                    font=dict(
+                        size=10
+                    )
+                ),
                 automargin=True
             )
 

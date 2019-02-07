@@ -43,11 +43,11 @@ def domain_position(row, col, rows):
 
 class BssboxBugsTrackingDashboard(AbstractDashboard):
     auto_open, repository = True, None
-    tracking_data, pivot_data = {}, {}
+    tracking_data, pivot_data, all_bugs = {}, {}, {}
 
     def prepare(self, data):
         self.tracking_data = {key: [] for key in list(data.keys()) if key != 'Resolved'}
-        self.pivot_data['BSSBox'] = {'On time': 0, 'Overdue': 0}
+        self.all_bugs['BSSBox'] = {'On time': 0, 'Overdue': 0}
         preparing_data = {key: [] for key in data.keys()}
         for i in range(len(data['Key'])):
             if get_domain(data['Domain'][i]) != 'Others':
@@ -68,17 +68,17 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                 if data['Priority'][i] == 'Blocker':
                     if data['Days on fix'][i] > 1:
                         self.pivot_data[data['Domain'][i]]['Overdue'] += 1
-                        self.pivot_data['BSSBox']['Overdue'] += 1
+                        self.all_bugs['BSSBox']['Overdue'] += 1
                     else:
                         self.pivot_data[data['Domain'][i]]['On time'] += 1
-                        self.pivot_data['BSSBox']['On time'] += 1
+                        self.all_bugs['BSSBox']['On time'] += 1
                 elif data['Priority'][i] == 'Critical':
                     if data['Days on fix'][i] > 2:
                         self.pivot_data[data['Domain'][i]]['Overdue'] += 1
-                        self.pivot_data['BSSBox']['Overdue'] += 1
+                        self.all_bugs['BSSBox']['Overdue'] += 1
                     else:
                         self.pivot_data[data['Domain'][i]]['On time'] += 1
-                        self.pivot_data['BSSBox']['On time'] += 1
+                        self.all_bugs['BSSBox']['On time'] += 1
 
     def export_to_plotly(self):
         if len(self.tracking_data['Key']) == 0:
@@ -109,45 +109,91 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                 height=25,
                 line=dict(width=2)
             )
+        ), go.Bar(
+            orientation='h',
+            y=list(self.pivot_data.keys()),
+            x=[value['On time'] for value in self.pivot_data.values()],
+            xaxis='x1',
+            yaxis='y1',
+            name='On time',
+            showlegend=False,
+            text=list(map(lambda el: 'On time: <b>{}</b> '.format(el),
+                          [value['On time'] for value in self.pivot_data.values()])),
+            textposition='auto',
+            marker=dict(
+                color='rgb(232,232,232)'
+            )
+        ), go.Bar(
+            orientation='h',
+            y=list(self.pivot_data.keys()),
+            x=[value['Overdue'] for value in self.pivot_data.values()],
+            xaxis='x1',
+            yaxis='y1',
+            name='Overdue',
+            showlegend=False,
+            text=list(map(lambda el: '<a href = "https://jira.billing.ru/">Overdue: <b>{}</b> </a>'.format(el),
+                          [value['Overdue'] for value in self.pivot_data.values()])),
+            textposition='auto',
+            marker=dict(
+                color='rgb(255,204,204)'
+            )
         )]
-        rows = math.ceil(len(self.pivot_data.keys()) / 2)
-        for domain, i in zip(self.pivot_data.keys(), range(len(self.pivot_data.keys()))):
-            row, col = int((i % rows) + 1), int((i // rows) + 1)
-            data.append(go.Pie(
-                labels=list(self.pivot_data[domain].keys()),
-                values=list(self.pivot_data[domain].values()),
-                hoverinfo='label+percent',
-                textinfo='label+value',
-                textposition='inside',
-                hole=0.4,
-                domain=domain_position(row, col, rows),
-                marker=dict(
-                    colors=['rgb(232,232,232)', 'rgb(255,204,204)'],
-                    line=dict(width=1)
-                ),
-                showlegend=False,
-                title=domain,
-                titleposition='middle center'
-            ))
+        # rows = math.ceil(len(self.pivot_data.keys()) / 2)
+        # for domain, i in zip(self.pivot_data.keys(), range(len(self.pivot_data.keys()))):
+        #     row, col = int((i % rows) + 1), int((i // rows) + 1)
+        #     data.append(go.Pie(
+        #         labels=list(self.pivot_data[domain].keys()),
+        #         values=list(self.pivot_data[domain].values()),
+        #         hoverinfo='label+percent',
+        #         textinfo='label+value',
+        #         textposition='inside',
+        #         hole=0.4,
+        #         domain=domain_position(row, col, rows),
+        #         marker=dict(
+        #             colors=['rgb(232,232,232)', 'rgb(255,204,204)'],
+        #             line=dict(width=1)
+        #         ),
+        #         showlegend=False,
+        #         title=domain,
+        #         titleposition='middle center'
+        #     ))
 
         title = self.dashboard_name
         html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 
+        axis = dict()
         layout = go.Layout(
             title='<b>{} ({})</b><br><i>SLA: Blockers - 2 days, Criticals - 1 day</i>'
             .format(title, datetime.datetime.now().strftime("%d.%m.%y %H:%M")),
             font=dict(family='Oswald, sans-serif', size=12),
             shapes=[dict(
                 type='rect',
-                x0=0.75,
-                y0=-0.01,
+                xref='paper',
+                yref='paper',
+                x0=0.73,
+                y0=0.17,
                 x1=1,
                 y1=1,
                 line=dict(
                     color='rgb(0,0,0)',
                     width=1
                 )
-            )]
+            ), dict(
+                type='rect',
+                xref='paper',
+                yref='paper',
+                x0=0.73,
+                y0=0,
+                x1=1,
+                y1=0.16,
+                line=dict(
+                    color='rgb(0,0,0)',
+                    width=1
+                )
+            )],
+            xaxis1=dict(axis, **dict(domain=[0.77, 0.99], anchor='y1')),
+            yaxis1=dict(axis, **dict(domain=[0.2, 0.99], anchor='x1', ticksuffix='  ')),
+            barmode='stack'
         )
 
         fig = go.Figure(data=data, layout=layout)
