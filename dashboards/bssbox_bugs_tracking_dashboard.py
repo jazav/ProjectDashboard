@@ -32,8 +32,8 @@ def domain_position(row, col, rows):
         end = start - delta
         start = end - length
     x_pos = {
-        1: [0.75, 0.87],
-        2: [0.88, 1]
+        1: [0.76, 0.87],
+        2: [0.88, 0.99]
     }
     return dict(
         x=x_pos[col],
@@ -47,7 +47,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
 
     def prepare(self, data):
         self.tracking_data = {key: [] for key in list(data.keys()) if key != 'Resolved'}
-        self.pivot_data['BSSBox'] = {'Punctually': 0, 'Overdue': 0}
+        self.pivot_data['BSSBox'] = {'On time': 0, 'Overdue': 0}
         preparing_data = {key: [] for key in data.keys()}
         for i in range(len(data['Key'])):
             if get_domain(data['Domain'][i]) != 'Others':
@@ -55,7 +55,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                     preparing_data[key].append(data[key][i])
         data = preparing_data
         for i in range(len(data['Key'])):
-            data['Domain'][i] = get_domain(data['Domain'][i]) if data['Domain'][i] is not None else 'Indefinite'
+            data['Domain'][i] = get_domain(data['Domain'][i]) if data['Domain'][i] is not None else 'W/o components'
             data['Days on fix'][i] = int(numpy.busday_count(data['Days on fix'][i], datetime.datetime.now().date())+1)\
                 if data['Status'][i] not in ('Closed', 'Resolved')\
                 else int(numpy.busday_count(data['Days on fix'][i], data['Resolved'][i])+1)
@@ -64,31 +64,30 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                     self.tracking_data[key].append(data[key][i])
             else:
                 if data['Domain'][i] not in self.pivot_data.keys():
-                    self.pivot_data[data['Domain'][i]] = {'Punctually': 0, 'Overdue': 0}
+                    self.pivot_data[data['Domain'][i]] = {'On time': 0, 'Overdue': 0}
                 if data['Priority'][i] == 'Blocker':
                     if data['Days on fix'][i] > 1:
                         self.pivot_data[data['Domain'][i]]['Overdue'] += 1
                         self.pivot_data['BSSBox']['Overdue'] += 1
                     else:
-                        self.pivot_data[data['Domain'][i]]['Punctually'] += 1
-                        self.pivot_data['BSSBox']['Punctually'] += 1
+                        self.pivot_data[data['Domain'][i]]['On time'] += 1
+                        self.pivot_data['BSSBox']['On time'] += 1
                 elif data['Priority'][i] == 'Critical':
                     if data['Days on fix'][i] > 2:
                         self.pivot_data[data['Domain'][i]]['Overdue'] += 1
                         self.pivot_data['BSSBox']['Overdue'] += 1
                     else:
-                        self.pivot_data[data['Domain'][i]]['Punctually'] += 1
-                        self.pivot_data['BSSBox']['Punctually'] += 1
-        print(self.pivot_data)
+                        self.pivot_data[data['Domain'][i]]['On time'] += 1
+                        self.pivot_data['BSSBox']['On time'] += 1
 
     def export_to_plotly(self):
         if len(self.tracking_data['Key']) == 0:
             raise ValueError('There is no issues to show')
 
-        plotly.tools.set_credentials_file(username='Rnd-Rnd', api_key='GFSxsbDP8rOiakf0rs8U')
-
         header_values = [['<b>{}</b>'.format(head)] for head in self.tracking_data.keys()]
-        cells_values = [value for value in self.tracking_data.values()]
+        cells_values = [value if key != 'Key'
+                        else list(map(lambda el: '<a href="https://jira.billing.ru/browse/{0}">{0}</a>'.format(el),
+                                      value)) for key, value in self.tracking_data.items()]
         data = [go.Table(
             domain=dict(
                 x=[0, 0.72],
@@ -135,7 +134,8 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
         html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 
         layout = go.Layout(
-            title=title,
+            title='<b>{} ({})</b><br><i>SLA: Blockers - 2 days, Criticals - 1 day</i>'
+            .format(title, datetime.datetime.now().strftime("%d.%m.%y %H:%M")),
             font=dict(family='Oswald, sans-serif', size=12),
             shapes=[dict(
                 type='rect',
@@ -154,6 +154,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
         if self.repository == 'offline':
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
         elif self.repository == 'online':
+            plotly.tools.set_credentials_file(username='Rnd-Rnd', api_key='GFSxsbDP8rOiakf0rs8U')
             plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
 
     def export_to_plot(self):

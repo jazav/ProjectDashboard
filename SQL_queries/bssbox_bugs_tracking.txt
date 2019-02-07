@@ -46,3 +46,4 @@ WHERE prj_b.pname = 'BSSBOX'
 	AND it_b.pname = 'Bug'
 	AND pr_b.pname IN ('Critical', 'Blocker')
 	AND ji_b.CREATED > '2019-01-28 00:00:00.000'
+ORDER BY 'Days on fix'
