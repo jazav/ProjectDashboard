@@ -1,5 +1,5 @@
 SELECT CONCAT_WS('-', prj_b.pkey, ji_b.issuenum) AS 'Key', ji_b.SUMMARY AS 'Summary', ji_b.ASSIGNEE AS 'Assignee', pr_b.pname AS 'Priority', ist_b.pname AS 'Status', component.component AS 'Domain',
-	(CASE WHEN CONCAT_WS('-', prj_b.pkey, ji_b.issuenum) IN (reopened.jira_key) THEN reopened.change_date ELSE CONVERT(date, ji_b.CREATED) END) AS 'Days on fix', CONVERT(date, ji_b.RESOLUTIONDATE) AS 'Resolved'
+	(CASE WHEN CONCAT_WS('-', prj_b.pkey, ji_b.issuenum) IN (reopened.jira_key) THEN reopened.change_date ELSE CONVERT(date, ji_b.CREATED) END) AS 'Days in progress', CONVERT(date, ji_b.RESOLUTIONDATE) AS 'Resolved'
 FROM [srv-jira-prod-report].[dbo].[jiraissue] AS ji_b
 	INNER JOIN [srv-jira-prod-report].[dbo].[project] AS prj_b ON prj_b.ID = ji_b.PROJECT
 	INNER JOIN [srv-jira-prod-report].[dbo].[issuetype] AS it_b ON it_b.ID = ji_b.issuetype
@@ -46,4 +46,4 @@ WHERE prj_b.pname = 'BSSBOX'
 	AND it_b.pname = 'Bug'
 	AND pr_b.pname IN ('Critical', 'Blocker')
 	AND ji_b.CREATED > '2019-01-28 00:00:00.000'
-ORDER BY 'Days on fix'
+ORDER BY 'Days in progress'

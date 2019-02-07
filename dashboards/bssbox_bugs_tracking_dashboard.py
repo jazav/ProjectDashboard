@@ -38,9 +38,10 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
         data = preparing_data
         for i in range(len(data['Key'])):
             data['Domain'][i] = get_domain(data['Domain'][i]) if data['Domain'][i] is not None else 'W/o components'
-            data['Days on fix'][i] = int(numpy.busday_count(data['Days on fix'][i], datetime.datetime.now().date())+1)\
+            data['Days in progress'][i] =\
+                int(numpy.busday_count(data['Days in progress'][i], datetime.datetime.now().date())+1)\
                 if data['Status'][i] not in ('Closed', 'Resolved')\
-                else int(numpy.busday_count(data['Days on fix'][i], data['Resolved'][i])+1)
+                else int(numpy.busday_count(data['Days in progress'][i], data['Resolved'][i])+1)
             if data['Status'][i] not in ('Closed', 'Resolved'):
                 for key in self.tracking_data.keys():
                     self.tracking_data[key].append(data[key][i])
@@ -49,7 +50,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                     self.pivot_data[data['Domain'][i]] = {'On time': 0, 'Overdue': 0}
                     self.overdue_data[data['Domain'][i]] = 'https://jira.billing.ru/issues/?jql=key in ('
                 if data['Priority'][i] == 'Blocker':
-                    if data['Days on fix'][i] > 1:
+                    if data['Days in progress'][i] > 1:
                         self.pivot_data[data['Domain'][i]]['Overdue'] += 1
                         self.all_bugs['BSSBox']['Overdue'] += 1
                         self.overdue_data[data['Domain'][i]] += '{}, '.format(data['Key'][i])
@@ -58,7 +59,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                         self.pivot_data[data['Domain'][i]]['On time'] += 1
                         self.all_bugs['BSSBox']['On time'] += 1
                 elif data['Priority'][i] == 'Critical':
-                    if data['Days on fix'][i] > 2:
+                    if data['Days in progress'][i] > 2:
                         self.pivot_data[data['Domain'][i]]['Overdue'] += 1
                         self.all_bugs['BSSBox']['Overdue'] += 1
                         self.overdue_data[data['Domain'][i]] += '{}, '.format(data['Key'][i])
@@ -73,27 +74,31 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
         if len(self.tracking_data['Key']) == 0:
             raise ValueError('There is no issues to show')
 
-        header_values = [['<b>{}</b>'.format(head)] for head in self.tracking_data.keys()]
-        cells_values = [value if key != 'Key'
-                        else list(map(lambda el: '<a href="https://jira.billing.ru/browse/{0}">{0}</a>'.format(el),
-                                      value)) for key, value in self.tracking_data.items()]
+        header_values = [['<b>{}</b>'.format(head)] for head in self.tracking_data.keys()] + [['<b>Deadline</b>']]
+        cells_values = [value if key != 'Key' else list(
+            map(lambda el: '<a href="https://jira.billing.ru/browse/{0}">{0}</a>'.format(el), value)) for key, value in
+                        self.tracking_data.items()] + [[datetime.datetime.now().date() - datetime.timedelta(
+                            days=days-3) if pr == 'Critical' else datetime.datetime.now().date()
+                            - datetime.timedelta(days=days-2) for days, pr
+                            in zip(self.tracking_data['Days in progress'], self.tracking_data['Priority'])]]
         data = [go.Table(
             domain=dict(
                 x=[0, 0.72],
                 y=[0, 1]
             ),
-            columnorder=[1, 2, 3, 4, 5, 6, 7],
-            columnwidth=[3, 12, 3, 2, 2, 2, 2],
+            columnorder=[1, 2, 3, 4, 5, 6, 7, 8],
+            columnwidth=[3, 11, 3, 2, 2, 2, 2, 2],
             header=dict(
                 values=header_values,
                 fill=dict(color=['grey']),
                 font=dict(color='white'),
-                line=dict(width=2)
+                line=dict(width=2),
+                align='center'
             ),
             cells=dict(
                 values=cells_values,
                 align=['center', 'left', 'center', 'center', 'center', 'center', 'center'],
-                fill=dict(color=alert_action(days=self.tracking_data['Days on fix'],
+                fill=dict(color=alert_action(days=self.tracking_data['Days in progress'],
                                              priorities=self.tracking_data['Priority'])),
                 height=25,
                 line=dict(width=2)
@@ -161,8 +166,9 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
 
         axis = dict()
         layout = go.Layout(
-            title='<b>{} ({})</b><br><i>SLA: Blockers - 1 day, Criticals - 2 days</i>'
-            .format(title, datetime.datetime.now().strftime("%d.%m.%y %H:%M")),
+            title='<b>{} ({})</b>'.format(title, datetime.datetime.now().strftime("%d.%m.%y %H:%M"))
+                  + ('<sup> in cloud</sup>' if self.repository == 'online' else '')
+                  + '<br><i>SLA: Blockers - 1 day, Criticals - 2 days</i>',
             font=dict(family='Oswald, sans-serif', size=12),
             shapes=[dict(
                 type='rect',
