@@ -1,12 +1,13 @@
-SELECT CONCAT_WS('-', prj_b.pkey, ji_b.issuenum) AS 'Key', ji_b.SUMMARY AS 'Summary', ji_b.ASSIGNEE AS 'Assignee', pr_b.pname AS 'Priority', ist_b.pname AS 'Status', component.component AS 'Domain',
-	(CASE WHEN CONCAT_WS('-', prj_b.pkey, ji_b.issuenum) IN (reopened.jira_key) THEN reopened.change_date ELSE CONVERT(date, ji_b.CREATED) END) AS 'Days in progress', CONVERT(date, ji_b.RESOLUTIONDATE) AS 'Resolved'
+SELECT CONCAT_WS('-', prj_b.pkey, ji_b.issuenum) AS 'Key', ji_b.SUMMARY AS 'Summary', (CASE WHEN ji_b.ASSIGNEE IS NOT NULL THEN ji_b.ASSIGNEE ELSE '' END) AS 'Assignee',
+    pr_b.pname AS 'Priority', ist_b.pname AS 'Status', component.component AS 'Domain',
+    (CASE WHEN CONCAT_WS('-', prj_b.pkey, ji_b.issuenum) IN (reopened.jira_key) THEN reopened.change_date ELSE ji_b.CREATED END) AS 'Days in progress', ji_b.RESOLUTIONDATE AS 'Resolved'
 FROM [srv-jira-prod-report].[dbo].[jiraissue] AS ji_b
 	INNER JOIN [srv-jira-prod-report].[dbo].[project] AS prj_b ON prj_b.ID = ji_b.PROJECT
 	INNER JOIN [srv-jira-prod-report].[dbo].[issuetype] AS it_b ON it_b.ID = ji_b.issuetype
 	INNER JOIN [srv-jira-prod-report].[dbo].[issuestatus] AS ist_b ON ist_b.ID = ji_b.issuestatus
 	INNER JOIN [srv-jira-prod-report].[dbo].[priority] AS pr_b ON pr_b.ID = ji_b.PRIORITY
 	FULL JOIN (
-		SELECT bugs.jira_key, MAX(CONVERT(date, chg.CREATED)) AS 'change_date'
+		SELECT bugs.jira_key, MAX(chg.CREATED) AS 'change_date'
 		FROM [srv-jira-prod-report].[dbo].[changegroup] AS chg
 			INNER JOIN [srv-jira-prod-report].[dbo].[changeitem] AS chi ON chi.groupid = chg.ID,
 			(
@@ -46,4 +47,4 @@ WHERE prj_b.pname = 'BSSBOX'
 	AND it_b.pname = 'Bug'
 	AND pr_b.pname IN ('Critical', 'Blocker')
 	AND ji_b.CREATED > '2019-01-28 00:00:00.000'
-ORDER BY 'Days in progress'
+ORDER BY 'Priority', 'Days in progress'

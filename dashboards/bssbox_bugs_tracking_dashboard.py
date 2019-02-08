@@ -10,21 +10,26 @@ def alert_action(days, priorities):
     color = [[]]
     for day, priority in zip(days, priorities):
         if priority == 'Blocker':
-            if day > 1:
+            if day > 0:
                 color[0].append('rgb(255,204,204)')
             else:
                 color[0].append('rgb(255,255,255)')
         elif priority == 'Critical':
-            if day > 2:
+            if day > 1:
                 color[0].append('rgb(255,204,204)')
             else:
                 color[0].append('rgb(255,255,255)')
     return color
 
 
+def workdays(fromdate, todate):
+    return sum(1 for day in (fromdate + datetime.timedelta(x + 1)
+                             for x in range((todate - fromdate).days)) if day.weekday() < 5)
+
+
 class BssboxBugsTrackingDashboard(AbstractDashboard):
     auto_open, repository = True, None
-    tracking_data, pivot_data, all_bugs, overdue_data = {}, {}, {}, {}
+    tracking_data, pivot_data, all_bugs, overdue_data, deadline_dict = {}, {}, {}, {}, []
     jql_all = 'https://jira.billing.ru/issues/?jql=key in ('
 
     def prepare(self, data):
@@ -36,37 +41,38 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                 for key in data.keys():
                     preparing_data[key].append(data[key][i])
         data = preparing_data
+        created = [cr for cr, st in zip(data['Days in progress'], data['Status']) if st not in ('Closed', 'Resolved')]
+        self.deadline_dict = created
         for i in range(len(data['Key'])):
             data['Domain'][i] = get_domain(data['Domain'][i]) if data['Domain'][i] is not None else 'W/o components'
             data['Days in progress'][i] =\
-                int(numpy.busday_count(data['Days in progress'][i], datetime.datetime.now().date())+1)\
+                workdays(data['Days in progress'][i], datetime.datetime.now())\
                 if data['Status'][i] not in ('Closed', 'Resolved')\
-                else int(numpy.busday_count(data['Days in progress'][i], data['Resolved'][i])+1)
+                else workdays(data['Days in progress'][i], data['Resolved'][i])
             if data['Status'][i] not in ('Closed', 'Resolved'):
                 for key in self.tracking_data.keys():
                     self.tracking_data[key].append(data[key][i])
-            else:
-                if data['Domain'][i] not in self.pivot_data.keys():
-                    self.pivot_data[data['Domain'][i]] = {'On time': 0, 'Overdue': 0}
-                    self.overdue_data[data['Domain'][i]] = 'https://jira.billing.ru/issues/?jql=key in ('
-                if data['Priority'][i] == 'Blocker':
-                    if data['Days in progress'][i] > 1:
-                        self.pivot_data[data['Domain'][i]]['Overdue'] += 1
-                        self.all_bugs['BSSBox']['Overdue'] += 1
-                        self.overdue_data[data['Domain'][i]] += '{}, '.format(data['Key'][i])
-                        self.jql_all += '{}, '.format(data['Key'][i])
-                    else:
-                        self.pivot_data[data['Domain'][i]]['On time'] += 1
-                        self.all_bugs['BSSBox']['On time'] += 1
-                elif data['Priority'][i] == 'Critical':
-                    if data['Days in progress'][i] > 2:
-                        self.pivot_data[data['Domain'][i]]['Overdue'] += 1
-                        self.all_bugs['BSSBox']['Overdue'] += 1
-                        self.overdue_data[data['Domain'][i]] += '{}, '.format(data['Key'][i])
-                        self.jql_all += '{}, '.format(data['Key'][i])
-                    else:
-                        self.pivot_data[data['Domain'][i]]['On time'] += 1
-                        self.all_bugs['BSSBox']['On time'] += 1
+            if data['Domain'][i] not in self.pivot_data.keys():
+                self.pivot_data[data['Domain'][i]] = {'On time': 0, 'Overdue': 0}
+                self.overdue_data[data['Domain'][i]] = 'https://jira.billing.ru/issues/?jql=key in ('
+            if data['Priority'][i] == 'Blocker':
+                if data['Days in progress'][i] > 0:
+                    self.pivot_data[data['Domain'][i]]['Overdue'] += 1
+                    self.all_bugs['BSSBox']['Overdue'] += 1
+                    self.overdue_data[data['Domain'][i]] += '{}, '.format(data['Key'][i])
+                    self.jql_all += '{}, '.format(data['Key'][i])
+                else:
+                    self.pivot_data[data['Domain'][i]]['On time'] += 1
+                    self.all_bugs['BSSBox']['On time'] += 1
+            elif data['Priority'][i] == 'Critical':
+                if data['Days in progress'][i] > 1:
+                    self.pivot_data[data['Domain'][i]]['Overdue'] += 1
+                    self.all_bugs['BSSBox']['Overdue'] += 1
+                    self.overdue_data[data['Domain'][i]] += '{}, '.format(data['Key'][i])
+                    self.jql_all += '{}, '.format(data['Key'][i])
+                else:
+                    self.pivot_data[data['Domain'][i]]['On time'] += 1
+                    self.all_bugs['BSSBox']['On time'] += 1
         self.overdue_data = {domain: '{})'.format(jql[:-2]) for domain, jql in self.overdue_data.items()}
         self.jql_all = '{})'.format(self.jql_all[:-2])
 
@@ -77,10 +83,9 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
         header_values = [['<b>{}</b>'.format(head)] for head in self.tracking_data.keys()] + [['<b>Deadline</b>']]
         cells_values = [value if key != 'Key' else list(
             map(lambda el: '<a href="https://jira.billing.ru/browse/{0}">{0}</a>'.format(el), value)) for key, value in
-                        self.tracking_data.items()] + [[datetime.datetime.now().date() - datetime.timedelta(
-                            days=days-3) if pr == 'Critical' else datetime.datetime.now().date()
-                            - datetime.timedelta(days=days-2) for days, pr
-                            in zip(self.tracking_data['Days in progress'], self.tracking_data['Priority'])]]
+                        self.tracking_data.items()] + [[(dl + datetime.timedelta(days=2)).strftime('%d.%m.%y %H:%M')
+                        if pr == 'Critical' else (dl + datetime.timedelta(days=1)).strftime('%d.%m.%y %H:%M') for dl, pr
+                        in zip(self.deadline_dict, self.tracking_data['Priority'])]]
         data = [go.Table(
             domain=dict(
                 x=[0, 0.72],
