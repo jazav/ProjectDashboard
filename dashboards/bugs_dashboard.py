@@ -19,7 +19,7 @@ def color_for_status(status):
 class BugsDashboard(AbstractDashboard):
     key_list, created_list, status_list, components_list, project_list = [], [], [], [], []
     auto_open, priority, projects, statuses, labels, repository = True, None, None, None, None, None
-    bugs_annotation_dict, statuses_dict = {}, {}
+    bugs_annotation_dict, statuses_dict, maxcount = {}, {}, 0
 
     def prepare(self, data):
         self.key_list.clear(), self.created_list.clear(), self.status_list.clear(), self.components_list.clear(),\
@@ -48,6 +48,11 @@ class BugsDashboard(AbstractDashboard):
             self.bugs_annotation_dict[self.components_list[i]]['created'].append(self.created_list[i])
             self.bugs_annotation_dict[self.components_list[i]]['status'].append(self.status_list[i])
             self.statuses_dict[self.components_list[i]][self.status_list[i]] += 1
+        for statuses in self.statuses_dict.values():
+            for st in statuses.values():
+                if st > self.maxcount:
+                    self.maxcount = st
+        print(self.maxcount)
 
     def export_to_plotly(self):
         if len(self.key_list) == 0:
@@ -93,7 +98,7 @@ class BugsDashboard(AbstractDashboard):
             row, col = int(i // cols + 1), int(i % cols + 1)
             for trace in traces:
                 fig.append_trace(trace, row, col)
-            xaxis = 'xaxis' + str(i+1)
+            xaxis, yaxis = 'xaxis' + str(i+1), 'yaxis' + str(i+1)
             fig["layout"][xaxis].update(
                 showticklabels=False,
                 # title=annotations_open[i] + '<br>' + annotations_fix[i],
@@ -107,6 +112,9 @@ class BugsDashboard(AbstractDashboard):
                     )
                 ),
                 automargin=True
+            )
+            fig["layout"][yaxis].update(
+                range=[0, self.maxcount]
             )
 
         title = self.dashboard_name
