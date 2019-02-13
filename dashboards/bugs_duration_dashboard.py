@@ -11,7 +11,7 @@ import statistics
 
 class BugsDurationDashboard(AbstractDashboard):
     project_list, name_list, created_list, resolutiondate_list, components_list = [], [], [], [], []
-    auto_open, labels, priority, creators, repository = True, None, None, None, None
+    auto_open, labels, priority, creators, repository, plotly_auth = True, None, None, None, None, None
     days_dict, average_list, median_list, max_list, count_list = {}, [], [], [], []
 
     def prepare(self, data):
@@ -59,8 +59,6 @@ class BugsDurationDashboard(AbstractDashboard):
     def export_to_plotly(self):
         if len(self.name_list) == 0:
             raise ValueError('There is no issues to show')
-
-        plotly.tools.set_credentials_file(username='Rnd-Rnd', api_key='GFSxsbDP8rOiakf0rs8U')
 
         trace_avg = go.Bar(
             x=list(self.days_dict.keys()),
@@ -112,7 +110,7 @@ class BugsDurationDashboard(AbstractDashboard):
 
         plan_fact_str = "pf"
 
-        title = self.dashboard_name + (' in ' + self.labels if self.labels != '' else '')\
+        title = self.dashboard_name + (self.priority.strip() if self.labels == '' else 'Showstoppers')\
             + (' created by QC' if self.creators != '' else '')
         file_name = title + ' ' + plan_fact_str
         # html_file = self.png_dir + "{0}.html".format(file_name)
@@ -184,6 +182,14 @@ class BugsDurationDashboard(AbstractDashboard):
                     size=12,
                     color='black'
                 ),
+                # title=dict(
+                #     text='Days between creation and resolution',
+                #     font=dict(
+                #         family='sans-serif',
+                #         size=12,
+                #         color='black'
+                #     )
+                # ),
                 tickfont=dict(
                     family='sans-serif',
                     size=16,
@@ -212,6 +218,14 @@ class BugsDurationDashboard(AbstractDashboard):
                     size=12,
                     color='black'
                 )
+                # title=dict(
+                #     text='Domains',
+                #     font=dict(
+                #         family='sans-serif',
+                #         size=12,
+                #         color='black'
+                #     )
+                # )
             )
         )
 
@@ -219,6 +233,7 @@ class BugsDurationDashboard(AbstractDashboard):
         if self.repository == 'offline':
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
         elif self.repository == 'online':
+            plotly.tools.set_credentials_file(username=self.plotly_auth[0], api_key=self.plotly_auth[1])
             plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
 
     def export_to_plot(self):

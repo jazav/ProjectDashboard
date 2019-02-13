@@ -95,6 +95,14 @@ def get_command_namespace(argv):
 
     dashboard_parser.add_argument('-repository', '-rep', action='store', help='Online or offline plot saving',
                                   required=False, default='offline')
+
+    dashboard_parser.add_argument('-mssql', '-mssql', action='store', help='File in SQL_queries repository',
+                                  required=False, default='')
+
+    dashboard_parser.add_argument('-plotly_user', '-plu', action='store', help='Plot.ly authorisation username',
+                                  required=False, default='')
+    dashboard_parser.add_argument('-plotly_key', '-plk', action='store', help='Plot.ly authorisation api key',
+                                  required=False, default='')
     # ------------------------------------------------------------------------------------------------------------------
     
     for subparser in [init_parser, update_parser, issue_parser, dashboard_parser]:
@@ -191,13 +199,16 @@ def main(argv):
             plan, fact = get_plan_fact(parameters=name_space.mode)
             dshc.dashboard_bugs_duration(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
                                          priorities=name_space.priorities.split(","), labels=name_space.labels,
-                                         creators=name_space.creators, repository=name_space.repository.lower())
+                                         creators=name_space.creators, repository=name_space.repository.lower(),
+                                         plotly_auth=[name_space.plotly_user, name_space.plotly_key])
 
         if name_space.name == "bugs_info":
             plan, fact = get_plan_fact(parameters=name_space.mode)
             dshc.dashboard_bugs(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
-                                priorities=name_space.priorities.split(","), fixversion=name_space.fixversion,
-                                projects=name_space.projects, statuses=name_space.statuses, labels=name_space.labels)
+                                priorities=name_space.priorities.split(","), projects=name_space.projects,
+                                statuses=name_space.statuses, labels=name_space.labels,
+                                repository=name_space.repository.lower(),
+                                plotly_auth=[name_space.plotly_user, name_space.plotly_key])
 
         if name_space.name == "arba":
             plan, fact = get_plan_fact(parameters=name_space.mode)
@@ -208,12 +219,20 @@ def main(argv):
         if name_space.name == "sprint":
             plan, fact = get_plan_fact(parameters=name_space.mode)
             dshc.dashboard_sprint(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
-                                  fixversion=name_space.fixversion)
+                                  fixversion=name_space.fixversion, repository=name_space.repository.lower(),
+                                  plotly_auth=[name_space.plotly_user, name_space.plotly_key])
 
         if name_space.name == "bugs_progress":
             plan, fact = get_plan_fact(parameters=name_space.mode)
             dshc.dashboard_bugs_progress(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
-                                         repository=name_space.repository.lower())
+                                         repository=name_space.repository.lower(),
+                                         plotly_auth=[name_space.plotly_user, name_space.plotly_key])
+
+        if name_space.name == "bssbox_bugs_tracking":
+            dshc.dashboard_bssbox_bugs_tracking(auto_open=(name_space.auto_open.upper() == 'TRUE'),
+                                                repository=name_space.repository.lower(),
+                                                mssql_query_file=name_space.mssql.lower(),
+                                                plotly_auth=[name_space.plotly_user, name_space.plotly_key])
         # --------------------------------------------------------------------------------------------------------------
 
         if name_space.name == "hm":

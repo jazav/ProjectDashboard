@@ -17,7 +17,7 @@ def color_for_status(status):
 
 class BugsProgressDashboard(AbstractDashboard):
     status_list = []
-    auto_open, repository = True, None
+    auto_open, repository, plotly_auth = True, None, None
     bugs_statuses = {'Open': 0, 'In Fix': 0, 'Resolved': 0, 'Closed': 0}
 
     def prepare(self, data):
@@ -32,7 +32,6 @@ class BugsProgressDashboard(AbstractDashboard):
         if len(self.status_list) == 0:
             raise ValueError('There is no issues to show')
 
-        plotly.tools.set_credentials_file(username='Rnd-Rnd', api_key='GFSxsbDP8rOiakf0rs8U')
         bugs_statuses_progress = {'Open': [], 'In Fix': [], 'Resolved': [], 'Closed': []}
         dates = []
         with open(os.path.abspath('//billing.ru/dfs/incoming/ABryntsev/bugs_progress.csv'), 'r', newline='\n') as csvfile:
@@ -77,7 +76,7 @@ class BugsProgressDashboard(AbstractDashboard):
                 ),
                 marker=dict(
                     color=color_for_status(status),
-                    size=10
+                    size=6
                 ),
                 xaxis='x2',
                 yaxis='y2',
@@ -97,6 +96,13 @@ class BugsProgressDashboard(AbstractDashboard):
                     size=12,
                     color='black'
                 ),
+                # title=dict(
+                #     text='Date',
+                #     font=dict(
+                #         size=12,
+                #         color='black'
+                #     )
+                # ),
                 tickfont=dict(
                     size=16,
                     color='black'
@@ -112,6 +118,13 @@ class BugsProgressDashboard(AbstractDashboard):
                     size=12,
                     color='black'
                 ),
+                # title=dict(
+                #     text='Number of bugs',
+                #     font=dict(
+                #         size=12,
+                #         color='black'
+                #     )
+                # ),
                 tickfont=dict(
                     size=16,
                     color='black'
@@ -126,11 +139,20 @@ class BugsProgressDashboard(AbstractDashboard):
                     size=12,
                     color='black'
                 ),
+                # title=dict(
+                #     text='Date',
+                #     font=dict(
+                #         size=12,
+                #         color='black'
+                #     )
+                # ),
                 tickfont=dict(
                     size=16,
                     color='black'
                 ),
-                anchor='y2'
+                anchor='y2',
+                # range=[dates[0], dates[-1]]
+                autorange=True
             ),
             yaxis2=dict(
                 domain=[0, 0.45],
@@ -141,6 +163,13 @@ class BugsProgressDashboard(AbstractDashboard):
                     size=12,
                     color='black'
                 ),
+                # title=dict(
+                #     text='Number of bugs',
+                #     font=dict(
+                #         size=12,
+                #         color='black'
+                #     )
+                # ),
                 tickfont=dict(
                     size=16,
                     color='black'
@@ -160,6 +189,7 @@ class BugsProgressDashboard(AbstractDashboard):
         if self.repository == 'offline':
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
         elif self.repository == 'online':
+            plotly.tools.set_credentials_file(username=self.plotly_auth[0], api_key=self.plotly_auth[1])
             plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
 
     def export_to_plot(self):

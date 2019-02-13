@@ -363,7 +363,7 @@ class SqliteDaoIssue(DaoIssue):
         return name_list, assignee_list, created_list, duedate_list, key_list, issuetype_list
 
     # By @alanbryn
-    def get_bugs(self, projects_filter, priority_filter, fixversion_filter, statuses_filter, labels_filter):
+    def get_bugs(self, projects_filter, priority_filter, statuses_filter, labels_filter):
         key_list = []
         created_list = []
         status_list = []
@@ -379,8 +379,8 @@ class SqliteDaoIssue(DaoIssue):
                             components,
                             project
                      FROM issues
-                     WHERE issuetype = "Bug" AND
-                           strftime('%Y-%m-%d', updated) > date('now', 'start of month')'''
+                     WHERE issuetype = "Bug"'''
+                           #  AND strftime('%Y-%m-%d', updated) > date('now', 'start of month')'''
         if projects_filter != '':
             sql_str = sql_str + ' AND project IN ('
             projects_filter = [item.strip() for item in projects_filter.split(',')]
@@ -392,8 +392,6 @@ class SqliteDaoIssue(DaoIssue):
                     sql_str = sql_str + ')'
         if priority_filter != '':
             sql_str = sql_str + ' AND priority LIKE \'%' + priority_filter + '%\''
-        if fixversion_filter != '':
-            sql_str = sql_str + ' AND fixversions LIKE \'%' + fixversion_filter + '%\''
         if statuses_filter != '':
             sql_str = sql_str + ' AND status IN ('
             statuses_filter = [item.strip() for item in statuses_filter.split(',')]
@@ -478,9 +476,9 @@ class SqliteDaoIssue(DaoIssue):
                             t.timeoriginalestimate,
                             t.timespent,
                             t.issuetype
-                     FROM issues  e
+                     FROM issues e
                           JOIN
-                          issues t ON e.issue_key = t.epiclink
+                          issues t ON e.key = t.epiclink
                      WHERE e.issuetype = "Epic" AND
                            t.issuetype != "Bug" AND
                            t.project NOT IN ("RDQC", "RNDDOC", "BSSARBA", "BSSBOX")'''
@@ -496,9 +494,9 @@ class SqliteDaoIssue(DaoIssue):
                                    st.issuetype
                                FROM issues e
                                     JOIN
-                                    issues t ON e.issue_key = t.epiclink
+                                    issues t ON e.key = t.epiclink
                                     JOIN
-                                    issues st ON t.issue_key = st.parent
+                                    issues st ON t.key = st.parent
                                WHERE e.issuetype = "Epic" AND
                                      st.issuetype != "Sub-bug" AND
                                      st.project NOT IN ("RDQC", "RNDDOC", "BSSARBA", "BSSBOX")'''
