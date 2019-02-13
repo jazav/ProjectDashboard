@@ -237,7 +237,7 @@ class DashboardController:
     
     # By @alanbryn
     @staticmethod
-    def dashboard_bugs_duration(plan, fact, auto_open, priorities, labels, creators, repository):
+    def dashboard_bugs_duration(plan, fact, auto_open, priorities, labels, creators, repository, plotly_auth):
         if not (plan and fact):
             raise ValueError('both of plan and fact parameters are false')
 
@@ -253,6 +253,7 @@ class DashboardController:
             dashboard.fact = fact
             dashboard.auto_open = auto_open
             dashboard.repository = repository
+            dashboard.plotly_auth = plotly_auth
             dashboard.priority = priority.strip()
             dashboard.creators = creators
             dashboard.labels = labels
@@ -293,7 +294,7 @@ class DashboardController:
 
     # By @alanbryn
     @staticmethod
-    def dashboard_bugs(plan, fact, auto_open, priorities, projects, statuses, labels, repository):
+    def dashboard_bugs(plan, fact, auto_open, priorities, projects, statuses, labels, repository, plotly_auth):
         if not (plan and fact):
             raise ValueError('both of plan and fact parameters are false')
 
@@ -313,13 +314,14 @@ class DashboardController:
             dashboard.statuses = statuses
             dashboard.labels = labels
             dashboard.repository = repository
+            dashboard.plotly_auth = plotly_auth
             dashboard.auto_open = auto_open
             dashboard.prepare(data=data_dao)
             dashboard.export_to_plot()
 
     # By @alanbryn
     @staticmethod
-    def dashboard_sprint(plan, fact, auto_open, fixversion, repository):
+    def dashboard_sprint(plan, fact, auto_open, fixversion, repository, plotly_auth):
         if not (plan and fact):
             raise ValueError('both of plan and fact parameters are false')
 
@@ -334,13 +336,14 @@ class DashboardController:
         dashboard.fact = fact
         dashboard.fixversion = fixversion
         dashboard.repository = repository
+        dashboard.plotly_auth = plotly_auth
         dashboard.auto_open = auto_open
         dashboard.prepare(data=data_dao)
         dashboard.export_to_plot()
 
     # By @alanbryn
     @staticmethod
-    def dashboard_bugs_progress(plan, fact, auto_open, repository):
+    def dashboard_bugs_progress(plan, fact, auto_open, repository, plotly_auth):
         if not (plan and fact):
             raise ValueError('both of plan and fact parameters are false')
 
@@ -355,12 +358,13 @@ class DashboardController:
         dashboard.fact = fact
         dashboard.auto_open = auto_open
         dashboard.repository = repository
+        dashboard.plotly_auth = plotly_auth
         dashboard.prepare(data=data_dao)
         dashboard.export_to_plot()
 
     # By @alanbryn
     @staticmethod
-    def dashboard_bssbox_bugs_tracking(auto_open, repository, mssql_query_file):
+    def dashboard_bssbox_bugs_tracking(auto_open, repository, mssql_query_file, plotly_auth):
 
         dc = DataController()
         data = dc.get_issues_mssql(mssql_query_file=mssql_query_file)
@@ -369,5 +373,6 @@ class DashboardController:
         dashboard.dashboard_name = 'BSSBox bugs tracking'
         dashboard.auto_open = auto_open
         dashboard.repository = repository
+        dashboard.plotly_auth = plotly_auth
         dashboard.prepare(data=data)
         dashboard.export_to_plot()

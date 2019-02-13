@@ -42,7 +42,7 @@ def deadline(fromdate, days):
 
 
 class BssboxBugsTrackingDashboard(AbstractDashboard):
-    auto_open, repository = True, None
+    auto_open, repository, plotly_auth = True, None, None
     tracking_data, pivot_data, all_bugs, overdue_data, created_dict = {}, {}, {}, {}, []
     jql_all = 'https://jira.billing.ru/issues/?jql=key in ('
 
@@ -237,7 +237,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
         if self.repository == 'offline':
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
         elif self.repository == 'online':
-            plotly.tools.set_credentials_file(username='Rnd-Rnd', api_key='GFSxsbDP8rOiakf0rs8U')
+            plotly.tools.set_credentials_file(username=self.plotly_auth[0], api_key=self.plotly_auth[1])
             plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
 
     def export_to_plot(self):

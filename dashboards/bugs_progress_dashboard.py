@@ -17,7 +17,7 @@ def color_for_status(status):
 
 class BugsProgressDashboard(AbstractDashboard):
     status_list = []
-    auto_open, repository = True, None
+    auto_open, repository, plotly_auth = True, None, None
     bugs_statuses = {'Open': 0, 'In Fix': 0, 'Resolved': 0, 'Closed': 0}
 
     def prepare(self, data):
@@ -32,7 +32,6 @@ class BugsProgressDashboard(AbstractDashboard):
         if len(self.status_list) == 0:
             raise ValueError('There is no issues to show')
 
-        plotly.tools.set_credentials_file(username='Rnd-Rnd', api_key='GFSxsbDP8rOiakf0rs8U')
         bugs_statuses_progress = {'Open': [], 'In Fix': [], 'Resolved': [], 'Closed': []}
         dates = []
         with open(os.path.abspath('//billing.ru/dfs/incoming/ABryntsev/bugs_progress.csv'), 'r', newline='\n') as csvfile:
@@ -190,6 +189,7 @@ class BugsProgressDashboard(AbstractDashboard):
         if self.repository == 'offline':
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
         elif self.repository == 'online':
+            plotly.tools.set_credentials_file(username=self.plotly_auth[0], api_key=self.plotly_auth[1])
             plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
 
     def export_to_plot(self):

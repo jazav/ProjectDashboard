@@ -39,7 +39,7 @@ def color_for_status(status):
 
 
 class SprintDashboard(AbstractDashboard):
-    auto_open, fixversion, repository = True, None, None
+    auto_open, fixversion, repository, plotly_auth = True, None, None, None
     key_list, project_list, status_list, components_list, timeoriginalestimate_list, timespent_list, issuetype_list = \
         [], [], [], [], [], [], []
     domain_list, bugs_dict, accuracy_dict, all_bugs = [], {}, {}, {}
@@ -84,8 +84,6 @@ class SprintDashboard(AbstractDashboard):
     def export_to_plotly(self):
         if len(self.key_list) == 0:
             raise ValueError('There is no issues to show')
-
-        plotly.tools.set_credentials_file(username='Rnd-Rnd', api_key='GFSxsbDP8rOiakf0rs8U')
 
         print(self.bugs_dict)
         data = []
@@ -193,6 +191,7 @@ class SprintDashboard(AbstractDashboard):
         if self.repository == 'offline':
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
         elif self.repository == 'online':
+            plotly.tools.set_credentials_file(username=self.plotly_auth[0], api_key=self.plotly_auth[1])
             plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
 
     def export_to_plot(self):

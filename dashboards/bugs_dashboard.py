@@ -18,7 +18,7 @@ def color_for_status(status):
 
 class BugsDashboard(AbstractDashboard):
     key_list, created_list, status_list, components_list, project_list = [], [], [], [], []
-    auto_open, priority, projects, statuses, labels, repository = True, None, None, None, None, None
+    auto_open, priority, projects, statuses, labels, repository, plotly_auth = True, None, None, None, None, None, None
     bugs_annotation_dict, statuses_dict, maxcount = {}, {}, 0
 
     def prepare(self, data):
@@ -57,8 +57,6 @@ class BugsDashboard(AbstractDashboard):
     def export_to_plotly(self):
         if len(self.key_list) == 0:
             raise ValueError('There is no issues to show')
-
-        plotly.tools.set_credentials_file(username='Rnd-Rnd', api_key='GFSxsbDP8rOiakf0rs8U')
 
         trace_dict = {domain: [] for domain in self.statuses_dict.keys()}
         annotations_open, annotations_fix = [], []
@@ -126,6 +124,7 @@ class BugsDashboard(AbstractDashboard):
         if self.repository == 'offline':
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
         elif self.repository == 'online':
+            plotly.tools.set_credentials_file(username=self.plotly_auth[0], api_key=self.plotly_auth[1])
             plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
 
     def export_to_plot(self):
