@@ -134,6 +134,10 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
             textposition='inside',
             marker=dict(
                 color='rgb(163,204,163)',
+                line=dict(
+                    color='grey',
+                    width=1
+                )
             )
         ), go.Bar(
             orientation='h',
@@ -147,7 +151,11 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                           [value['Overdue'] for value in self.pivot_data.values()], self.overdue_data.values())),
             textposition='inside',
             marker=dict(
-                color='rgb(255,204,204)'
+                color='rgb(255,204,204)',
+                line=dict(
+                    color='grey',
+                    width=1
+                )
             )
         ), go.Bar(
             orientation='h',
@@ -162,6 +170,10 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
             textposition='inside',
             marker=dict(
                 color='rgb(163,204,163)',
+                line=dict(
+                    color='grey',
+                    width=1
+                )
             )
         ), go.Bar(
             orientation='h',
@@ -175,7 +187,11 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                           [value['Overdue'] for value in self.all_bugs.values()])),
             textposition='inside',
             marker=dict(
-                color='rgb(255,204,204)'
+                color='rgb(255,204,204)',
+                line=dict(
+                    color='grey',
+                    width=1
+                )
             )
         )]
 
