@@ -91,6 +91,8 @@ def get_domain(component):
         'File Storage': 'Ordering',
         'Digital API': 'DFE',
         'Interaction Management': 'CRM',
+        'Business Analysis': 'BA',
+        'System Architecture': 'Arch',
         '': 'COMPONENTS FIELD IS EMPTY!',
         None: None
     }

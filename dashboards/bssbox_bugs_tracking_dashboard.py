@@ -58,7 +58,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
         created = [cr for cr, st in zip(data['Days in progress'], data['Status']) if st not in ('Closed', 'Resolved')]
         self.created_dict = created
         for i in range(len(data['Key'])):
-            data['Domain'][i] = get_domain(data['Domain'][i]) if data['Domain'][i] is not None else 'W/o components'
+            data['Domain'][i] = get_domain(data['Domain'][i]) if data['Domain'][i] is not None else 'Empty'
             data['Days in progress'][i] =\
                 workdays(data['Days in progress'][i], datetime.datetime.now())\
                 if data['Status'][i] not in ('Closed', 'Resolved')\
