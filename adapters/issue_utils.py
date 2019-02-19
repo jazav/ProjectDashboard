@@ -91,7 +91,9 @@ def get_domain(component):
         'File Storage': 'Ordering',
         'Digital API': 'DFE',
         'Interaction Management': 'CRM',
-        '': 'COMPONENTS FIELD IS EMPTY!',
+        'Business Analysis': 'BA',
+        'System Architecture': 'Arch',
+        '': 'Empty',
         None: None
     }
     if component in component_to_domain.keys():
