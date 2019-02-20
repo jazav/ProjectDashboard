@@ -62,7 +62,11 @@ def get_command_namespace(argv):
 
     dashboard_parser.add_argument('-fixversion', '-f', action="store",
                                   help="fixversion : SuperSprint7",
-                                  required=False, default="SuperSprint7")
+                                  required=False, default="")
+
+    dashboard_parser.add_argument('-sprint', '-s', action="store",
+                                  help="sprint : Super Sprint 8",
+                                  required=False, default="Super Sprint 8")
 
     dashboard_parser.add_argument('-auto_open', '-a', action="store",
                                   help="auto_open : True",
@@ -192,7 +196,8 @@ def main(argv):
                                                    fixversion=name_space.fixversion,
                                                    auto_open=(name_space.auto_open.upper() == 'TRUE'),
                                                    dashboard_type=DashboardType[name_space.dashboard_type.upper()],
-                                                   dashboard_format=DashboardFormat[name_space.dashboard_format.upper()])
+                                                   dashboard_format=DashboardFormat[name_space.dashboard_format.upper()],
+                                                   sprint=name_space.sprint)
         
         # By @alanbryn -------------------------------------------------------------------------------------------------
         if name_space.name == "bugs_duration":

@@ -50,12 +50,13 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
     project = None
     dashboard_type = DashboardType.PROJECT
     dashboard_format = DashboardFormat.HTML
+    sprint = None
 
     def prepare(self, data):
         if self.fixversion is None:
             raise ValueError('fixversion is undefined')
         self.open_list, self.dev_list, self.close_list, self.name_list, self.prj_list, self.domain_list = \
-            data.get_sum_by_projects(self.project, "", self.fixversion, 'domain' if self.dashboard_type == DashboardType.DOMAIN else 'summary, project')
+            data.get_sum_by_projects(self.project, "", self.fixversion, 'domain' if self.dashboard_type == DashboardType.DOMAIN else 'summary, project', self.sprint)
 
     def get_name_list(self):
         if self.dashboard_type == DashboardType.PROJECT:
@@ -151,10 +152,10 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
         title_sum = "Open: {0:.2f}%, Dev: {1:.2f}%, Closed: {2:.2f}%, All tasks: {3:.2f} md".format(100*all_open/all_tasks, 100*all_dev/all_tasks, 100*all_closed/all_tasks, all_tasks)
         now_dt = datetime.datetime.now()
 
-        length_ss = cc.read_supersprint_length(self.fixversion)
+        length_ss = cc.read_supersprint_length(self.sprint)
 
         if length_ss != 0:
-            will_be_done = min(100, 100*(now_dt - cc.read_supersprint_start(self.fixversion)).days / length_ss)
+            will_be_done = min(100, 100*(now_dt - cc.read_supersprint_start(self.sprint)).days / length_ss)
         else:
             will_be_done = 0
         title = "{0} <br>{1} <br> Must be closed today ({4}) in {2}: {3:.2f}%".format(self.dashboard_name,  title_sum, self.fixversion, will_be_done, now_dt.strftime("%d.%m.%y %H:%M"))
