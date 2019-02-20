@@ -17,6 +17,7 @@ from dashboards.sprint_dashboard import SprintDashboard  # By @alanbryn
 from dashboards.bugs_progress_dashboard import BugsProgressDashboard  # By @alanbryn
 from dashboards.bssbox_bugs_tracking_dashboard import BssboxBugsTrackingDashboard  # By @alanbryn
 from dashboards.sprint_info_dashboard import SprintInfoDashboard  # By @alanbryn
+from dashboards.iot_dashboard import IotDashboard # By @alanbryn
 from dashboards.issue_detail_dashboard import IssueDetailDashboard
 from dashboards.prepare_feature_data import *
 from data_controller import DataController
@@ -390,4 +391,18 @@ class DashboardController:
         dashboard.repository = repository
         dashboard.plotly_auth = plotly_auth
         dashboard.prepare(data=data)
-        # dashboard.export_to_plot()
+        dashboard.export_to_plot()
+
+    #By @alanbryn
+    @staticmethod
+    def dashboard_iot(auto_open, repository, mssql_query_file, plotly_auth):
+        dc = DataController()
+        data = dc.get_issues_mssql(mssql_query_file=mssql_query_file)
+
+        dashboard = IotDashboard()
+        dashboard.dashboard_name = 'IoT'
+        dashboard.auto_open = auto_open
+        dashboard.repository = repository
+        dashboard.plotly_auth = plotly_auth
+        dashboard.prepare(data=data)
+        dashboard.export_to_plot()

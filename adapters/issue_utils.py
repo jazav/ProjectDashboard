@@ -93,6 +93,17 @@ def get_domain(component):
         'Interaction Management': 'CRM',
         'Business Analysis': 'BA',
         'System Architecture': 'Arch',
+        'OM Arch & SA': 'Arch',
+        'Design': 'Design',
+        'Documentation': 'Doc',
+        'DevOps': 'DevOps',
+        'API Management': 'Infra',
+        'Dunning and Collection': 'Billing',
+        'Logical Resource Inventory': 'PSC',
+        'Partner Billing': 'PRM',
+        'Partner Processes': 'PRM',
+        'Reference Data Management': 'PSC',
+        'Service Activation': 'Ordering',
         '': 'Empty',
         None: None
     }
