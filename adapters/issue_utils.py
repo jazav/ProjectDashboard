@@ -270,6 +270,7 @@ PRIORITY_FIELD = 'priority'
 AGGREGATEPROGRESS_FIELD = 'aggregateprogress'
 PROGRESS_FIELD = 'progress'
 FIXVERSIONS_FIELD = 'fixVersions'
+PARENT_LINK_FIELD = 'customfield_20727'
 
 DATETIME_WRITE_FORMAT = "{0:%Y-%m-%d %X.%f%z}"
 DATETIME_READ_FORMAT = "%Y-%m-%d %X.%f%z"
@@ -629,6 +630,18 @@ def add_fields(fields, issue_dict):
     else:
         epiclink = ''
 
+    if field_map[jira_type]['SPRINT_FIELD']  in fields:
+        sprint_class = fields[field_map[jira_type]['SPRINT_FIELD']]
+        slices = sprint_class[0].split(",")
+        sprint = ''
+        for slice in slices:
+            if slice.find('name=')==0 :
+                values = slice.split("=")
+                if (len(values)>1):
+                    sprint = values[1]
+    else:
+        sprint = ''
+
     if TIMEESTIMATE_FIELD in fields:
         timeestimate = fields[TIMEESTIMATE_FIELD] / 60 / 60 / 8  # sec->man-days
     else:
@@ -676,6 +689,10 @@ def add_fields(fields, issue_dict):
             if fixversions != '':
                 fixversions = fixversions + ','
             fixversions = fixversions + ver['name']
+    if PARENT_LINK_FIELD in fields:
+        parent_link = fields[PARENT_LINK_FIELD]
+    else:
+        parent_link = ''
 
     issue_dict[TYPE_FIELD] = issuetype
     issue_dict[STATUS_FIELD] = status
@@ -684,7 +701,11 @@ def add_fields(fields, issue_dict):
     issue_dict[DOMAINS_FIELD] = domains
     issue_dict['labels'] = labels
     issue_dict['epiclink'] = epiclink
-    issue_dict[PARENT_FIELD] = parent
+    issue_dict['sprint'] = sprint
+    if parent_link == '':
+        issue_dict[PARENT_FIELD] = parent
+    else:
+        issue_dict[PARENT_FIELD] = parent_link
     issue_dict[SUBTASKS_FIELD] = subtasks
     issue_dict['outwards'] = outwards
     issue_dict['inwards'] = inwards

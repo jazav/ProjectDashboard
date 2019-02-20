@@ -65,14 +65,14 @@ class SqliteDaoIssue(DaoIssue):
                                 labels TEXT, epiclink TEXT, timeoriginalestimate REAL, timespent REAL,
                                resolution TEXT, issuetype TEXT, summary TEXT, fixversions TEXT, parent TEXT,
                                created TEXT, resolutiondate TEXT, components TEXT, priority TEXT, creator TEXT,
-                               assignee TEXT, duedate TEXT, key TEXT, updated TEXT)''')
+                               assignee TEXT, duedate TEXT, key TEXT, updated TEXT, sprint TEXT)''')
 
         self.connection.commit()
 
     def insert_issues(self, issues):
         if len(issues) == 0:
             return
-        handle = open("sql_insert_issues.sql", "w")
+        handle = None
 
         for key, value in issues.items():
             try:
@@ -80,43 +80,49 @@ class SqliteDaoIssue(DaoIssue):
                     fixversions = value["fixversions"]
                 else:
                     fixversions = ""
+                if "sprint" in value:
+                    sprint = value["sprint"]
+                else:
+                    sprint = ""
                 sql_str = '''INSERT INTO issues (issue_key, id, status, project,
                                         labels, epiclink, timeoriginalestimate, timespent,
                                        resolution, issuetype, summary, fixversions, 
                                        parent, created, resolutiondate, components, priority, creator,
-                                       assignee, duedate, key, updated)'''
+                                       assignee, duedate, key, updated, sprint)'''
                 self.cursor.execute(sql_str + ''' VALUES (?,?,?,?,
                                                  ?,?,?,?,
                                                  ?,?,?,?,
                                                  ?,?,?,?,
                                                  ?,?,?,?,
-                                                 ?,?)''',
+                                                 ?,?,?)''',
                                     (key, value["id"], value["status"], value["project"],
                                      ','+value["labels"]+',', value["epiclink"], value["timeoriginalestimate"], value["timespent"],
                                      value["resolution"],value["issuetype"],value["summary"],','+fixversions+',',
                                      value["parent"], value["created"], value["resolutiondate"], value["components"],
                                      value["priority"], value["creator"], value["assignee"], value["duedate"],
-                                     value["key"], value["updated"]))
+                                     value["key"], value["updated"], sprint))
                 if 1 == 0 : # for debug
                     write_str=sql_str +'''VALUES ("{0}",{1},"{2}","{3}",
                                                  "{4}","{5}","{6}","{7}",
                                                  "{8}","{9}","{10}","{11}",
                                                  "{12}","{13}","{14}","{15}",
                                                  "{16}","{17}","{18}","{19}",
-                                                 "{20}");'''.format(key, value["id"], value[ "status"], value["project"],
+                                                 "{20}","{21}","{22}");'''.format(key, value["id"], value[ "status"], value["project"],
                                      ','+value["labels"]+',', value["epiclink"], value["timeoriginalestimate"], value["timespent"],
                                      value["resolution"],value["issuetype"],value["summary"].replace('"', "'"),','+fixversions+',',
                                      value["parent"], value["created"], value["resolutiondate"], value["components"],
                                      value["priority"], value["creator"], value["assignee"], value["duedate"],
-                                     value["key"])
+                                     value["key"], value["updated"], sprint)
                     #value["summary"].replace('"', "'")
+                    if handle == None:
+                        handle=open("sql_insert_issues.sql", "w")
                     handle.write(write_str)
             except:
                 logging.error("Unexpected error on key:", key, ' value:  ', value, ', error:', sys.exc_info()[0])
         handle.close()
         self.connection.commit()
 
-    def get_sum_by_projects(self, project_filter, label_filter,fixversions_filter, group_by):  # must return arrays
+    def get_sum_by_projects(self, project_filter, label_filter,fixversions_filter, group_by, sprint_filter):  # must return arrays
         open_list= []
         dev_list= []
         close_list= []
@@ -158,7 +164,9 @@ class SqliteDaoIssue(DaoIssue):
                                             WHEN i.project ='NWMOCS' THEN  'NWM'
                                             ELSE '!'||i.project
                                             END domain
-                                 FROM issues e
+                                 FROM issues l3
+                                      LEFT JOIN
+                                      issues e ON l3.issue_key = e.parent
                                       LEFT JOIN
                                       issues i ON e.issue_key = i.epiclink
                                       LEFT OUTER JOIN
@@ -172,6 +180,8 @@ class SqliteDaoIssue(DaoIssue):
             sql_str = sql_str + ' AND e.labels LIKE "%,'+label_filter+',%"  '
         if fixversions_filter != '':
                 sql_str = sql_str + ' AND e.fixversions LIKE "%,'+fixversions_filter+',%"  '
+        if sprint_filter != '':
+                sql_str = sql_str + ' AND l3.sprint = "'''+sprint_filter+'" '
         # add subtasks query with estimates in tasks
         sql_str = sql_str +''' UNION ALL
                                    SELECT i.project,
@@ -202,7 +212,9 @@ class SqliteDaoIssue(DaoIssue):
                                             WHEN i.project ='NWMOCS' THEN  'NWM'
                                             ELSE '!'||i.project
                                             END domain
-                                     FROM issues e
+                                     FROM issues l3
+                                          LEFT JOIN
+                                          issues e ON l3.issue_key = e.parent
                                           LEFT JOIN
                                           issues i ON e.issue_key = i.epiclink
                                     WHERE e.issuetype = "Epic" AND 
@@ -214,6 +226,8 @@ class SqliteDaoIssue(DaoIssue):
              sql_str = sql_str + ' AND e.labels LIKE "%,' + label_filter + ',%" AND e.labels NOT LIKE "%,' + 'off_ss7' + ',%" '
         if fixversions_filter != '':
              sql_str = sql_str + ' AND e.fixversions LIKE "%,' + fixversions_filter + ',%"  '
+        if sprint_filter != '':
+                sql_str = sql_str + ' AND l3.sprint = "'''+sprint_filter+'" '
         # add subtasks query with estimates in Subtasks
         sql_str = sql_str +''' UNION ALL
                                    SELECT i.project,
@@ -244,7 +258,9 @@ class SqliteDaoIssue(DaoIssue):
                                             WHEN i.project ='NWMOCS' THEN  'NWM'
                                             ELSE '!'||i.project
                                             END domain
-                                     FROM issues e
+                                     FROM issues l3
+                                          LEFT JOIN
+                                          issues e ON l3.issue_key = e.parent
                                           LEFT JOIN
                                           issues i ON e.issue_key = i.epiclink
                                           LEFT JOIN
@@ -260,7 +276,9 @@ class SqliteDaoIssue(DaoIssue):
              sql_str = sql_str + ' AND e.labels LIKE "%,' + label_filter + ',%"  '
         if fixversions_filter != '':
              sql_str = sql_str + ' AND e.fixversions LIKE "%,' + fixversions_filter + ',%"  '
-        sql_str = sql_str + ' ) GROUP BY ' + group_by + ' HAVING SUM(timeoriginalestimate) > 0 '
+        if sprint_filter != '':
+            sql_str = sql_str + ' AND l3.sprint = "''' + sprint_filter + '" '
+        sql_str = sql_str + ' ) GROUP BY ' + group_by + ' HAVING SUM(timeoriginalestimate) >= 0 '
 
         for row in self.cursor.execute(sql_str):
             prj_list.append(row[0] if row[0] is not None else "")
