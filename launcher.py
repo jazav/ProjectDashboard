@@ -238,6 +238,12 @@ def main(argv):
                                                 repository=name_space.repository.lower(),
                                                 mssql_query_file=name_space.mssql.lower(),
                                                 plotly_auth=[name_space.plotly_user, name_space.plotly_key])
+
+        if name_space.name == "sprint_info":
+            dshc.dashboard_sprint_info(auto_open=(name_space.auto_open.upper() == 'TRUE'),
+                                       repository=name_space.repository.lower(),
+                                       mssql_query_file=name_space.mssql.lower(),
+                                       plotly_auth=[name_space.plotly_user, name_space.plotly_key])
         # --------------------------------------------------------------------------------------------------------------
 
         if name_space.name == "hm":

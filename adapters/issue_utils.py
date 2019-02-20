@@ -93,7 +93,7 @@ def get_domain(component):
         'Interaction Management': 'CRM',
         'Business Analysis': 'BA',
         'System Architecture': 'Arch',
-        '': 'COMPONENTS FIELD IS EMPTY!',
+        '': 'Empty',
         None: None
     }
     if component in component_to_domain.keys():

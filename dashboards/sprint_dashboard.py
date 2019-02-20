@@ -48,7 +48,7 @@ class SprintDashboard(AbstractDashboard):
                 if self.components_list[i] != [''] and get_domain(*self.components_list[i]) != 'Others':
                     self.domain_list[i] = get_domain(*self.components_list[i])
                 else:
-                    self.domain_list[i] = 'W/o components'
+                    self.domain_list[i] = 'Empty'
                     # self.domain_list[i] = get_domain_by_project(self.project_list[i])
                 if self.domain_list[i] not in self.bugs_dict.keys():
                     self.bugs_dict[self.domain_list[i]] = {'Open': 0, 'In Fix': 0, 'Closed': 0}
