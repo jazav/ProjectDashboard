@@ -243,7 +243,8 @@ def main(argv):
             dshc.dashboard_sprint_info(auto_open=(name_space.auto_open.upper() == 'TRUE'),
                                        repository=name_space.repository.lower(),
                                        mssql_query_file=name_space.mssql.lower(),
-                                       plotly_auth=[name_space.plotly_user, name_space.plotly_key])
+                                       plotly_auth=[name_space.plotly_user, name_space.plotly_key],
+                                       dashboard_type=[dt.upper().strip() for dt in name_space.dashboard_type.split(',')])
 
         if name_space.name == "iot":
             dshc.dashboard_iot(auto_open=(name_space.auto_open.upper() == 'TRUE'),

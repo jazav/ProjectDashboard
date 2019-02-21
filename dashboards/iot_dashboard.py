@@ -5,6 +5,10 @@ import datetime
 import textwrap
 
 
+def color_for_est(est):
+    return {'Plan estimate': 'rgb(97,100,223)', 'Fact estimate': 'rgb(82,162,218)', 'Spent time': 'rgb(75,223,156)'}[est]
+
+
 class IotDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth = True, None, None
     iot_dict = {}
@@ -17,10 +21,9 @@ class IotDashboard(AbstractDashboard):
                 self.iot_dict[data['Epic'][i]]['Fact estimate'] += int(data['Original estimate'][i]) / 28800
                 self.iot_dict[data['Epic'][i]]['Spent time'] += int(data['Spent time'][i]) / 28800
             else:
-                key = '{}: {}'.format(data['Key'][i], data['Summary'][i])
-                if key not in self.iot_dict.keys():
-                    self.iot_dict[key] = {'Plan estimate': 0, 'Fact estimate': 0, 'Spent time': 0}
-                self.iot_dict[key]['Plan estimate'] += int(data['Original estimate'][i]) / 28800
+                if data['Key'][i] not in self.iot_dict.keys():
+                    self.iot_dict[data['Key'][i]] = {'Plan estimate': 0, 'Fact estimate': 0, 'Spent time': 0}
+                self.iot_dict[data['Key'][i]]['Plan estimate'] += int(data['Original estimate'][i]) / 28800
         for k, v in self.iot_dict.items():
             print('{}: {}'.format(k, v))
 
@@ -31,13 +34,15 @@ class IotDashboard(AbstractDashboard):
         data = []
         for est in self.iot_dict[list(self.iot_dict.keys())[0]].keys():
             data.append(go.Bar(
-                x=list(self.iot_dict.keys()),
-                y=[e[est] for e in self.iot_dict.values()],
+                y=list(self.iot_dict.keys()),
+                x=[e[est] for e in self.iot_dict.values()],
+                orientation='h',
                 name=est,
                 showlegend=True,
-                text=[e[est] for e in self.iot_dict.values()],
+                text=[round(e[est], 1) for e in self.iot_dict.values()],
                 textposition='auto',
                 marker=dict(
+                    color=color_for_est(est),
                     line=dict(
                         width=1
                     )
@@ -49,10 +54,10 @@ class IotDashboard(AbstractDashboard):
         html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 
         layout = dict(
-            xaxis=dict(
+            yaxis=dict(
                 automargin=True,
                 tickvals=list(self.iot_dict.keys()),
-                ticktext=['<br>'.join(textwrap.wrap(epic, 12)) for epic in self.iot_dict.keys()]
+                ticktext=['<a href="https://jira.billing.ru/browse/{0}">{0}   </a>'.format(epic) for epic in self.iot_dict.keys()],
             )
         )
 

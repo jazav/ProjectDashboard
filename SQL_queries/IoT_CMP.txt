@@ -8,7 +8,7 @@ WITH epics AS (
 		INNER JOIN [srv-jira-prod-report].[dbo].[projectversion] AS e_prjv ON e_prjv.ID = e_na.SINK_NODE_ID
 	WHERE e_na.ASSOCIATION_TYPE = 'IssueFixVersion' AND e_prjv.vname collate SQL_Latin1_General_CP1_CS_AS = '2.2.0' AND e_prj.pname = 'IOT_CMP' AND e_it.pname = 'Epic'),
 tasks AS (
-	SELECT t_ji.ID AS 'ID', CONCAT_WS('-', t_prj.pkey, t_ji.issuenum) AS 'Key', t_ji.SUMMARY AS 'Summary', t_it.pname AS 'Issue type', CONCAT_WS(': ', epics.[Key], epics.Summary) AS 'Epic',
+	SELECT t_ji.ID AS 'ID', CONCAT_WS('-', t_prj.pkey, t_ji.issuenum) AS 'Key', t_ji.SUMMARY AS 'Summary', t_it.pname AS 'Issue type', epics.[Key] AS 'Epic',
 		(CASE WHEN t_ji.TIMEORIGINALESTIMATE IS NULL THEN 0 ELSE t_ji.TIMEORIGINALESTIMATE END) AS 'Original estimate',
 		(CASE WHEN t_ji.TIMESPENT IS NULL THEN 0 ELSE t_ji.TIMESPENT END) AS 'Spent time'
 	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS t_ji

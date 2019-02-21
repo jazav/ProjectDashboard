@@ -61,7 +61,7 @@ class SprintInfoDashboard(AbstractDashboard):
                 yaxis='y1',
                 name=est,
                 showlegend=True,
-                text=[e[est] for key, e in self.est_dict.items() if key != 'Others'],
+                text=[round(e[est], 1) for key, e in self.est_dict.items() if key != 'Others'],
                 textposition='auto',
                 marker=dict(
                     color=color_for_est(est),
