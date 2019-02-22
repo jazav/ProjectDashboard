@@ -6,9 +6,6 @@ import config_controller
 from adapters.jira_adapter import HISTORY_EXPAND
 from adapters.file_cache import DAY_AGE_READ_FORMAT
 from datetime import datetime
-import os
-import pyodbc
-
 from adapters.sqlite_dao_issue import get_sqlite_dao
 
 
@@ -140,25 +137,3 @@ class DataController:
         dao_issue = get_sqlite_dao()
         dao_issue.insert_issues(issue_dict)
         return dao_issue
-
-    # By @alanbryn
-    @staticmethod
-    def get_issues_mssql(mssql_query_file):
-        mssql_database = pyodbc.connect("Driver={ODBC Driver 17 for SQL Server};"
-                                        "Server=SRV-SQL-MIRROR\\JIRAREPORT;"
-                                        "Database=srv-jira-prod-report;"
-                                        "uid=uid;pwd=pwd")
-
-        path = os.path.abspath('./SQL_queries/{}.txt'.format(mssql_query_file))
-        with open(path, 'r') as query:
-            sql_str = query.read()
-            cursor = mssql_database.cursor()
-            cursor.execute(sql_str)
-
-        data = {}
-        for column in cursor.description:
-            data[column[0]] = []
-        for row in cursor:
-            for el, key in zip(row, data.keys()):
-                data[key].append(el)
-        return data

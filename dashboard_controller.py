@@ -18,7 +18,8 @@ from dashboards.bugs_progress_dashboard import BugsProgressDashboard  # By @alan
 from dashboards.bssbox_bugs_tracking_dashboard import BssboxBugsTrackingDashboard  # By @alanbryn
 from dashboards.sprint_info_dashboard import SprintInfoDashboard  # By @alanbryn
 from dashboards.feature_info_dashboard import FeatureInfoDashboard  # By @alanbryn
-from dashboards.iot_dashboard import IotDashboard # By @alanbryn
+from dashboards.iot_dashboard import IotDashboard  # By @alanbryn
+from adapters.mssql_adapter import MssqlAdapter
 from dashboards.issue_detail_dashboard import IssueDetailDashboard
 from dashboards.prepare_feature_data import *
 from data_controller import DataController
@@ -369,9 +370,8 @@ class DashboardController:
     # By @alanbryn
     @staticmethod
     def dashboard_bssbox_bugs_tracking(auto_open, repository, mssql_query_file, plotly_auth):
-
-        dc = DataController()
-        data = dc.get_issues_mssql(mssql_query_file=mssql_query_file)
+        mssql = MssqlAdapter()
+        data = mssql.get_issues_mssql(mssql_query_file=mssql_query_file)
 
         dashboard = BssboxBugsTrackingDashboard()
         dashboard.dashboard_name = 'BSSBox bugs tracking'
@@ -384,8 +384,8 @@ class DashboardController:
     # By @alanbryn
     @staticmethod
     def dashboard_sprint_info(auto_open, repository, mssql_query_file, plotly_auth, dashboard_type):
-        dc = DataController()
-        data = dc.get_issues_mssql(mssql_query_file=mssql_query_file)
+        mssql = MssqlAdapter()
+        data = mssql.get_issues_mssql(mssql_query_file=mssql_query_file)
 
         for dt in dashboard_type:
             dashboard = SprintInfoDashboard() if dt == 'DOMAIN' else FeatureInfoDashboard()
@@ -394,13 +394,13 @@ class DashboardController:
             dashboard.repository = repository
             dashboard.plotly_auth = plotly_auth
             dashboard.prepare(data=data)
-            dashboard.export_to_plot()
+            # dashboard.export_to_plot()
 
     # By @alanbryn
     @staticmethod
     def dashboard_iot(auto_open, repository, mssql_query_file, plotly_auth):
-        dc = DataController()
-        data = dc.get_issues_mssql(mssql_query_file=mssql_query_file)
+        mssql = MssqlAdapter()
+        data = mssql.get_issues_mssql(mssql_query_file=mssql_query_file)
 
         dashboard = IotDashboard()
         dashboard.dashboard_name = 'IoT'
