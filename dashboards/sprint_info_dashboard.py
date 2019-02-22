@@ -98,15 +98,36 @@ class SprintInfoDashboard(AbstractDashboard):
         # html_file = self.png_dir + "{0}.html".format(title)
         html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 
+        annotations = [dict(
+            x=0.5,
+            y=0.98,
+            xref='paper',
+            yref='paper',
+            showarrow=False,
+            text='<b><i>Ratio of high level estimates, original estimates and spent time</i></b>',
+            align='center',
+            font=dict(size=14)
+        ), dict(
+            x=0.5,
+            y=0.47,
+            xref='paper',
+            yref='paper',
+            showarrow=False,
+            text='<b><i>Progress of development work</i></b>',
+            align='center',
+            font=dict(size=14)
+        )]
+
         axis = dict()
         layout = dict(
             title='<b>{0} as of {1}</b>'.format(self.dashboard_name, datetime.datetime.now().strftime("%d.%m.%y %H:%M"))
                   + (' <sup>in cloud</sup>' if self.repository == 'online' else ''),
             xaxis1=dict(axis, **dict(domain=[0, 1], anchor='y1', showgrid=True)),
-            yaxis1=dict(axis, **dict(domain=[0.51, 1], anchor='x1', showline=True)),
+            yaxis1=dict(axis, **dict(domain=[0.51, 1], anchor='x1', showline=True, title='Man-days')),
             xaxis2=dict(axis, **dict(domain=[0, 1], anchor='y2', showgrid=True)),
-            yaxis2=dict(axis, **dict(domain=[0, 0.49], anchor='x2', showline=True)),
-            legend=dict(y=0.5)
+            yaxis2=dict(axis, **dict(domain=[0, 0.49], anchor='x2', showline=True, title='Count of tasks and sub-tasks')),
+            legend=dict(y=0.5),
+            annotations=annotations
         )
 
         fig = go.Figure(data=data, layout=layout)

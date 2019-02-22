@@ -2,7 +2,7 @@ from dashboards.dashboard import AbstractDashboard
 import json
 import plotly
 import plotly.graph_objs as go
-import math
+import datetime
 from plotly import tools
 
 
@@ -87,11 +87,14 @@ class FeatureInfoDashboard(AbstractDashboard):
         #         )
         #     ))
 
-        title = self.dashboard_name
+        title = '{} Features'.format(self.dashboard_name)
         # html_file = self.png_dir + "{0}.html".format(title)
         html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 
-        fig['layout'].update(barmode='stack')
+        fig['layout'].update(barmode='stack',
+                             title='<b>{0} as of {1}</b>'.
+                             format(self.dashboard_name, datetime.datetime.now().strftime("%d.%m.%y %H:%M"))
+                                   + (' <sup>in cloud</sup>' if self.repository == 'online' else ''))
 
         if self.repository == 'offline':
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
