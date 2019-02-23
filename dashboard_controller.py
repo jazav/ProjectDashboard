@@ -17,6 +17,9 @@ from dashboards.sprint_dashboard import SprintDashboard  # By @alanbryn
 from dashboards.bugs_progress_dashboard import BugsProgressDashboard  # By @alanbryn
 from dashboards.bssbox_bugs_tracking_dashboard import BssboxBugsTrackingDashboard  # By @alanbryn
 from dashboards.sprint_info_dashboard import SprintInfoDashboard  # By @alanbryn
+from dashboards.feature_info_dashboard import FeatureInfoDashboard  # By @alanbryn
+from dashboards.iot_dashboard import IotDashboard  # By @alanbryn
+from adapters.mssql_adapter import MssqlAdapter
 from dashboards.issue_detail_dashboard import IssueDetailDashboard
 from dashboards.prepare_feature_data import *
 from data_controller import DataController
@@ -205,7 +208,7 @@ class DashboardController:
         for i in range(0, len(l), n):
             yield l[i:i + n]
 
-    def dashboard_feature_domain_progress(self, plan, fact, details, projects, fixversion, auto_open, dashboard_type, dashboard_format):
+    def dashboard_feature_domain_progress(self, plan, fact, details, projects, fixversion, auto_open, dashboard_type, dashboard_format, sprint):
         if not (plan and fact):
             raise ValueError('both of plan and fact parameters are false')
 
@@ -228,6 +231,7 @@ class DashboardController:
             dashboard.fixversion = fixversion
             dashboard.dashboard_type = dashboard_type
             dashboard.dashboard_format = dashboard_format
+            dashboard.sprint = sprint
             dashboard.prepare(data=data_dao)
 
             #lopen_list, ldev_list, lclose_list, lname_list = data_dao.get_sum_by_projects(dashboard.project, "",
@@ -366,9 +370,8 @@ class DashboardController:
     # By @alanbryn
     @staticmethod
     def dashboard_bssbox_bugs_tracking(auto_open, repository, mssql_query_file, plotly_auth):
-
-        dc = DataController()
-        data = dc.get_issues_mssql(mssql_query_file=mssql_query_file)
+        mssql = MssqlAdapter()
+        data = mssql.get_issues_mssql(mssql_query_file=mssql_query_file)
 
         dashboard = BssboxBugsTrackingDashboard()
         dashboard.dashboard_name = 'BSSBox bugs tracking'
@@ -378,16 +381,31 @@ class DashboardController:
         dashboard.prepare(data=data)
         dashboard.export_to_plot()
 
-    #By @alanbryn
+    # By @alanbryn
     @staticmethod
-    def dashboard_sprint_info(auto_open, repository, mssql_query_file, plotly_auth):
-        dc = DataController()
-        data = dc.get_issues_mssql(mssql_query_file=mssql_query_file)
+    def dashboard_sprint_info(auto_open, repository, mssql_query_file, plotly_auth, dashboard_type):
+        mssql = MssqlAdapter()
+        data = mssql.get_issues_mssql(mssql_query_file=mssql_query_file)
 
-        dashboard = SprintInfoDashboard()
-        dashboard.dashboard_name = 'SS8'
+        for dt in dashboard_type:
+            dashboard = SprintInfoDashboard() if dt == 'DOMAIN' else FeatureInfoDashboard()
+            dashboard.dashboard_name = 'Super Sprint 8'
+            dashboard.auto_open = auto_open
+            dashboard.repository = repository
+            dashboard.plotly_auth = plotly_auth
+            dashboard.prepare(data=data)
+            # dashboard.export_to_plot()
+
+    # By @alanbryn
+    @staticmethod
+    def dashboard_iot(auto_open, repository, mssql_query_file, plotly_auth):
+        mssql = MssqlAdapter()
+        data = mssql.get_issues_mssql(mssql_query_file=mssql_query_file)
+
+        dashboard = IotDashboard()
+        dashboard.dashboard_name = 'IoT'
         dashboard.auto_open = auto_open
         dashboard.repository = repository
         dashboard.plotly_auth = plotly_auth
         dashboard.prepare(data=data)
-        # dashboard.export_to_plot()
+        dashboard.export_to_plot()

@@ -1,0 +1,36 @@
+WITH epics AS (
+	SELECT e_ji.ID AS 'ID', CONCAT_WS('-', e_prj.pkey, e_ji.issuenum) AS 'Key', e_ji.SUMMARY AS 'Summary', e_it.pname AS 'Issue type', NULL AS 'Epic',
+		(CASE WHEN e_ji.TIMEORIGINALESTIMATE IS NULL THEN 0 ELSE e_ji.TIMEORIGINALESTIMATE END) AS 'Original estimate', 0 AS 'Spent time'
+	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS e_ji
+		INNER JOIN [srv-jira-prod-report].[dbo].[project] AS e_prj ON e_prj.ID = e_ji.PROJECT
+		INNER JOIN [srv-jira-prod-report].[dbo].[issuetype] AS e_it ON e_it.ID = e_ji.issuetype
+		INNER JOIN [srv-jira-prod-report].[dbo].[nodeassociation] AS e_na ON e_na.SOURCE_NODE_ID = e_ji.ID
+		INNER JOIN [srv-jira-prod-report].[dbo].[projectversion] AS e_prjv ON e_prjv.ID = e_na.SINK_NODE_ID
+	WHERE e_na.ASSOCIATION_TYPE = 'IssueFixVersion' AND e_prjv.vname collate SQL_Latin1_General_CP1_CS_AS = '2.2.0' AND e_prj.pname = 'IOT_CMP' AND e_it.pname = 'Epic'),
+tasks AS (
+	SELECT t_ji.ID AS 'ID', CONCAT_WS('-', t_prj.pkey, t_ji.issuenum) AS 'Key', t_ji.SUMMARY AS 'Summary', t_it.pname AS 'Issue type', epics.[Key] AS 'Epic',
+		(CASE WHEN t_ji.TIMEORIGINALESTIMATE IS NULL THEN 0 ELSE t_ji.TIMEORIGINALESTIMATE END) AS 'Original estimate',
+		(CASE WHEN t_ji.TIMESPENT IS NULL THEN 0 ELSE t_ji.TIMESPENT END) AS 'Spent time'
+	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS t_ji
+		INNER JOIN [srv-jira-prod-report].[dbo].[project] AS t_prj ON t_prj.ID = t_ji.PROJECT
+		INNER JOIN [srv-jira-prod-report].[dbo].[issuetype] AS t_it ON t_it.ID = t_ji.issuetype
+		INNER JOIN [srv-jira-prod-report].[dbo].[issuelink] AS t_il ON t_il.DESTINATION = t_ji.ID
+		INNER JOIN [srv-jira-prod-report].[dbo].[issuelinktype] AS t_ilt ON t_ilt.ID = t_il.LINKTYPE
+		INNER JOIN epics ON epics.ID = t_il.SOURCE
+	WHERE t_ilt.LINKNAME = 'Epic-Story Link' AND t_il.SOURCE IN (SELECT ID FROM epics))
+
+SELECT * FROM epics
+UNION ALL
+SELECT * FROM tasks
+UNION ALL
+SELECT st_ji.ID AS 'ID', CONCAT_WS('-', st_prj.pkey, st_ji.issuenum) AS 'Key', st_ji.SUMMARY AS 'Summary', st_it.pname AS 'Issue type', tasks.Epic AS 'Epic',
+	(CASE WHEN st_ji.TIMEORIGINALESTIMATE IS NULL THEN 0 ELSE st_ji.TIMEORIGINALESTIMATE END) AS 'Original estimate',
+	(CASE WHEN st_ji.TIMESPENT IS NULL THEN 0 ELSE st_ji.TIMESPENT END) AS 'Spent time'
+FROM [srv-jira-prod-report].[dbo].[jiraissue] AS st_ji
+	INNER JOIN [srv-jira-prod-report].[dbo].[project] AS st_prj ON st_prj.ID = st_ji.PROJECT
+	INNER JOIN [srv-jira-prod-report].[dbo].[issuetype] AS st_it ON st_it.ID = st_ji.issuetype
+	INNER JOIN [srv-jira-prod-report].[dbo].[issuelink] AS st_il ON st_il.DESTINATION = st_ji.ID
+	INNER JOIN [srv-jira-prod-report].[dbo].[issuelinktype] AS st_ilt ON st_ilt.ID = st_il.LINKTYPE
+	INNER JOIN tasks ON tasks.ID = st_il.SOURCE
+WHERE st_ilt.LINKNAME = 'jira_subtask_link' AND st_il.SOURCE IN (SELECT ID FROM tasks)
+ORDER BY 'Issue type'
