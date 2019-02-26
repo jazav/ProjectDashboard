@@ -12,7 +12,7 @@ class IotDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth = True, None, None
     iot_dict, ticktext = {'AEP': {}, 'CMP': {}}, {'AEP': [], 'CMP': []}
     jql_empty = {'AEP': 'https://jira.billing.ru/issues/?jql=key in (',
-             'CMP': 'https://jira.billing.ru/issues/?jql=key in ('}
+                 'CMP': 'https://jira.billing.ru/issues/?jql=key in ('}
 
     def prepare(self, data):
         for i in range(len(data['Key'])):
@@ -41,7 +41,7 @@ class IotDashboard(AbstractDashboard):
         data, xtitle = [], {'AEP': None, 'CMP': None}
         for prj, i in zip(self.iot_dict.keys(), range(len(self.iot_dict.keys()))):
             xtitle[prj] = '<b><i>IOT{} Project:</i></b><br>Plan estimate: {}, Fact estimate: {}, Spent time: {}'.\
-                format(prj, round(sum([e['Plan estimate'] for e in self.iot_dict[prj].values()]), 1),
+                format(prj, round(sum([e['Plan estimate'] for e in self.iot_dict[prj].values()])),
                        round(sum([e['Fact estimate'] for e in self.iot_dict[prj].values()]), 1),
                        round(sum([e['Spent time'] for e in self.iot_dict[prj].values()])), 1)
             for est in self.iot_dict[prj][list(self.iot_dict[prj].keys())[0]].keys():
@@ -88,8 +88,7 @@ class IotDashboard(AbstractDashboard):
                                   else '<a href="{}">{}</a>'.format(self.jql_empty['CMP'], epic) for epic, text
                                   in zip(list(self.iot_dict['CMP'].keys()), self.ticktext['CMP'])], side='right'),
                         ticks='outside', ticklen=10, tickcolor='rgba(0,0,0,0)'),
-            legend=dict(orientation='h', x=0.38, y=1.05)
-
+            legend=dict(orientation='h', x=0.38, y=1.04)
         )
 
         fig = go.Figure(data=data, layout=layout)
