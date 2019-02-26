@@ -394,7 +394,7 @@ class DashboardController:
             dashboard.repository = repository
             dashboard.plotly_auth = plotly_auth
             dashboard.prepare(data=data)
-            # dashboard.export_to_plot()
+            dashboard.export_to_plot()
 
     # By @alanbryn
     @staticmethod
