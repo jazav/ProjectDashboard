@@ -38,7 +38,6 @@ class ConfigControllerDecorator:
             self.instance = self.klass(*args, **kwds)
         return self.instance
 
-
 class ConfigController:
     _login = None
     _password = None

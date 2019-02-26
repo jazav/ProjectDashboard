@@ -7,6 +7,7 @@ from adapters.jira_adapter import HISTORY_EXPAND
 from adapters.file_cache import DAY_AGE_READ_FORMAT
 from datetime import datetime
 from adapters.sqlite_dao_issue import get_sqlite_dao
+from adapters.mssql_adapter import MssqlAdapter
 
 
 class DataController:
@@ -15,6 +16,7 @@ class DataController:
     _cacheable = None
     _cache_adapter = None
     _jira_adapter = None
+    _mssql_adapter = None
 
     def __init__(self, cacheable=True):
         self._cacheable = cacheable
@@ -24,6 +26,12 @@ class DataController:
         if self._jira_adapter is None:
             self._jira_adapter = JiraAdapter()
         return self._jira_adapter
+
+    def _get_mssql_adapter(self):
+        """Lazy mssql initialization"""
+        if self._mssql_adapter is None:
+            self._mssql_adapter = MssqlAdapter()
+        return self._mssql_adapter
 
     def _get_cache_adapter(self):
         """Lazy cache initialization"""
@@ -137,3 +145,8 @@ class DataController:
         dao_issue = get_sqlite_dao()
         dao_issue.insert_issues(issue_dict)
         return dao_issue
+
+    def get_issues_mssql(self, mssql_query_file):
+        mssql = self._get_mssql_adapter()
+        data = mssql.get_issues_mssql(mssql_query_file=mssql_query_file)
+        return data
