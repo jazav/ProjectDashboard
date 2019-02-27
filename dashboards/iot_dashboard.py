@@ -10,7 +10,7 @@ def color_for_est(est):
 
 class IotDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth = True, None, None
-    iot_dict, ticktext = {'AEP': {}, 'CMP': {}}, {'AEP': [], 'CMP': []}
+    iot_dict, ticktext, nis = {'AEP': {}, 'CMP': {}}, {'AEP': [], 'CMP': []}, []
     jql_empty = {'AEP': 'https://jira.billing.ru/issues/?jql=key in (',
                  'CMP': 'https://jira.billing.ru/issues/?jql=key in ('}
 
@@ -24,6 +24,8 @@ class IotDashboard(AbstractDashboard):
                 if epic not in self.iot_dict[data['Key'][i][3:6]].keys():
                     self.iot_dict[data['Key'][i][3:6]][epic] = {'Plan estimate': 0, 'Fact estimate': 0, 'Spent time': 0}
                     self.ticktext[data['Key'][i][3:6]].append(data['Epic name'][i])
+                if not data['In sprint'][i]:
+                    self.nis.append(data['Epic key'][i])
                 self.iot_dict[data['Key'][i][3:6]][epic]['Fact estimate'] += float(data['Original estimate'][i])
                 self.iot_dict[data['Key'][i][3:6]][epic]['Spent time'] += float(data['Spent time'][i])
             else:
@@ -31,6 +33,8 @@ class IotDashboard(AbstractDashboard):
                 if epic not in self.iot_dict[data['Key'][i][3:6]].keys():
                     self.iot_dict[data['Key'][i][3:6]][epic] = {'Plan estimate': 0, 'Fact estimate': 0, 'Spent time': 0}
                     self.ticktext[data['Key'][i][3:6]].append(data['Summary'][i])
+                if not data['In sprint'][i]:
+                    self.nis.append(data['Key'][i])
                 self.iot_dict[data['Key'][i][3:6]][epic]['Plan estimate'] += float(data['Original estimate'][i])
         self.jql_empty = {prj: '{})'.format(jql[:-2]) for prj, jql in self.jql_empty.items()}
 
@@ -41,8 +45,10 @@ class IotDashboard(AbstractDashboard):
         data, xtitle = [], {'AEP': None, 'CMP': None}
         for prj, i in zip(self.iot_dict.keys(), range(len(self.iot_dict.keys()))):
             xtitle[prj] = '<b><i>IOT{} Project:</i></b><br>Plan estimate: {}, Fact estimate: {}, Spent time: {}'.\
-                format(prj, round(sum([e['Plan estimate'] for e in self.iot_dict[prj].values()])),
-                       round(sum([e['Fact estimate'] for e in self.iot_dict[prj].values()]), 1),
+                format(prj, round(sum([e['Plan estimate'] for epic, e in self.iot_dict[prj].items()
+                                       if epic not in set(self.nis)])),
+                       round(sum([e['Fact estimate'] for epic, e in self.iot_dict[prj].items()
+                                  if epic not in set(self.nis)]), 1),
                        round(sum([e['Spent time'] for e in self.iot_dict[prj].values()])), 1)
             for est in self.iot_dict[prj][list(self.iot_dict[prj].keys())[0]].keys():
                 data.append(go.Bar(
@@ -96,7 +102,7 @@ class IotDashboard(AbstractDashboard):
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
         elif self.repository == 'online':
             plotly.tools.set_credentials_file(username=self.plotly_auth[0], api_key=self.plotly_auth[1])
-            plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
+            plotly.plotly.plot(fig, filename=title, fileopt='new', sharing='public', auto_open=False)
 
     def export_to_plot(self):
         self.export_to_plotly()

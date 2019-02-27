@@ -1,7 +1,19 @@
-WITH t_spents AS (
+WITH epics AS (
+SELECT e_ji.ID AS 'ID', CONCAT_WS('-', e_prj.pkey, e_ji.issuenum) AS 'Key', e_ji.SUMMARY AS 'Summary', e_it.pname AS 'Issue type', NULL AS 'Epic key', NULL AS 'Epic name',
+		(CASE WHEN e_ji.TIMEORIGINALESTIMATE IS NULL THEN 0 ELSE CAST((CONVERT(decimal, CONVERT(nvarchar, e_ji.TIMEORIGINALESTIMATE))/28800) AS numeric(17,3)) END) AS 'Original estimate', NULL AS 'Spent time', 1 AS 'In sprint'
+	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS e_ji
+		INNER JOIN [srv-jira-prod-report].[dbo].[project] AS e_prj ON e_prj.ID = e_ji.PROJECT
+		INNER JOIN [srv-jira-prod-report].[dbo].[issuetype] AS e_it ON e_it.ID = e_ji.issuetype
+		INNER JOIN [srv-jira-prod-report].[dbo].[nodeassociation] AS e_na ON e_na.SOURCE_NODE_ID = e_ji.ID
+		INNER JOIN [srv-jira-prod-report].[dbo].[projectversion] AS e_prjv ON e_prjv.ID = e_na.SINK_NODE_ID
+	WHERE e_na.ASSOCIATION_TYPE = 'IssueFixVersion' AND e_it.pname = 'Epic'
+		AND ((e_prj.pkey = 'IOTCMP' AND e_prjv.vname collate SQL_Latin1_General_CP1_CS_AS = '2.2.0')
+		OR (e_prj.pkey = 'IOTAEP' AND (e_prjv.vname collate SQL_Latin1_General_CP1_CS_AS = '1.6.0' OR e_ji.SUMMARY LIKE 'SS8%')))),
+t_spents AS (
 	SELECT ji.ID AS 'ID', CONCAT_WS('-', prj.pkey, ji.issuenum) AS 'Key', ji.SUMMARY AS 'Summary', it.pname AS 'Issue type', e_link.[Epic key] AS 'Epic key', e_link.[Epic name] AS 'Epic name',
 		MAX((CASE WHEN ji.TIMEORIGINALESTIMATE IS NULL THEN 0 ELSE CAST((CONVERT(decimal, CONVERT(nvarchar, ji.TIMEORIGINALESTIMATE))/28800) AS numeric(17,3)) END)) AS 'Original estimate',
-		SUM(CAST((CONVERT(decimal, CONVERT(nvarchar, cgi.NEWVALUE))/28800) AS numeric(17,3)) - (CASE WHEN cgi.OLDVALUE IS NULL THEN 0 ELSE CAST((CONVERT(decimal, CONVERT(nvarchar, cgi.OLDVALUE))/28800) AS numeric(17,3)) END)) AS 'Spent time'
+		SUM(CAST((CONVERT(decimal, CONVERT(nvarchar, cgi.NEWVALUE))/28800) AS numeric(17,3)) - (CASE WHEN cgi.OLDVALUE IS NULL THEN 0 ELSE CAST((CONVERT(decimal, CONVERT(nvarchar, cgi.OLDVALUE))/28800) AS numeric(17,3)) END)) AS 'Spent time',
+		(CASE WHEN e_link.[Epic key] IN (SELECT [Key] FROM epics) THEN 1 ELSE 0 END) AS 'In sprint'
 	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS ji
 		INNER JOIN [srv-jira-prod-report].[dbo].[project] AS prj ON prj.ID = ji.PROJECT
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuetype] AS it ON it.ID = ji.issuetype
@@ -19,7 +31,8 @@ WITH t_spents AS (
 st_spents AS (
 	SELECT ji.ID AS 'ID', CONCAT_WS('-',prj.pkey, ji.issuenum) AS 'Key', ji.SUMMARY AS 'Summary', it.pname AS 'Issue type', t_link.[Epic key] AS 'Epic key', t_link.[Epic name] AS 'Epic name',
 		MAX((CASE WHEN ji.TIMEORIGINALESTIMATE IS NULL THEN 0 ELSE CAST((CONVERT(decimal, CONVERT(nvarchar, ji.TIMEORIGINALESTIMATE))/28800) AS numeric(17,3)) END)) AS 'Original estimate',
-		SUM(CAST((CONVERT(decimal, CONVERT(nvarchar, cgi.NEWVALUE))/28800) AS numeric(17,3)) - (CASE WHEN cgi.OLDVALUE IS NULL THEN 0 ELSE CAST((CONVERT(decimal, CONVERT(nvarchar, cgi.OLDVALUE))/28800) AS numeric(17,3)) END)) AS 'Spent time'
+		SUM(CAST((CONVERT(decimal, CONVERT(nvarchar, cgi.NEWVALUE))/28800) AS numeric(17,3)) - (CASE WHEN cgi.OLDVALUE IS NULL THEN 0 ELSE CAST((CONVERT(decimal, CONVERT(nvarchar, cgi.OLDVALUE))/28800) AS numeric(17,3)) END)) AS 'Spent time',
+		(CASE WHEN t_link.[Epic key] IN (SELECT [Key] FROM epics) THEN 1 ELSE 0 END) AS 'In sprint'
 	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS ji
 		INNER JOIN [srv-jira-prod-report].[dbo].[project] AS prj ON prj.ID = ji.PROJECT
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuetype] AS it ON it.ID = ji.issuetype
@@ -42,13 +55,16 @@ st_spents AS (
 	GROUP BY ji.ID, CONCAT_WS('-',prj.pkey, ji.issuenum), ji.SUMMARY, it.pname, t_link.[Epic key], t_link.[Epic name])
 
 SELECT ji.ID AS 'ID', CONCAT_WS('-', prj.pkey, ji.issuenum) AS 'Key', ji.SUMMARY AS 'Summary', it.pname AS 'Issue type', NULL AS 'Epic key', NULL AS 'Epic name',
-	(CASE WHEN ji.TIMEORIGINALESTIMATE IS NULL THEN 0 ELSE CAST((CONVERT(decimal, CONVERT(nvarchar, ji.TIMEORIGINALESTIMATE))/28800) AS numeric(17,3)) END) AS 'Original estimate', NULL AS 'Spent time'
+	(CASE WHEN ji.TIMEORIGINALESTIMATE IS NULL THEN 0 ELSE CAST((CONVERT(decimal, CONVERT(nvarchar, ji.TIMEORIGINALESTIMATE))/28800) AS numeric(17,3)) END) AS 'Original estimate', NULL AS 'Spent time',
+	(CASE WHEN CONCAT_WS('-', prj.pkey, ji.issuenum) IN (SELECT [Key] FROM epics) THEN 1 ELSE 0 END) AS 'In sprint'
 FROM [srv-jira-prod-report].[dbo].[jiraissue] AS ji
 	INNER JOIN [srv-jira-prod-report].[dbo].[project] AS prj ON prj.ID = ji.PROJECT
 	INNER JOIN [srv-jira-prod-report].[dbo].[issuetype] AS it ON it.ID = ji.issuetype
-WHERE CONCAT_WS('-', prj.pkey, ji.issuenum) IN (SELECT [Epic key] FROM t_spents UNION ALL SELECT [Epic key] FROM st_spents)
+WHERE ((CONCAT_WS('-', prj.pkey, ji.issuenum) IN (SELECT [Epic key] FROM t_spents UNION ALL SELECT [Epic key] FROM st_spents)))
 UNION ALL
 SELECT * FROM t_spents
 UNION ALL
 SELECT * FROM st_spents
+UNION
+SELECT * FROM epics
 ORDER BY [Issue type], [Key]
