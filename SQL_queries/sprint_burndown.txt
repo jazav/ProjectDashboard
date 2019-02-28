@@ -1,0 +1,37 @@
+WITH user_stories AS (
+	SELECT us_ji.ID AS 'ID'
+	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS us_ji
+		INNER JOIN [srv-jira-prod-report].[dbo].[issuetype] AS us_it ON us_it.ID = us_ji.issuetype
+		INNER JOIN [srv-jira-prod-report].[dbo].[customfieldvalue] AS us_cfv ON us_cfv.ISSUE = us_ji.ID
+		INNER JOIN [srv-jira-prod-report].[dbo].[project] AS us_prj ON us_prj.ID = us_ji.PROJECT
+		INNER JOIN [srv-jira-prod-report].[dbo].[issuestatus] AS us_is ON us_is.ID = us_ji.issuestatus
+	WHERE us_prj.pname = 'BSSBOX' AND us_it.pname = 'User Story (L3)' AND us_cfv.STRINGVALUE = '6980' AND us_is.pname != 'Canceled'),
+epics AS (
+	SELECT e_ji.ID AS 'ID'
+	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS e_ji
+		INNER JOIN [srv-jira-prod-report].[dbo].[issuelink] AS e_il ON e_il.DESTINATION = e_ji.ID
+		INNER JOIN [srv-jira-prod-report].[dbo].[issuelinktype] AS e_ilt ON e_ilt.ID = e_il.LINKTYPE
+	WHERE e_ilt.LINKNAME = 'nexign_hierarchy_link' AND e_il.SOURCE IN (SELECT ID FROM user_stories)),
+tasks AS (
+	SELECT t_ji.ID AS 'ID'
+	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS t_ji
+		INNER JOIN [srv-jira-prod-report].[dbo].[issuetype] AS t_it ON t_it.ID = t_ji.issuetype
+		INNER JOIN [srv-jira-prod-report].[dbo].[issuelink] AS t_il ON t_il.DESTINATION = t_ji.ID
+		INNER JOIN [srv-jira-prod-report].[dbo].[issuelinktype] AS t_ilt ON t_ilt.ID = t_il.LINKTYPE
+	WHERE t_it.pname != 'Bug' AND t_ilt.LINKNAME = 'Epic-Story Link' AND t_il.SOURCE IN (SELECT ID FROM epics)),
+subtasks AS (
+	SELECT st_ji.ID AS 'ID'
+	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS st_ji
+		INNER JOIN [srv-jira-prod-report].[dbo].[issuetype] AS st_it ON st_it.ID = st_ji.issuetype
+		INNER JOIN [srv-jira-prod-report].[dbo].[issuelink] AS st_il ON st_il.DESTINATION = st_ji.ID
+		INNER JOIN [srv-jira-prod-report].[dbo].[issuelinktype] AS st_ilt ON st_ilt.ID = st_il.LINKTYPE
+	WHERE st_it.pname != 'Sub-bug' AND st_ilt.LINKNAME = 'jira_subtask_link' AND st_il.SOURCE IN (SELECT ID FROM tasks))
+
+SELECT CONCAT_WS('-', prj.pkey, ji.issuenum) AS 'key', CONVERT(date, cg.CREATED) AS 'created',
+	(CAST((CONVERT(decimal, CONVERT(nvarchar, ci.NEWVALUE))/28800) AS numeric(17,3)) - (CASE WHEN ci.OLDVALUE IS NULL THEN 0 ELSE CAST((CONVERT(decimal, CONVERT(nvarchar, ci.OLDVALUE))/28800) AS numeric(17,3)) END)) AS 'spent'
+FROM [srv-jira-prod-report].[dbo].[changegroup] AS cg
+	INNER JOIN [srv-jira-prod-report].[dbo].[changeitem] AS ci ON ci.groupid = cg.ID
+	INNER JOIN [srv-jira-prod-report].[dbo].[jiraissue] AS ji ON ji.ID = cg.issueid
+	INNER JOIN [srv-jira-prod-report].[dbo].[project] AS prj ON prj.ID = ji.PROJECT
+WHERE ji.ID IN (SELECT * FROM tasks UNION SELECT * FROM subtasks) AND ci.FIELD = 'timespent' AND cg.CREATED BETWEEN '2019-02-18 00:00:00.000' AND GETDATE()
+ORDER BY cg.CREATED

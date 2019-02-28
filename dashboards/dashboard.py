@@ -28,6 +28,9 @@ class AbstractDashboard():
         raise NotImplementedError('prepare')
         return self.data
 
+    def multi_prepare(self, *args):
+        pass
+
     def export_to_file(self, export_type):
         raise NotImplementedError('export_to_file')
 
