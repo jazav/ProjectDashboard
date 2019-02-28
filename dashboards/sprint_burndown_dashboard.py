@@ -8,11 +8,11 @@ class SprintBurndownDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth = True, None, None
     all_spent = {}
 
-    def prepare(self, data_spent, data_original):
+    def multi_prepare(self, data_spent, data_original):
         spent = 0
-        for i in range(len(data['key'])):
-            spent += float(data['spent'][i])
-            self.all_spent[data['created'][i]] = spent
+        for i in range(len(data_spent['key'])):
+            spent += float(data_spent['spent'][i])
+            self.all_spent[data_spent['created'][i]] = spent
 
     def export_to_plotly(self):
         if len(self.all_spent.keys()) == 0:
