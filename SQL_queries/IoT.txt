@@ -26,7 +26,7 @@ t_spents AS (
 				INNER JOIN [srv-jira-prod-report].[dbo].[jiraissue] AS e_ji ON e_ji.ID = e_il.SOURCE
 				INNER JOIN [srv-jira-prod-report].[dbo].[project] AS e_prj ON e_prj.ID = e_ji.PROJECT
 			WHERE e_ilt.LINKNAME = 'Epic-Story Link') AS e_link ON e_link.Destination = ji.ID
-	WHERE cgi.FIELD = 'timespent' AND (cg.CREATED BETWEEN '2019-01-01 00:00:00.000' AND GETDATE()) AND prj.pkey in ('IOTCMP', 'IOTAEP') AND it.pname NOT IN ('Epic', 'Sub-task')
+	WHERE cgi.FIELD = 'timespent' AND (cg.CREATED BETWEEN '2019-01-01 00:00:00.000' AND '2019-03-01 00:00:00.000') AND prj.pkey in ('IOTCMP', 'IOTAEP') AND it.pname NOT IN ('Epic', 'Sub-task')
 	GROUP BY ji.ID, CONCAT_WS('-',prj.pkey, ji.issuenum), ji.SUMMARY, it.pname, e_link.[Epic key], e_link.[Epic name]),
 st_spents AS (
 	SELECT ji.ID AS 'ID', CONCAT_WS('-',prj.pkey, ji.issuenum) AS 'Key', ji.SUMMARY AS 'Summary', it.pname AS 'Issue type', t_link.[Epic key] AS 'Epic key', t_link.[Epic name] AS 'Epic name',
@@ -51,7 +51,7 @@ st_spents AS (
 						INNER JOIN [srv-jira-prod-report].[dbo].[project] AS e_prj ON e_prj.ID = e_ji.PROJECT
 					WHERE e_ilt.LINKNAME = 'Epic-Story Link') AS e_link ON e_link.Destination = t_ji.ID
 			WHERE t_ilt.LINKNAME = 'jira_subtask_link') AS t_link ON t_link.Destination = ji.ID
-	WHERE cgi.FIELD = 'timespent' AND (cg.CREATED BETWEEN '2019-01-01 00:00:00.000' AND GETDATE()) AND prj.pkey in ('IOTCMP', 'IOTAEP') AND it.pname = 'Sub-task'
+	WHERE cgi.FIELD = 'timespent' AND (cg.CREATED BETWEEN '2019-01-01 00:00:00.000' AND '2019-03-01 00:00:00.000') AND prj.pkey in ('IOTCMP', 'IOTAEP') AND it.pname = 'Sub-task'
 	GROUP BY ji.ID, CONCAT_WS('-',prj.pkey, ji.issuenum), ji.SUMMARY, it.pname, t_link.[Epic key], t_link.[Epic name])
 
 SELECT ji.ID AS 'ID', CONCAT_WS('-', prj.pkey, ji.issuenum) AS 'Key', ji.SUMMARY AS 'Summary', it.pname AS 'Issue type', NULL AS 'Epic key', NULL AS 'Epic name',

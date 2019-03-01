@@ -414,12 +414,13 @@ class DashboardController:
     @staticmethod
     def dashboard_sprint_burndown(auto_open, repository, mssql_query_file, plotly_auth):
         dc = DataController()
-        data = dc.get_issues_mssql(mssql_query_file=mssql_query_file)
+        data_spent = dc.get_issues_mssql(mssql_query_file=mssql_query_file[0])
+        data_original = dc.get_issues_mssql(mssql_query_file=mssql_query_file[1])
 
         dashboard = SprintBurndownDashboard()
         dashboard.dashboard_name = 'Burndown for Super Sprint 8'
         dashboard.auto_open = auto_open
         dashboard.repository = repository
         dashboard.plotly_auth = plotly_auth
-        dashboard.prepare(data=data)
+        dashboard.multi_prepare(data_spent=data_spent, data_original=data_original)
         dashboard.export_to_plot()

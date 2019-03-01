@@ -255,7 +255,7 @@ def main(argv):
         if name_space.name == "sprint_burndown":
             dshc.dashboard_sprint_burndown(auto_open=(name_space.auto_open.upper() == 'TRUE'),
                                            repository=name_space.repository.lower(),
-                                           mssql_query_file=name_space.mssql.lower(),
+                                           mssql_query_file=[mssql.lower().strip() for mssql in name_space.mssql.split(',')],
                                            plotly_auth=[name_space.plotly_user, name_space.plotly_key])
         # --------------------------------------------------------------------------------------------------------------
 
