@@ -35,7 +35,7 @@ subtasks AS (
 		INNER JOIN tasks ON tasks.ID = st_il.SOURCE
 	WHERE st_it.pname != 'Sub-bug' AND st_ilt.LINKNAME = 'jira_subtask_link' AND st_il.SOURCE IN (SELECT ID FROM tasks))
 
-SELECT issues.flagged AS 'flagged', CONCAT_WS('-', prj.pkey, ji.issuenum) AS 'key', CONVERT(date, cg.CREATED) AS 'created',
+SELECT issues.flagged AS 'flagged', CONCAT_WS('-', prj.pkey, ji.issuenum) AS 'key', CONVERT(date, cg.CREATED) AS 'created', CONVERT(date, ji.RESOLUTIONDATE) AS 'resolutiondate',
 	(CAST((CONVERT(decimal, CONVERT(nvarchar, ci.NEWVALUE))/28800) AS numeric(17,3)) - (CASE WHEN ci.OLDVALUE IS NULL THEN 0 ELSE CAST((CONVERT(decimal, CONVERT(nvarchar, ci.OLDVALUE))/28800) AS numeric(17,3)) END)) AS 'spent'
 FROM [srv-jira-prod-report].[dbo].[changegroup] AS cg
 	INNER JOIN [srv-jira-prod-report].[dbo].[changeitem] AS ci ON ci.groupid = cg.ID

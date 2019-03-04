@@ -131,7 +131,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
             showlegend=False,
             text=list(map(lambda el: 'On track: <b>{}</b> '.format(el),
                           [value['On track'] for value in self.pivot_data.values()])),
-            textposition='inside',
+            textposition='auto',
             marker=dict(
                 color='rgb(163,204,163)',
                 line=dict(
@@ -149,7 +149,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
             showlegend=False,
             text=list(map(lambda el, link: '<a href = "{}">Overdue: <b>{}</b> </a>'.format(link, el),
                           [value['Overdue'] for value in self.pivot_data.values()], self.overdue_data.values())),
-            textposition='inside',
+            textposition='auto',
             marker=dict(
                 color='rgb(255,204,204)',
                 line=dict(
@@ -167,7 +167,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
             showlegend=False,
             text=list(map(lambda el: 'On track: <b>{}</b> '.format(el),
                           [value['On track'] for value in self.all_bugs.values()])),
-            textposition='inside',
+            textposition='auto',
             marker=dict(
                 color='rgb(163,204,163)',
                 line=dict(
@@ -185,7 +185,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
             showlegend=False,
             text=list(map(lambda el: '<a href = "{}">Overdue: <b>{}</b> </a>'.format(self.jql_all, el),
                           [value['Overdue'] for value in self.all_bugs.values()])),
-            textposition='inside',
+            textposition='auto',
             marker=dict(
                 color='rgb(255,204,204)',
                 line=dict(

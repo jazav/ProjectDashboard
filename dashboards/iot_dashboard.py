@@ -25,9 +25,9 @@ class IotDashboard(AbstractDashboard):
                 if epic not in self.iot_dict[prj].keys():
                     self.iot_dict[prj][epic] = {'Plan estimate': 0, 'Fact estimate': 0, 'Spent time': 0}
                     self.ticktext[prj].append(data['Epic name'][i])
-                if not data['In sprint'][i]:
+                if not data['In sprint'][i] and epic != 'Empty':
                     self.nis.append(data['Epic key'][i])
-                    if epic != 'Empty' and epic not in self.jql_nis[prj]:
+                    if epic not in self.jql_nis[prj]:
                         self.jql_nis[prj][epic] = 'https://jira.billing.ru/issues/?jql=key in ('
                     self.jql_nis[prj][epic] += '{}, '.format(data['Key'][i])
                 self.iot_dict[prj][epic]['Fact estimate'] += float(data['Original estimate'][i])
@@ -118,7 +118,7 @@ class IotDashboard(AbstractDashboard):
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
         elif self.repository == 'online':
             plotly.tools.set_credentials_file(username=self.plotly_auth[0], api_key=self.plotly_auth[1])
-            plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
+            plotly.plotly.plot(fig, filename=title, fileopt='new', sharing='public', auto_open=False)
 
     def export_to_plot(self):
         self.export_to_plotly()
