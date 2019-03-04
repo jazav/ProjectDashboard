@@ -244,7 +244,7 @@ class SprintBurndownDashboard(AbstractDashboard):
                 ),
                 range=[0, max(self.fl_all_remain.values()) + 100]
             ),
-            title=title,
+            title=title + (' <sup>in cloud</sup>' if self.repository == 'online' else ''),
             legend=dict(
                 orientation='h',
                 x=0.455,
