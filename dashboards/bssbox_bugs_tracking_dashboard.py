@@ -104,8 +104,8 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                 x=[0, 0.72],
                 y=[0, 1]
             ),
-            columnorder=[1, 2, 3, 4, 5, 6, 7, 8],
-            columnwidth=[3, 11, 3, 2, 2, 2, 2, 2.5],
+            columnorder=[1, 2, 3, 4, 5, 6, 7, 8, 9],
+            columnwidth=[3, 10, 3, 2, 2, 2, 2, 2, 2.5],
             header=dict(
                 values=header_values,
                 fill=dict(color=['grey']),
@@ -211,7 +211,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                 x0=0.73,
                 y0=0.15,
                 x1=1,
-                y1=0.95,
+                y1=1,
                 line=dict(
                     color='rgb(0,0,0)',
                     width=1
@@ -230,23 +230,10 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                 )
             )],
             xaxis1=dict(axis, **dict(domain=[0.77, 0.99], anchor='y1')),
-            yaxis1=dict(axis, **dict(domain=[0.18, 0.94], anchor='x1', ticksuffix='  ')),
+            yaxis1=dict(axis, **dict(domain=[0.18, 0.99], anchor='x1', ticksuffix='  ')),
             xaxis2=dict(axis, **dict(domain=[0.77, 0.99], anchor='y2')),
             yaxis2=dict(axis, **dict(domain=[0.03, 0.12], anchor='x2', ticksuffix='  ')),
-            barmode='stack',
-            annotations=[dict(
-                xref='paper',
-                yref='paper',
-                x=0.95,
-                y=1.015,
-                text='<b><i>Statistics by all bugs<br>created from 28.01.19 until {}</i></b>'.
-                    format(datetime.datetime.now().strftime('%d.%m.%y')),
-                showarrow=False,
-                font=dict(
-                    family='Oswald, sans-serif',
-                    size=16
-                )
-            )]
+            barmode='stack'
         )
 
         fig = go.Figure(data=data, layout=layout)

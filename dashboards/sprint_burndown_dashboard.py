@@ -11,19 +11,24 @@ class SprintBurndownDashboard(AbstractDashboard):
     fl_all_spent, fl_all_remain = {}, {}
 
     def multi_prepare(self, data_spent, data_original):
-        spent, all_original = 0, {}
-        fl_spent, fl_all_original = 0, {}
+        spent, all_original = float(sum([sp for dt, sp in zip(data_spent['created'], data_spent['spent'])
+                                         if dt < datetime.date(2019, 2, 18)])), {}
+        fl_spent, fl_all_original = float(sum([sp for dt, sp, fl in
+                                          zip(data_spent['created'], data_spent['spent'], data_spent['flagged'])
+                                               if dt < datetime.date(2019, 2, 18) and fl is not None])), {}
         original = float(sum([orig for orig, st in zip(data_original['timeoriginalestimate'], data_original['status'])
                               if st not in ('Closed', 'Resolved')]))
         fl_original = float(sum([orig for orig, st, fl in zip(data_original['timeoriginalestimate'],
                                                               data_original['status'], data_original['flagged'])
                                  if st not in ('Closed', 'Resolved') and fl is not None]))
+
         for i in range(len(data_spent['key'])):
-            if data_spent['flagged'][i] is not None:
-                fl_spent += float(data_spent['spent'][i])
-                self.fl_all_spent[data_spent['created'][i]] = fl_spent
-            spent += float(data_spent['spent'][i])
-            self.all_spent[data_spent['created'][i]] = spent
+            if data_spent['created'][i] > datetime.date(2019, 2, 17):
+                if data_spent['flagged'][i] is not None:
+                    fl_spent += float(data_spent['spent'][i])
+                    self.fl_all_spent[data_spent['created'][i]] = fl_spent
+                spent += float(data_spent['spent'][i])
+                self.all_spent[data_spent['created'][i]] = spent
         for resdate, origest, flagged in zip(data_original['resolutiondate'], data_original['timeoriginalestimate'],
                                              data_original['flagged']):
             if resdate is not None:
@@ -32,12 +37,19 @@ class SprintBurndownDashboard(AbstractDashboard):
                     fl_all_original[resdate] = fl_original
                 original += float(origest)
                 all_original[resdate] = original
-        self.all_remain = {dt: all_original.get(dt, all_original.get(dt - datetime.timedelta(days=1),all_original.get(dt - datetime.timedelta(days=2))))
-                           - self.all_spent[dt] + float(sum([sp for sp, rd in zip(data_spent['spent'], data_spent['resolutiondate'])
-                                                             if rd is not None and rd < dt])) for dt in self.all_spent.keys()}
-        self.fl_all_remain = {dt: fl_all_original.get(dt, fl_all_original.get(dt - datetime.timedelta(days=1), fl_all_original.get(dt - datetime.timedelta(days=2))))
-                              - self.fl_all_spent[dt] + float(sum([sp for sp, rd, fl in zip(data_spent['spent'], data_spent['resolutiondate'], data_spent['flagged'])
-                                                                   if fl is not None and rd is not None and rd < dt])) for dt in self.fl_all_spent.keys()}
+        for dt in self.all_spent:
+            if dt not in all_original.keys():
+                all_original[dt] = all_original[max([date for date in all_original.keys() if date < dt])]
+        for dt in self.fl_all_spent:
+            if dt not in fl_all_original.keys():
+                fl_all_original[dt] = fl_all_original[max([date for date in fl_all_original.keys() if date < dt])]
+        self.all_remain = {dt: all_original[dt] - self.all_spent[dt] + float(sum(
+            [sp for sp, rd, cr in zip(data_spent['spent'], data_spent['resolutiondate'], data_spent['created'])
+             if rd is not None and rd < dt and cr > datetime.date(2019, 2, 17)])) for dt in self.all_spent.keys()}
+        self.fl_all_remain = {dt: fl_all_original[dt] - self.fl_all_spent[dt] + float(sum([sp for sp, rd, fl, cr in
+             zip(data_spent['spent'], data_spent['resolutiondate'], data_spent['flagged'], data_spent['created']) if
+             fl is not None and rd is not None and rd < dt and cr > datetime.date(2019, 2, 17)]))
+                              for dt in self.fl_all_spent.keys()}
 
     def export_to_plotly(self):
         if len(self.all_spent.keys()) == 0:
@@ -148,7 +160,32 @@ class SprintBurndownDashboard(AbstractDashboard):
         # html_file = self.png_dir + "{0}.html".format(title)
         html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 
+        annotations = [dict(
+            x=0.98,
+            y=0.97,
+            xref='paper',
+            yref='paper',
+            text='<b><i>Chart for all features</b></i>',
+            showarrow=False,
+            bordercolor='black',
+            borderwidth=1,
+            borderpad=3,
+            align='right'
+        ), dict(
+            x=0.98,
+            y=0.4,
+            xref='paper',
+            yref='paper',
+            text='<b><i>Chart for committed features</b></i>',
+            showarrow=False,
+            bordercolor='black',
+            borderwidth=1,
+            borderpad=3,
+            align='right'
+        )]
+
         layout = go.Layout(
+            annotations=annotations,
             xaxis1=dict(
                 domain=[0, 1],
                 anchor='y1',
@@ -169,7 +206,7 @@ class SprintBurndownDashboard(AbstractDashboard):
                 domain=[0.55, 1],
                 anchor='x1',
                 showline=True,
-                title='Man-hour',
+                title='Man-days',
                 titlefont=dict(
                     size=12
                 ),

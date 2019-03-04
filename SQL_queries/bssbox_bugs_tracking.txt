@@ -1,7 +1,5 @@
 SELECT CONCAT_WS('-', prj_b.pkey, ji_b.issuenum) AS 'Key', ji_b.SUMMARY AS 'Summary', (CASE WHEN ji_b.ASSIGNEE IS NOT NULL THEN ji_b.ASSIGNEE ELSE '' END) AS 'Assignee',
-    pr_b.pname AS 'Priority', ist_b.pname AS 'Status', component.component AS 'Domain',
-    /* (CASE WHEN CONCAT_WS('-', prj_b.pkey, ji_b.issuenum) IN (reopened.jira_key) THEN reopened.change_date ELSE ji_b.CREATED END) AS 'Days in progress', */
-    ji_b.CREATED AS 'Days in progress', ji_b.RESOLUTIONDATE AS 'Resolved'
+    pr_b.pname AS 'Priority', ist_b.pname AS 'Status', component.component AS 'Domain', (CASE WHEN ji_b.DUEDATE IS NULL THEN '' ELSE CONVERT(varchar, FORMAT(CONVERT(date, ji_b.DUEDATE), 'dd.MM.yyyy')) END) AS 'Due date', ji_b.CREATED AS 'Days in progress', ji_b.RESOLUTIONDATE AS 'Resolved'
 FROM [srv-jira-prod-report].[dbo].[jiraissue] AS ji_b
 	INNER JOIN [srv-jira-prod-report].[dbo].[project] AS prj_b ON prj_b.ID = ji_b.PROJECT
 	INNER JOIN [srv-jira-prod-report].[dbo].[issuetype] AS it_b ON it_b.ID = ji_b.issuetype

@@ -42,5 +42,5 @@ FROM [srv-jira-prod-report].[dbo].[changegroup] AS cg
 	INNER JOIN [srv-jira-prod-report].[dbo].[jiraissue] AS ji ON ji.ID = cg.issueid
 	INNER JOIN [srv-jira-prod-report].[dbo].[project] AS prj ON prj.ID = ji.PROJECT
 	INNER JOIN (SELECT * FROM tasks UNION SELECT * FROM subtasks) AS issues ON issues.ID = ji.ID
-WHERE ji.ID IN (SELECT [ID] FROM tasks UNION SELECT [ID] FROM subtasks) AND ci.FIELD = 'timespent' AND cg.CREATED BETWEEN '2019-02-18 00:00:00.000' AND GETDATE()
+WHERE ji.ID IN (SELECT [ID] FROM tasks UNION SELECT [ID] FROM subtasks) AND ci.FIELD = 'timespent'
 ORDER BY cg.CREATED
