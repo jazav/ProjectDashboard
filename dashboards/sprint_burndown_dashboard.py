@@ -165,56 +165,27 @@ class SprintBurndownDashboard(AbstractDashboard):
             y=0.97,
             xref='paper',
             yref='paper',
-            text='<b><i>Chart for all features</b></i>',
+            text='<b><i>Chart for committed features<br>Deadline 18.03.19</b></i>',
             showarrow=False,
             bordercolor='black',
             borderwidth=1,
             borderpad=3,
-            align='right'
+            align='center'
         ), dict(
             x=0.98,
             y=0.4,
             xref='paper',
             yref='paper',
-            text='<b><i>Chart for committed features</b></i>',
+            text='<b><i>Chart for all features<br>Deadline 29.03.19</b></i>',
             showarrow=False,
             bordercolor='black',
             borderwidth=1,
             borderpad=3,
-            align='right'
+            align='center'
         )]
 
         layout = go.Layout(
             annotations=annotations,
-            xaxis1=dict(
-                domain=[0, 1],
-                anchor='y1',
-                type='date',
-                dtick=86400000,
-                title='Date',
-                titlefont=dict(
-                    size=12
-                ),
-                tickfont=dict(
-                    size=16
-                ),
-                tickangle=45,
-                showline=True,
-                range=[start-datetime.timedelta(days=1), end+datetime.timedelta(days=1)]
-            ),
-            yaxis1=dict(
-                domain=[0.55, 1],
-                anchor='x1',
-                showline=True,
-                title='Man-days',
-                titlefont=dict(
-                    size=12
-                ),
-                tickfont=dict(
-                    size=16
-                ),
-                range=[0, max(self.all_remain.values()) + 100]
-            ),
             xaxis2=dict(
                 domain=[0, 1],
                 anchor='y2',
@@ -229,10 +200,10 @@ class SprintBurndownDashboard(AbstractDashboard):
                 ),
                 tickangle=45,
                 showline=True,
-                range=[start - datetime.timedelta(days=1), end - datetime.timedelta(days=10)]
+                range=[start-datetime.timedelta(days=1), end+datetime.timedelta(days=1)]
             ),
             yaxis2=dict(
-                domain=[0, 0.45],
+                domain=[0.55, 1],
                 anchor='x2',
                 showline=True,
                 title='Man-days',
@@ -243,6 +214,35 @@ class SprintBurndownDashboard(AbstractDashboard):
                     size=16
                 ),
                 range=[0, max(self.fl_all_remain.values()) + 100]
+            ),
+            xaxis1=dict(
+                domain=[0, 1],
+                anchor='y1',
+                type='date',
+                dtick=86400000,
+                title='Date',
+                titlefont=dict(
+                    size=12
+                ),
+                tickfont=dict(
+                    size=16
+                ),
+                tickangle=45,
+                showline=True,
+                range=[start - datetime.timedelta(days=1), end + datetime.timedelta(days=1)]
+            ),
+            yaxis1=dict(
+                domain=[0, 0.45],
+                anchor='x1',
+                showline=True,
+                title='Man-days',
+                titlefont=dict(
+                    size=12
+                ),
+                tickfont=dict(
+                    size=16
+                ),
+                range=[0, max(self.all_remain.values()) + 100]
             ),
             title=title + (' <sup>in cloud</sup>' if self.repository == 'online' else ''),
             legend=dict(
