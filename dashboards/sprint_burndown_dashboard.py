@@ -55,7 +55,7 @@ class SprintBurndownDashboard(AbstractDashboard):
         if len(self.all_spent.keys()) == 0:
             raise ValueError('There is no issues to show')
 
-        start, end = datetime.date(2019, 2, 18), datetime.date(2019, 3, 29)
+        start, end1, end2 = datetime.date(2019, 2, 18), datetime.date(2019, 3, 18), datetime.date(2019, 3, 29)
         data = [go.Scatter(
             x=list(self.all_spent.keys()),
             y=list(self.all_spent.values()),
@@ -93,7 +93,7 @@ class SprintBurndownDashboard(AbstractDashboard):
                 color='rgb(255,127,14)',
             )
         ), go.Scatter(
-            x=[start, end],
+            x=[start, end2],
             y=[max(self.all_remain.values()), 0],
             xaxis='x1',
             yaxis='y1',
@@ -103,6 +103,18 @@ class SprintBurndownDashboard(AbstractDashboard):
                 color='rgb(200,200,200)',
                 width=2,
                 dash='dash'),
+            showlegend=False
+        ), go.Scatter(
+            x=[end1, end1],
+            y=[0, max(self.all_remain.values()) + 100],
+            xaxis='x1',
+            yaxis='y1',
+            mode='lines',
+            line=dict(
+                color='rgb(255,153,153)',
+                width=2,
+                dash='dash'
+            ),
             showlegend=False
         ), go.Scatter(
             x=list(self.fl_all_spent.keys()),
@@ -143,7 +155,7 @@ class SprintBurndownDashboard(AbstractDashboard):
             ),
             showlegend=False
         ), go.Scatter(
-            x=[start, end-datetime.timedelta(days=11)],
+            x=[start, end1],
             y=[max(self.fl_all_remain.values()), 0],
             xaxis='x2',
             yaxis='y2',
@@ -153,6 +165,18 @@ class SprintBurndownDashboard(AbstractDashboard):
                 color='rgb(200,200,200)',
                 width=2,
                 dash='dash'),
+            showlegend=False
+        ), go.Scatter(
+            x=[end1, end1],
+            y=[0, max(self.fl_all_remain.values()) + 100],
+            xaxis='x2',
+            yaxis='y2',
+            mode='lines',
+            line=dict(
+                color='rgb(255,153,153)',
+                width=2,
+                dash='dash'
+            ),
             showlegend=False
         )]
 
@@ -200,7 +224,7 @@ class SprintBurndownDashboard(AbstractDashboard):
                 ),
                 tickangle=45,
                 showline=True,
-                range=[start-datetime.timedelta(days=1), end+datetime.timedelta(days=1)]
+                range=[start-datetime.timedelta(days=1), end2+datetime.timedelta(days=1)]
             ),
             yaxis2=dict(
                 domain=[0.55, 1],
@@ -229,7 +253,7 @@ class SprintBurndownDashboard(AbstractDashboard):
                 ),
                 tickangle=45,
                 showline=True,
-                range=[start - datetime.timedelta(days=1), end + datetime.timedelta(days=1)]
+                range=[start - datetime.timedelta(days=1), end2 + datetime.timedelta(days=1)]
             ),
             yaxis1=dict(
                 domain=[0, 0.45],

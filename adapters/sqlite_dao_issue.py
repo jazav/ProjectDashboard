@@ -119,7 +119,7 @@ class SqliteDaoIssue(DaoIssue):
                     handle.write(write_str)
             except:
                 logging.error("Unexpected error on key:", key, ' value:  ', value, ', error:', sys.exc_info()[0])
-        handle.close()
+        # handle.close()
         self.connection.commit()
 
     def get_sum_by_projects(self, project_filter, label_filter,fixversions_filter, group_by, sprint_filter):  # must return arrays
