@@ -1,5 +1,5 @@
 WITH user_stories AS (
-	SELECT us_ji.ID AS 'ID', CONCAT_WS('-', us_prj.pkey, us_ji.issuenum) AS 'Key', us_it.pname AS 'Issue type', bulks.TEXTVALUE AS 'Estimate', NULL AS 'Spent time', NULL AS 'Component', us_is.pname AS 'Status', NULL AS 'Feature', us_ji.SUMMARY AS 'Feature name', us_ji.ASSIGNEE AS 'FL'
+	SELECT flagged.flagged AS 'Flagged', us_ji.ID AS 'ID', CONCAT_WS('-', us_prj.pkey, us_ji.issuenum) AS 'Key', us_it.pname AS 'Issue type', bulks.TEXTVALUE AS 'Estimate', NULL AS 'Spent time', NULL AS 'Component', us_is.pname AS 'Status', NULL AS 'Feature', us_ji.SUMMARY AS 'Feature name', us_ji.ASSIGNEE AS 'FL'
 	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS us_ji
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuetype] AS us_it ON us_it.ID = us_ji.issuetype
 		INNER JOIN [srv-jira-prod-report].[dbo].[customfieldvalue] AS us_cfv ON us_cfv.ISSUE = us_ji.ID
@@ -10,9 +10,14 @@ WITH user_stories AS (
 			FROM [srv-jira-prod-report].[dbo].[customfieldvalue] AS usb_cfv
 				INNER JOIN [srv-jira-prod-report].[dbo].[customfield] AS usb_cf ON usb_cf.ID = usb_cfv.CUSTOMFIELD
 			WHERE usb_cf.cfname = 'Bulk Estimate') AS bulks ON bulks.ISSUE = us_ji.ID
+		LEFT JOIN (
+			SELECT fl_ji.ID AS 'ID', 'flagged' AS 'flagged'
+			FROM [srv-jira-prod-report].[dbo].[jiraissue] AS fl_ji
+				INNER JOIN [srv-jira-prod-report].[dbo].[customfieldvalue] AS fl_cfv ON fl_cfv.ISSUE = fl_ji.ID
+			WHERE fl_cfv.CUSTOMFIELD = '15101') AS flagged ON flagged.ID = us_ji.ID
 	WHERE us_prj.pname = 'BSSBOX' AND us_it.pname = 'User Story (L3)' AND us_cfv.STRINGVALUE = '6980' AND us_is.pname != 'Canceled'),
 epics AS (
-	SELECT e_ji.ID AS 'ID', epics_cmp.Component AS 'Component', user_stories.[Key] AS 'Feature', user_stories.[Feature name] AS 'Feature name', user_stories.FL AS 'FL'
+	SELECT user_stories.Flagged AS 'Flagged', e_ji.ID AS 'ID', epics_cmp.Component AS 'Component', user_stories.[Key] AS 'Feature', user_stories.[Feature name] AS 'Feature name', user_stories.FL AS 'FL'
 	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS e_ji
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuelink] AS e_il ON e_il.DESTINATION = e_ji.ID
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuelinktype] AS e_ilt ON e_ilt.ID = e_il.LINKTYPE
@@ -27,7 +32,7 @@ epics AS (
 		INNER JOIN user_stories ON user_stories.ID = e_il.SOURCE
 	WHERE e_ilt.LINKNAME = 'nexign_hierarchy_link' AND e_il.SOURCE IN (SELECT ID FROM user_stories)),
 tasks AS (
-	SELECT t_ji.ID AS 'ID', CONCAT_WS('-', t_prj.pkey, t_ji.issuenum) AS 'Key', t_it.pname AS 'Issue type',
+	SELECT epics.Flagged AS 'Flagged', t_ji.ID AS 'ID', CONCAT_WS('-', t_prj.pkey, t_ji.issuenum) AS 'Key', t_it.pname AS 'Issue type',
 		CAST((CASE WHEN t_ji.TIMEORIGINALESTIMATE IS NULL THEN 0 ELSE t_ji.TIMEORIGINALESTIMATE END) AS nvarchar(max)) AS 'Estimate',
 		CAST((CASE WHEN t_ji.TIMESPENT IS NULL THEN 0 ELSE t_ji.TIMESPENT END) AS nvarchar(max)) AS 'Spent time',
 		(CASE WHEN epics.Component IS NULL THEN '' ELSE epics.Component END) AS 'Component',
@@ -46,7 +51,7 @@ SELECT * FROM user_stories
 UNION ALL
 SELECT * FROM tasks
 UNION ALL
-SELECT st_ji.ID AS 'ID', CONCAT_WS('-', st_prj.pkey, st_ji.issuenum) AS 'Key', st_it.pname AS 'Issue type',
+SELECT tasks.Flagged AS 'Flagged', st_ji.ID AS 'ID', CONCAT_WS('-', st_prj.pkey, st_ji.issuenum) AS 'Key', st_it.pname AS 'Issue type',
 	CAST((CASE WHEN st_ji.TIMEORIGINALESTIMATE IS NULL THEN 0 ELSE st_ji.TIMEORIGINALESTIMATE END) AS nvarchar(max)) AS 'Estimate',
 	CAST((CASE WHEN st_ji.TIMESPENT IS NULL THEN 0 ELSE st_ji.TIMESPENT END) AS nvarchar(max)) AS 'Spent time' ,
 	(CASE WHEN tasks.Component IS NULL THEN '' ELSE tasks.Component END) AS 'Component',

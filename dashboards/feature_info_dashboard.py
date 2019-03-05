@@ -19,11 +19,13 @@ bulk_convert = {
 
 class FeatureInfoDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth = True, None, None
-    feature_dict, spent_dict, info = {}, {}, []
+    feature_dict, spent_dict, info, commited = {}, {}, [], []
 
     def prepare(self, data):
         for i in range(len(data['Key'])):
             if data['Issue type'][i] == 'User Story (L3)':
+                if data['Flagged'][i]:
+                    self.commited.append(data['Key'][i])
                 if data['Key'][i] not in self.feature_dict.keys():
                     self.feature_dict[data['Key'][i]] = {domain: 0 for domain in bulk_convert.values()
                                                          if domain != 'Others'}
@@ -63,9 +65,10 @@ class FeatureInfoDashboard(AbstractDashboard):
                     text=[dmn]*len(estimates.keys()),
                     textposition='inside',
                     marker=dict(
-                        color='rgb(255,255,255)',
+                        color=['rgb(255,245,245)' if ft in self.commited else 'rgb(250,250,250)' for ft in list(estimates.keys())],
                         opacity=0.5,
                         line=dict(
+                            color=['rgb(102,0,0)' if ft in self.commited else 'rgb(0,0,0)' for ft in list(estimates.keys())],
                             width=2
                         )
                     ),
@@ -82,11 +85,11 @@ class FeatureInfoDashboard(AbstractDashboard):
                     text='',
                     textposition='inside',
                     marker=dict(
-                        color='rgb(75,223,156)'
+                        color=['rgb(255,153,153)' if ft in self.commited else 'rgb(180,180,180)' for ft in list(spents.keys())]
                     ),
                     base=base,
-                    offset=-0.38,
-                    width=0.76
+                    offset=-0.39,
+                    width=0.78
                 ))
                 base = [bs + cnt for bs, cnt in zip(base, [est[dmn] for est in estimates.values()])]
 
@@ -114,7 +117,7 @@ class FeatureInfoDashboard(AbstractDashboard):
                 plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
             elif self.repository == 'online':
                 plotly.tools.set_credentials_file(username=self.plotly_auth[0], api_key=self.plotly_auth[1])
-                plotly.plotly.plot(fig, filename=title, fileopt='new', sharing='public', auto_open=False)
+                plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
 
     def export_to_plot(self):
         self.export_to_plotly()
