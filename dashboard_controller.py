@@ -20,6 +20,7 @@ from dashboards.sprint_info_dashboard import SprintInfoDashboard  # By @alanbryn
 from dashboards.feature_info_dashboard import FeatureInfoDashboard  # By @alanbryn
 from dashboards.iot_dashboard import IotDashboard  # By @alanbryn
 from dashboards.sprint_burndown_dashboard import SprintBurndownDashboard  # By @alanbryn
+from dashboards.domain_burndown_dashboard import DomainBurndownDashboard  # By @alanbryn
 from dashboards.issue_detail_dashboard import IssueDetailDashboard
 from dashboards.prepare_feature_data import *
 from data_controller import DataController
@@ -412,15 +413,16 @@ class DashboardController:
 
     # By @alanbryn
     @staticmethod
-    def dashboard_sprint_burndown(auto_open, repository, mssql_query_file, plotly_auth):
+    def dashboard_sprint_burndown(auto_open, repository, mssql_query_file, plotly_auth, dashboard_type):
         dc = DataController()
         data_spent = dc.get_issues_mssql(mssql_query_file=mssql_query_file[0])
         data_original = dc.get_issues_mssql(mssql_query_file=mssql_query_file[1])
 
-        dashboard = SprintBurndownDashboard()
-        dashboard.dashboard_name = 'Burndown for Super Sprint 8'
-        dashboard.auto_open = auto_open
-        dashboard.repository = repository
-        dashboard.plotly_auth = plotly_auth
-        dashboard.multi_prepare(data_spent=data_spent, data_original=data_original)
-        dashboard.export_to_plot()
+        for dt in dashboard_type:
+            dashboard = SprintBurndownDashboard() if dt == 'SPRINT' else DomainBurndownDashboard()
+            dashboard.dashboard_name = 'Burndown for Super Sprint 8'
+            dashboard.auto_open = auto_open
+            dashboard.repository = repository
+            dashboard.plotly_auth = plotly_auth
+            dashboard.multi_prepare(data_spent=data_spent, data_original=data_original)
+            dashboard.export_to_plot()

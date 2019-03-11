@@ -5,7 +5,7 @@ import os
 class MssqlAdapter:
     @staticmethod
     def get_issues_mssql(mssql_query_file):
-        mssql_database = pyodbc.connect("Driver={ODBC Driver 17 for SQL Server};"
+        mssql_database = pyodbc.connect("Driver={ODBC Driver 13 for SQL Server};"
                                         "Server=SRV-SQL-MIRROR\\JIRAREPORT;"
                                         "Database=srv-jira-prod-report;"
                                         "uid=uid;pwd=pwd")

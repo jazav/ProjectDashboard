@@ -2,11 +2,10 @@ from dashboards.dashboard import AbstractDashboard
 import plotly
 import plotly.graph_objs as go
 import datetime
-import math
 
 
 class SprintBurndownDashboard(AbstractDashboard):
-    auto_open, repository, plotly_auth = True, None, None
+    auto_open, repository, plotly_auth, dashboard_type = True, None, None, None
     all_spent, all_remain = {}, {}
     fl_all_spent, fl_all_remain = {}, {}
 
@@ -44,12 +43,11 @@ class SprintBurndownDashboard(AbstractDashboard):
             if dt not in fl_all_original.keys():
                 fl_all_original[dt] = fl_all_original[max([date for date in fl_all_original.keys() if date < dt])]
         self.all_remain = {dt: all_original[dt] - self.all_spent[dt] + float(sum(
-            [sp for sp, rd, cr in zip(data_spent['spent'], data_spent['resolutiondate'], data_spent['created'])
-             if rd is not None and rd < dt and cr > datetime.date(2019, 2, 17)])) for dt in self.all_spent.keys()}
-        self.fl_all_remain = {dt: fl_all_original[dt] - self.fl_all_spent[dt] + float(sum([sp for sp, rd, fl, cr in
-             zip(data_spent['spent'], data_spent['resolutiondate'], data_spent['flagged'], data_spent['created']) if
-             fl is not None and rd is not None and rd < dt and cr > datetime.date(2019, 2, 17)]))
-                              for dt in self.fl_all_spent.keys()}
+            [sp for sp, rd in zip(data_spent['spent'], data_spent['resolutiondate']) if rd is not None and rd < dt]))
+                           for dt in self.all_spent.keys()}
+        self.fl_all_remain = {dt: fl_all_original[dt] - self.fl_all_spent[dt] + float(sum(
+            [sp for sp, rd, fl in zip(data_spent['spent'], data_spent['resolutiondate'], data_spent['flagged']) if
+             fl is not None and rd is not None and rd < dt])) for dt in self.fl_all_spent.keys()}
 
     def export_to_plotly(self):
         if len(self.all_spent.keys()) == 0:
