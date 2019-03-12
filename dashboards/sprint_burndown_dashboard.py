@@ -10,32 +10,49 @@ class SprintBurndownDashboard(AbstractDashboard):
     fl_all_spent, fl_all_remain = {}, {}
 
     def multi_prepare(self, data_spent, data_original):
-        spent, all_original = float(sum([sp for dt, sp in zip(data_spent['created'], data_spent['spent'])
-                                         if dt < datetime.date(2019, 2, 18)])), {}
-        fl_spent, fl_all_original = float(sum([sp for dt, sp, fl in
-                                          zip(data_spent['created'], data_spent['spent'], data_spent['flagged'])
-                                               if dt < datetime.date(2019, 2, 18) and fl is not None])), {}
-        original = float(sum([orig for orig, st in zip(data_original['timeoriginalestimate'], data_original['status'])
-                              if st not in ('Closed', 'Resolved')]))
-        fl_original = float(sum([orig for orig, st, fl in zip(data_original['timeoriginalestimate'],
-                                                              data_original['status'], data_original['flagged'])
-                                 if st not in ('Closed', 'Resolved') and fl is not None]))
-
+        all_original, fl_all_original = {}, {}
+        spent, fl_spent = 0, 0
+        original, fl_original = 0, 0
+        for i in range(len(data_spent['key'])):
+            if data_spent['created'][i] < datetime.date(2019, 2, 18):
+                k = set()
+                for j in range(len(data_spent['key'])):
+                    if data_spent['key'][j] == data_spent['key'][i]:
+                        k.add(data_spent['component'][j])
+                if data_spent['flagged'][i] is not None:
+                    fl_spent += float(data_spent['spent'][i]) / len(k)
+                spent += float(data_spent['spent'][i]) / len(k)
+        for i in range(len(data_original['key'])):
+            if data_original['status'][i] not in ('Closed', 'Resolved'):
+                k = set()
+                for j in range(len(data_original['key'])):
+                    if data_original['key'][j] == data_original['key'][i]:
+                        k.add(data_original['component'][j])
+                if data_original['flagged'][i] is not None:
+                    fl_original += float(data_original['timeoriginalestimate'][i]) / len(k)
+                original += float(data_original['timeoriginalestimate'][i]) / len(k)
         for i in range(len(data_spent['key'])):
             if data_spent['created'][i] > datetime.date(2019, 2, 17):
+                k = set()
+                for j in range(len(data_spent['key'])):
+                    if data_spent['key'][j] == data_spent['key'][i]:
+                        k.add(data_spent['component'][j])
                 if data_spent['flagged'][i] is not None:
-                    fl_spent += float(data_spent['spent'][i])
+                    fl_spent += float(data_spent['spent'][i]) / len(k)
                     self.fl_all_spent[data_spent['created'][i]] = fl_spent
-                spent += float(data_spent['spent'][i])
+                spent += float(data_spent['spent'][i]) / len(k)
                 self.all_spent[data_spent['created'][i]] = spent
-        for resdate, origest, flagged in zip(data_original['resolutiondate'], data_original['timeoriginalestimate'],
-                                             data_original['flagged']):
-            if resdate is not None:
-                if flagged is not None:
-                    fl_original += float(origest)
-                    fl_all_original[resdate] = fl_original
-                original += float(origest)
-                all_original[resdate] = original
+        for i in range(len(data_original['key'])):
+            if data_original['resolutiondate'][i] is not None:
+                k = set()
+                for j in range(len(data_original['key'])):
+                    if data_original['key'][j] == data_original['key'][i]:
+                        k.add(data_original['component'][j])
+                if data_original['flagged'][i] is not None:
+                    fl_original += float(data_original['timeoriginalestimate'][i]) / len(k)
+                    fl_all_original[data_original['resolutiondate'][i]] = fl_original
+                original += float(data_original['timeoriginalestimate'][i]) / len(k)
+                all_original[data_original['resolutiondate'][i]] = original
         for dt in self.all_spent:
             if dt not in all_original.keys():
                 all_original[dt] = all_original[max([date for date in all_original.keys() if date < dt])]

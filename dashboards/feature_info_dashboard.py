@@ -2,7 +2,7 @@ from dashboards.dashboard import AbstractDashboard
 # import json
 import plotly
 import plotly.graph_objs as go
-import datetime
+from datetime import datetime
 from adapters.issue_utils import get_domain
 
 
@@ -19,7 +19,7 @@ bulk_convert = {
 
 class FeatureInfoDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth = True, None, None
-    feature_dict, spent_dict, info, commited, wrong_estimates = {}, {}, [], [], {}
+    feature_dict, spent_dict, info, commited, wrong_estimates, due_dates = {}, {}, [], [], {}, {}
 
     def prepare(self, data):
         for i in range(len(data['Key'])):
@@ -31,7 +31,10 @@ class FeatureInfoDashboard(AbstractDashboard):
                                                          if domain != 'Others'}
                     self.spent_dict[data['Key'][i]] = {domain: 0 for domain in bulk_convert.values()
                                                        if domain != 'Others'}
-                    self.info.append(' ({})<br>{}<br>Due date: {}'.format(data['FL'][i], data['Feature name'][i], data['Due date'][i]))
+                    self.info.append(' ({})<br>{}<br>Due date: {}<br>Status: {}, '
+                                     .format(data['FL'][i], data['Feature name'][i],
+                                             data['Due date'][i], data['Status'][i]))
+                    self.due_dates[data['Key'][i]] = {domain: '' for domain in bulk_convert.values() if domain != 'Others'}
                 # d = json.loads(data['Estimate'][i]) if data['Estimate'][i] is not None else {}
                 # for domain in [key for key in d.keys() if not key.isdigit() and key != 'Total']:
                 #     if bulk_convert[domain] != 'Others':
@@ -40,29 +43,39 @@ class FeatureInfoDashboard(AbstractDashboard):
                 if get_domain(data['Component'][i]) not in ('Empty', 'Others'):
                     self.spent_dict[data['Feature'][i]][get_domain(data['Component'][i])] += float(data['Spent time'][i]) / 28800
                     self.feature_dict[data['Feature'][i]][get_domain(data['Component'][i])] += float(data['Original estimate'][i]) / 28800
+                    self.due_dates[data['Feature'][i]][get_domain(data['Component'][i])] = ': {}'.format(
+                        datetime.strptime(data['Due date'][i], '%d.%m.%Y').strftime('%d.%m'))\
+                        if data['Due date'][i] is not None else ''
         for ft, bulk in self.feature_dict.items():
             self.wrong_estimates[ft] = []
             for dmn in bulk.keys():
                 if bulk[dmn] < self.spent_dict[ft][dmn]:
                     self.feature_dict[ft][dmn] = self.spent_dict[ft][dmn]
                     self.wrong_estimates[ft].append(dmn)
-        fd, pt, sd, info = {}, 1, {}, {}
-        for ft, est, spent, inf in zip(self.feature_dict.keys(), self.feature_dict.values(),
-                                       self.spent_dict.values(), self.info):
+        for est, sp, i in zip(self.feature_dict.values(), self.spent_dict.values(), range(len(self.info))):
+            try:
+                self.info[i] += 'Readiness: {}%'.format(round(sum(sp.values()) / sum(est.values()) * 100))
+            except ZeroDivisionError:
+                self.info[i] += 'Readiness: 0%'
+        fd, pt, sd, info, dd = {}, 1, {}, {}, {}
+        for ft, est, spent, inf, d in zip(self.feature_dict.keys(), self.feature_dict.values(),
+                                          self.spent_dict.values(), self.info, self.due_dates.values()):
             if 'part{}'.format(pt) not in fd.keys():
-                fd['part{}'.format(pt)], sd['part{}'.format(pt)], info['part{}'.format(pt)] = {}, {}, []
-            fd['part{}'.format(pt)][ft], sd['part{}'.format(pt)][ft] = est, spent
+                fd['part{}'.format(pt)], sd['part{}'.format(pt)], info['part{}'.format(pt)], dd['part{}'.format(pt)]\
+                    = {}, {}, [], {}
+            fd['part{}'.format(pt)][ft], sd['part{}'.format(pt)][ft], dd['part{}'.format(pt)][ft] = est, spent, d
             info['part{}'.format(pt)].append(inf)
             if len(fd['part{}'.format(pt)].keys()) > 10:
                 pt += 1
-        self.feature_dict, self.spent_dict, self.info = fd, sd, info
+        self.feature_dict, self.spent_dict, self.info, self.due_dates = fd, sd, info, dd
 
     def export_to_plotly(self):
         if len(self.feature_dict.keys()) == 0:
             raise ValueError('There is no issues to show')
 
-        for pt, estimates, spents, info in zip(self.feature_dict.keys(), self.feature_dict.values(),
-                                               self.spent_dict.values(), self.info.values()):
+        for pt, estimates, spents, info, dd in zip(self.feature_dict.keys(), self.feature_dict.values(),
+                                                   self.spent_dict.values(), self.info.values(), self.due_dates.values()):
+            print(dd)
             data, base = [], [0]*len(spents.keys())
             for dmn in estimates[list(estimates.keys())[0]].keys():
                 spent_color = []
@@ -79,7 +92,8 @@ class FeatureInfoDashboard(AbstractDashboard):
                     x=[est[dmn] for est in estimates.values()],
                     name=dmn,
                     showlegend=False,
-                    text=[dmn]*len(estimates.keys()),
+                    # text=[dmn]*len(estimates.keys()),
+                    text=[dmn + d[dmn] for d in dd.values()],
                     textposition='inside',
                     marker=dict(
                         color=['rgb(245,255,245)' if ft in self.commited else 'rgb(250,250,250)' for ft in list(estimates.keys())],
@@ -117,7 +131,7 @@ class FeatureInfoDashboard(AbstractDashboard):
             for el in ['<a href="https://jira.billing.ru/browse/{0}">{0}</a>{1}'.format(key, inf) for key, inf in zip(list(estimates.keys()), info)]:
                 print(el)
             layout = dict(
-                title='<b>{0} as of {1}</b>'.format(title, datetime.datetime.now().strftime("%d.%m.%y %H:%M"))
+                title='<b>{0} as of {1}</b>'.format(title, datetime.now().strftime("%d.%m.%y %H:%M"))
                       + (' <sup>in cloud</sup>' if self.repository == 'online' else ''),
                 yaxis=dict(
                     automargin=True,
@@ -134,7 +148,7 @@ class FeatureInfoDashboard(AbstractDashboard):
                 plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
             elif self.repository == 'online':
                 plotly.tools.set_credentials_file(username=self.plotly_auth[0], api_key=self.plotly_auth[1])
-                plotly.plotly.plot(fig, filename=title, fileopt='new', sharing='public', auto_open=False)
+                plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
 
     def export_to_plot(self):
         self.export_to_plotly()
