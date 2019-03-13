@@ -139,7 +139,8 @@ class FeatureInfoDashboard(AbstractDashboard):
                     ticktext=['<a href="https://jira.billing.ru/browse/{0}">{0}</a>{1}'.format(key, inf) for key, inf in zip(list(estimates.keys()), info)],
                     ticks='outside',
                     ticklen=10,
-                    tickcolor='rgba(0,0,0,0)'
+                    tickcolor='rgba(0,0,0,0)',
+                    tickfont=dict(size=10)
                 )
             )
 

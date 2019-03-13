@@ -43,7 +43,7 @@ def deadline(fromdate, days):
 
 class BssboxBugsTrackingDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth = True, None, None
-    tracking_data, pivot_data, all_bugs, overdue_data, created_dict = {}, {}, {}, {}, []
+    tracking_data, pivot_data, all_bugs, overdue_data, created_dict, old_dict = {}, {}, {}, {}, [], []
     jql_all = 'https://jira.billing.ru/issues/?jql=key in ('
 
     def prepare(self, data):
@@ -59,6 +59,8 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
         self.created_dict = created
         for i in range(len(data['Key'])):
             data['Domain'][i] = get_domain(data['Domain'][i]) if data['Domain'][i] is not None else 'Empty'
+            if data['Days in progress'][i] < datetime.datetime(2019, 1, 28):
+                self.old_dict.append(data['Key'][i])
             data['Days in progress'][i] =\
                 workdays(data['Days in progress'][i], datetime.datetime.now())\
                 if data['Status'][i] not in ('Closed', 'Resolved')\

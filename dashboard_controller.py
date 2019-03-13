@@ -1,6 +1,7 @@
 import logging
 from os import path
 from threading import Timer
+import datetime
 
 import adapters.issue_utils as iu
 import config_controller
@@ -415,8 +416,12 @@ class DashboardController:
     @staticmethod
     def dashboard_sprint_burndown(auto_open, repository, mssql_query_file, plotly_auth, dashboard_type):
         dc = DataController()
+        start = datetime.datetime.now()
+        print(start)
         data_spent = dc.get_issues_mssql(mssql_query_file=mssql_query_file[0])
+        print(datetime.datetime.now() - start)
         data_original = dc.get_issues_mssql(mssql_query_file=mssql_query_file[1])
+        print(datetime.datetime.now() - start)
 
         for dt in dashboard_type:
             dashboard = SprintBurndownDashboard() if dt == 'SPRINT' else DomainBurndownDashboard()
