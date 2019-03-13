@@ -175,7 +175,7 @@ class DomainBurndownDashboard(AbstractDashboard):
                 plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
             elif self.repository == 'online':
                 plotly.tools.set_credentials_file(username=self.plotly_auth[0], api_key=self.plotly_auth[1])
-                plotly.plotly.plot(fig, filename=title, fileopt='new', sharing='public', auto_open=False)
+                plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
 
 
     def export_to_plot(self):
