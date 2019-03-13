@@ -6,23 +6,25 @@ import plotly
 import plotly.graph_objs as go
 
 
-def alert_action(days, priorities):
+def alert_action(keys, days, priorities, olds):
     color = [[]]
-    for day, priority in zip(days, priorities):
-        if priority == 'Blocker':
+    for key, day, priority in zip(keys, days, priorities):
+        if priority == 'Blocker' and key not in olds:
             if day > 0:
                 color[0].append('rgb(255,204,204)')
             elif day > 2:
                 color[0].append('rgb(255,102,102)')
             else:
                 color[0].append('rgb(255,255,255)')
-        elif priority == 'Critical':
+        elif priority == 'Critical' and key not in olds:
             if day > 1:
                 color[0].append('rgb(255,204,204)')
             elif day > 3:
                 color[0].append('rgb(255,102,102)')
             else:
                 color[0].append('rgb(255,255,255)')
+        else:
+            color[0].append('rgb(255,255,255)')
     return color
 
 
@@ -43,7 +45,7 @@ def deadline(fromdate, days):
 
 class BssboxBugsTrackingDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth = True, None, None
-    tracking_data, pivot_data, all_bugs, overdue_data, created_dict, old_dict = {}, {}, {}, {}, [], []
+    tracking_data, pivot_data, all_bugs, overdue_data, created_dict, old_list = {}, {}, {}, {}, [], []
     jql_all = 'https://jira.billing.ru/issues/?jql=key in ('
 
     def prepare(self, data):
@@ -60,7 +62,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
         for i in range(len(data['Key'])):
             data['Domain'][i] = get_domain(data['Domain'][i]) if data['Domain'][i] is not None else 'Empty'
             if data['Days in progress'][i] < datetime.datetime(2019, 1, 28):
-                self.old_dict.append(data['Key'][i])
+                self.old_list.append(data['Key'][i])
             data['Days in progress'][i] =\
                 workdays(data['Days in progress'][i], datetime.datetime.now())\
                 if data['Status'][i] not in ('Closed', 'Resolved')\
@@ -72,7 +74,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                 self.pivot_data[data['Domain'][i]] = {'On track': 0, 'Overdue': 0}
                 self.overdue_data[data['Domain'][i]] = 'https://jira.billing.ru/issues/?jql=key in ('
             if data['Priority'][i] == 'Blocker':
-                if data['Days in progress'][i] > 0:
+                if data['Days in progress'][i] > 0 and data['Key'][i] not in self.old_list:
                     self.pivot_data[data['Domain'][i]]['Overdue'] += 1
                     self.all_bugs['BSSBox']['Overdue'] += 1
                     self.overdue_data[data['Domain'][i]] += '{}, '.format(data['Key'][i])
@@ -81,7 +83,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                     self.pivot_data[data['Domain'][i]]['On track'] += 1
                     self.all_bugs['BSSBox']['On track'] += 1
             elif data['Priority'][i] == 'Critical':
-                if data['Days in progress'][i] > 1:
+                if data['Days in progress'][i] > 1 and data['Key'][i] not in self.old_list:
                     self.pivot_data[data['Domain'][i]]['Overdue'] += 1
                     self.all_bugs['BSSBox']['Overdue'] += 1
                     self.overdue_data[data['Domain'][i]] += '{}, '.format(data['Key'][i])
@@ -118,8 +120,8 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
             cells=dict(
                 values=cells_values,
                 align=['center', 'left', 'center', 'center', 'center', 'center', 'center'],
-                fill=dict(color=alert_action(days=self.tracking_data['Days in progress'],
-                                             priorities=self.tracking_data['Priority'])),
+                fill=dict(color=alert_action(keys=self.tracking_data['Key'], days=self.tracking_data['Days in progress'],
+                                             priorities=self.tracking_data['Priority'], olds=self.old_list)),
                 height=25,
                 line=dict(width=2)
             )
@@ -133,7 +135,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
             showlegend=False,
             text=list(map(lambda el: 'On track: <b>{}</b> '.format(el),
                           [value['On track'] for value in self.pivot_data.values()])),
-            textposition='auto',
+            textposition='inside',
             marker=dict(
                 color='rgb(163,204,163)',
                 line=dict(
@@ -151,7 +153,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
             showlegend=False,
             text=list(map(lambda el, link: '<a href = "{}">Overdue: <b>{}</b> </a>'.format(link, el),
                           [value['Overdue'] for value in self.pivot_data.values()], self.overdue_data.values())),
-            textposition='auto',
+            textposition='inside',
             marker=dict(
                 color='rgb(255,204,204)',
                 line=dict(
@@ -169,7 +171,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
             showlegend=False,
             text=list(map(lambda el: 'On track: <b>{}</b> '.format(el),
                           [value['On track'] for value in self.all_bugs.values()])),
-            textposition='auto',
+            textposition='inside',
             marker=dict(
                 color='rgb(163,204,163)',
                 line=dict(
@@ -187,7 +189,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
             showlegend=False,
             text=list(map(lambda el: '<a href = "{}">Overdue: <b>{}</b> </a>'.format(self.jql_all, el),
                           [value['Overdue'] for value in self.all_bugs.values()])),
-            textposition='auto',
+            textposition='inside',
             marker=dict(
                 color='rgb(255,204,204)',
                 line=dict(
