@@ -22,7 +22,7 @@ epics AS (
 	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS e_ji
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuelink] AS e_il ON e_il.DESTINATION = e_ji.ID
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuelinktype] AS e_ilt ON e_ilt.ID = e_il.LINKTYPE
-		FULL JOIN (
+		LEFT JOIN (
 			SELECT ec_ji.ID AS 'ID', ec_cmp.cname AS 'Component'
 			FROM [srv-jira-prod-report].[dbo].[jiraissue] AS ec_ji
 				INNER JOIN [srv-jira-prod-report].[dbo].[issuelink] AS ec_il ON ec_il.DESTINATION = ec_ji.ID

@@ -3,6 +3,8 @@ import plotly
 import plotly.graph_objs as go
 import datetime
 from adapters.issue_utils import get_domain
+import math
+from plotly import tools
 
 
 class DomainBurndownDashboard(AbstractDashboard):
@@ -28,9 +30,8 @@ class DomainBurndownDashboard(AbstractDashboard):
                 if data_spent['flagged'][i] is not None:
                     if data_spent['component'][i] not in fl_spent.keys():
                         fl_spent[data_spent['component'][i]] = 0
-        for i in range(len(data_original)):
+        for i in range(len(data_original['key'])):
             data_original['component'][i] = get_domain(data_original['component'][i])
-            print(data_original['component'][i])
             if data_original['status'][i] not in ('Closed', 'Resolved'):
                 if data_original['component'][i] not in original.keys():
                     original[data_original['component'][i]] = 0
@@ -68,19 +69,29 @@ class DomainBurndownDashboard(AbstractDashboard):
                 original[data_original['component'][i]] += float(data_original['timeoriginalestimate'][i])
                 all_original[data_original['component'][i]][data_original['resolutiondate'][i]] = original[data_original['component'][i]]
         for dmn, spents in self.all_spent['flagged'].items():
+            if dmn not in fl_all_original.keys():
+                fl_all_original[dmn] = {dt: 0 for dt in spents.keys()}
             for dt in spents.keys():
                 if dt not in fl_all_original[dmn].keys():
-                    fl_all_original[dmn][dt] = fl_all_original[dmn][max([date for date in fl_all_original[dmn].keys() if date < dt])]
+                    try:
+                        fl_all_original[dmn][dt] = fl_all_original[dmn][max([date for date in fl_all_original[dmn].keys() if date < dt])]
+                    except ValueError:
+                        fl_all_original[dmn][dt] = fl_all_original[dmn][list(fl_all_original[dmn].keys())[0]]
         for dmn, spents in self.all_spent['all'].items():
+            if dmn not in all_original.keys():
+                all_original[dmn] = {dt: 0 for dt in spents.keys()}
             for dt in spents.keys():
                 if dt not in all_original[dmn].keys():
-                    all_original[dmn][dt] = all_original[dmn][max([date for date in all_original[dmn].keys() if date < dt])]
+                    try:
+                        all_original[dmn][dt] = all_original[dmn][max([date for date in all_original[dmn].keys() if date < dt])]
+                    except ValueError:
+                        all_original[dmn][dt] = all_original[dmn][list(all_original[dmn].keys())[0]]
         for dmn in self.all_spent['flagged'].keys():
             self.all_remain['flagged'][dmn] = {dt: fl_all_original[dmn][dt] - self.all_spent['flagged'][dmn][dt]
                                                + float(sum([sp for sp, rd, domain in zip(data_spent['spent'], data_spent['resolutiondate'], data_spent['component'])
                                                             if domain == dmn and rd is not None and rd < dt])) for dt in self.all_spent['flagged'][dmn].keys()}
         for dmn in self.all_spent['all'].keys():
-            self.all_remain['all'][dmn] = {dt: all_original[dmn][dt] - self.all_spent['all']
+            self.all_remain['all'][dmn] = {dt: all_original[dmn][dt] - self.all_spent['all'][dmn][dt]
                                            + float(sum([sp for sp, rd, domain, fl in zip(data_spent['spent'], data_spent['resolutiondate'], data_spent['component'], data_spent['flagged'])
                                                         if fl is not None and domain == dmn and rd is not None and rd < dt])) for dt in self.all_spent['all'][dmn].keys()}
         for fl, data_spent, data_remain in zip(self.all_spent.keys(), self.all_spent.values(), self.all_remain.values()):
@@ -91,7 +102,67 @@ class DomainBurndownDashboard(AbstractDashboard):
                     print('        {}: {} (spent), {} (remain)'.format(dt, sp, rm))
 
     def export_to_plotly(self):
-        pass
+        for fl, spents, remains in zip(self.all_spent.keys(), self.all_spent.values(), self.all_remain.values()):
+            trace_dict = {dmn: [] for dmn in spents.keys()}
+            for dmn in spents.keys():
+                trace_dict[dmn].append(go.Scatter(
+                    x=list(spents[dmn].keys()),
+                    y=list(spents[dmn].values()),
+                    name='Spent',
+                    mode='lines+markers',
+                    line=dict(
+                        width=2,
+                        color='rgb(31,119,180)',
+                    ),
+                    marker=dict(
+                        size=5,
+                        color='rgb(31,119,180)',
+                    ),
+                    showlegend=True if dmn == list(spents.keys())[0] else False
+                ))
+                trace_dict[dmn].append(go.Scatter(
+                    x=list(remains[dmn].keys()),
+                    y=list(remains[dmn].values()),
+                    name='Remain',
+                    mode='lines+markers',
+                    line=dict(
+                        width=2,
+                        color='rgb(255,127,14)',
+                    ),
+                    marker=dict(
+                        size=5,
+                        color='rgb(255,127,14)',
+                    ),
+                    showlegend=True if dmn == list(spents.keys())[0] else False
+                ))
+            cols = math.ceil(len(spents.keys()) / 2)
+            fig = tools.make_subplots(rows=2, cols=cols, subplot_titles=list(spents.keys()))
+            for traces, i in zip(trace_dict.values(), range(len(trace_dict.keys()))):
+                row, col = int(i // cols + 1), int(i % cols + 1)
+                for trace in traces:
+                    fig.append_trace(trace, row, col)
+                xaxis, yaxis = 'xaxis{}'.format(i + 1), 'yaxis{}'.format(i + 1)
+                fig["layout"][xaxis].update(
+                    type='date',
+                    dtick=86400000,
+                    showline=True
+                )
+                fig["layout"][yaxis].update(
+                    showline=True
+                )
+
+            title = '{} for domains ({})'.format(self.dashboard_name, fl)
+            # html_file = self.png_dir + "{0}.html".format(title)
+            html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
+
+            fig["layout"].update(title='<b>{0} as of {1}</b>'.format(title, datetime.datetime.now().strftime("%d.%m.%y %H:%M"))
+                                       + (' <sup>in cloud</sup>' if self.repository == 'online' else ''))
+            if self.repository == 'offline':
+                plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
+            elif self.repository == 'online':
+                plotly.tools.set_credentials_file(username=self.plotly_auth[0], api_key=self.plotly_auth[1])
+                plotly.plotly.plot(fig, filename=title, fileopt='new', sharing='public', auto_open=False)
+
 
     def export_to_plot(self):
         self.export_to_plotly()
