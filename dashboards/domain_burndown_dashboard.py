@@ -103,6 +103,7 @@ class DomainBurndownDashboard(AbstractDashboard):
 
     def export_to_plotly(self):
         for fl, spents, remains in zip(self.all_spent.keys(), self.all_spent.values(), self.all_remain.values()):
+            end = datetime.date(2019, 3, 18) if fl == 'flagged' else datetime.date(2019, 3, 29)
             trace_dict = {dmn: [] for dmn in spents.keys()}
             for dmn in spents.keys():
                 trace_dict[dmn].append(go.Scatter(
@@ -115,7 +116,7 @@ class DomainBurndownDashboard(AbstractDashboard):
                         color='rgb(31,119,180)',
                     ),
                     marker=dict(
-                        size=5,
+                        size=3,
                         color='rgb(31,119,180)',
                     ),
                     showlegend=True if dmn == list(spents.keys())[0] else False
@@ -130,14 +131,25 @@ class DomainBurndownDashboard(AbstractDashboard):
                         color='rgb(255,127,14)',
                     ),
                     marker=dict(
-                        size=5,
+                        size=3,
                         color='rgb(255,127,14)',
                     ),
                     showlegend=True if dmn == list(spents.keys())[0] else False
                 ))
+                trace_dict[dmn].append(go.Scatter(
+                    x=[min(remains[dmn].keys()), end],
+                    y=[max([math.fabs(rmn) for rmn in remains[dmn].values()]), 0],
+                    name='',
+                    mode='lines',
+                    line=dict(
+                        color='rgb(200,200,200)',
+                        width=2,
+                        dash='dash'),
+                    showlegend=False
+                ))
             cols = math.ceil(len(spents.keys()) / 2)
             fig = tools.make_subplots(rows=2, cols=cols, subplot_titles=list(spents.keys()))
-            for traces, i in zip(trace_dict.values(), range(len(trace_dict.keys()))):
+            for traces, i, dmn in zip(trace_dict.values(), range(len(trace_dict.keys())), trace_dict.keys()):
                 row, col = int(i // cols + 1), int(i % cols + 1)
                 for trace in traces:
                     fig.append_trace(trace, row, col)
@@ -145,10 +157,12 @@ class DomainBurndownDashboard(AbstractDashboard):
                 fig["layout"][xaxis].update(
                     type='date',
                     dtick=86400000,
-                    showline=True
+                    showline=True,
+                    showticklabels=False
                 )
                 fig["layout"][yaxis].update(
-                    showline=True
+                    showline=True,
+                    # range=[0, max([math.fabs(rmn) for rmn in remains[dmn].values()]) + 10]
                 )
 
             title = '{} for domains ({})'.format(self.dashboard_name, fl)
