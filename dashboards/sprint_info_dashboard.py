@@ -4,6 +4,7 @@ import json
 import plotly
 import plotly.graph_objs as go
 import datetime
+from plotly import tools
 
 
 def bulk_convert(domain):
@@ -52,9 +53,9 @@ class SprintInfoDashboard(AbstractDashboard):
         if len(self.est_dict.keys()) == 0:
             raise ValueError('There is no issues to show')
 
-        data = []
+        data_est, data_st = [], []
         for est in self.est_dict[list(self.est_dict.keys())[0]].keys():
-            data.append(go.Bar(
+            data_est.append(go.Bar(
                 x=[key for key in self.est_dict.keys() if key != 'Others'],
                 y=[e[est] for key, e in self.est_dict.items() if key != 'Others'],
                 xaxis='x1',
@@ -72,7 +73,7 @@ class SprintInfoDashboard(AbstractDashboard):
             ))
         base = [0]*len([key for key in self.st_dict.keys() if key != 'Others'])
         for st in self.st_dict[list(self.st_dict.keys())[0]].keys():
-            data.append(go.Bar(
+            data_st.append(go.Bar(
                 x=[key for key in self.st_dict.keys() if key != 'Others'],
                 y=[s[st] for key, s in self.st_dict.items() if key != 'Others'],
                 xaxis='x2',
@@ -94,43 +95,24 @@ class SprintInfoDashboard(AbstractDashboard):
             base = [bs + cnt for bs, cnt in
                     zip(base, [counts[st] for key, counts in list(self.st_dict.items()) if key != 'Others'])]
 
+        fig = tools.make_subplots(rows=2, cols=1, vertical_spacing=0.07,
+                                  subplot_titles=('<b><i>Ratio of high level estimates, original estimates and spent time</i></b>',
+                                                  '<b><i>Progress of development work</i></b>'))
+        for trace_est, trace_st in zip(data_est, data_st):
+            fig.append_trace(trace_est, 1, 1)
+            fig.append_trace(trace_st, 2, 1)
+
         title = self.dashboard_name
         # html_file = self.png_dir + "{0}.html".format(title)
         html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 
-        annotations = [dict(
-            x=0.5,
-            y=0.98,
-            xref='paper',
-            yref='paper',
-            showarrow=False,
-            text='<b><i>Ratio of high level estimates, original estimates and spent time</i></b>',
-            align='center',
-            font=dict(size=14)
-        ), dict(
-            x=0.5,
-            y=0.47,
-            xref='paper',
-            yref='paper',
-            showarrow=False,
-            text='<b><i>Progress of development work</i></b>',
-            align='center',
-            font=dict(size=14)
-        )]
+        fig['layout'].update(title='<b>{0} as of {1}</b>'.format(self.dashboard_name, datetime.datetime.now().strftime("%d.%m.%y %H:%M"))
+                                   + (' <sup>in cloud</sup>' if self.repository == 'online' else ''), legend=dict(y=0.5))
+        fig['layout']['xaxis1'].update(anchor='y1', showgrid=True)
+        fig['layout']['yaxis1'].update(anchor='x1', showline=True, title='Man-days')
+        fig['layout']['xaxis2'].update(anchor='y2', showgrid=True)
+        fig['layout']['yaxis2'].update(anchor='x2', showline=True, title='Count of tasks and sub-tasks')
 
-        axis = dict()
-        layout = dict(
-            title='<b>{0} as of {1}</b>'.format(self.dashboard_name, datetime.datetime.now().strftime("%d.%m.%y %H:%M"))
-                  + (' <sup>in cloud</sup>' if self.repository == 'online' else ''),
-            xaxis1=dict(axis, **dict(domain=[0, 1], anchor='y1', showgrid=True)),
-            yaxis1=dict(axis, **dict(domain=[0.51, 1], anchor='x1', showline=True, title='Man-days')),
-            xaxis2=dict(axis, **dict(domain=[0, 1], anchor='y2', showgrid=True)),
-            yaxis2=dict(axis, **dict(domain=[0, 0.49], anchor='x2', showline=True, title='Count of tasks and sub-tasks')),
-            legend=dict(y=0.5),
-            annotations=annotations
-        )
-
-        fig = go.Figure(data=data, layout=layout)
         if self.repository == 'offline':
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
         elif self.repository == 'online':
