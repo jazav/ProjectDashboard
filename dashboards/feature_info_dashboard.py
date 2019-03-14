@@ -4,6 +4,7 @@ import plotly
 import plotly.graph_objs as go
 from datetime import datetime
 from adapters.issue_utils import get_domain
+from collections import OrderedDict
 
 
 bulk_convert = {
@@ -52,11 +53,15 @@ class FeatureInfoDashboard(AbstractDashboard):
                 if bulk[dmn] < self.spent_dict[ft][dmn]:
                     self.feature_dict[ft][dmn] = self.spent_dict[ft][dmn]
                     self.wrong_estimates[ft].append(dmn)
-        for ft, est, sp, i in zip(self.feature_dict.keys(), self.feature_dict.values(), self.spent_dict.values(), range(len(self.info))):
-            try:
-                self.info[i] += 'Readiness: {}%'.format(round(sum(sp.values()) / sum(est.values()) * 100))
-            except ZeroDivisionError:
-                self.info[i] += 'Readiness: 0%'
+        for ft, est, sp, i, st in zip(self.feature_dict.keys(), self.feature_dict.values(), self.spent_dict.values(), range(len(self.info)),
+                                      [st for st, it in zip(data['Status'], data['Issue type']) if it == 'User Story (L3)']):
+            if st != 'Closed':
+                try:
+                    self.info[i] += 'Readiness: {}%'.format(round(sum(sp.values()) / sum(est.values()) * 100))
+                except ZeroDivisionError:
+                    self.info[i] += 'Readiness: 0%'
+            else:
+                self.info[i] += 'Readiness: 100%'
             for dmn, e, s in zip(est.keys(), est.values(), sp.values()):
                 try:
                     self.readiness_dict[ft][dmn] = round((s / e), 1)
@@ -65,13 +70,12 @@ class FeatureInfoDashboard(AbstractDashboard):
         fd, pt, sd, info, dd, rd = {}, 1, {}, {}, {}, {}
         for ft, est, spent, inf, d, ready in zip(self.feature_dict.keys(), self.feature_dict.values(), self.spent_dict.values(),
                                                  self.info, self.due_dates.values(), self.readiness_dict.values()):
-            if 'part{}'.format(pt) not in fd.keys():
-                fd['part{}'.format(pt)], sd['part{}'.format(pt)], info['part{}'.format(pt)],\
-                    dd['part{}'.format(pt)], rd['part{}'.format(pt)] = {}, {}, [], {}, {}
-            fd['part{}'.format(pt)][ft], sd['part{}'.format(pt)][ft], dd['part{}'.format(pt)][ft],\
-                rd['part{}'.format(pt)][ft] = est, spent, d, ready
-            info['part{}'.format(pt)].append(inf)
-            if len(fd['part{}'.format(pt)].keys()) > 10:
+            part = 'part{}'.format(pt)
+            if part not in fd.keys():
+                fd[part], sd[part], info[part], dd[part], rd[part] = {}, {}, [], {}, {}
+            fd[part][ft], sd[part][ft], dd[part][ft], rd[part][ft] = est, spent, d, ready
+            info[part].append(inf)
+            if len(fd[part].keys()) > 8:
                 pt += 1
         self.feature_dict, self.spent_dict, self.info, self.due_dates, self.readiness_dict = fd, sd, info, dd, rd
 
@@ -82,8 +86,12 @@ class FeatureInfoDashboard(AbstractDashboard):
         for pt, estimates, spents, info, dd, readiness in zip(self.feature_dict.keys(), self.feature_dict.values(),
                                                               self.spent_dict.values(), self.info.values(),
                                                               self.due_dates.values(), self.readiness_dict.values()):
-            print(len(readiness.keys()))
-            print(len(dd.keys()))
+            estimates = {key: value for key, value in zip(reversed(list(estimates.keys())), reversed(list(estimates.values())))}
+            spents = {key: value for key, value in zip(reversed(list(spents.keys())), reversed(list(spents.values())))}
+            info = list(reversed(info))
+            dd = {key: value for key, value in zip(reversed(list(dd.keys())), reversed(list(dd.values())))}
+            readiness = {key: value for key, value in zip(reversed(list(readiness.keys())), reversed(list(readiness.values())))}
+            print(info)
             data, base = [], [0]*len(spents.keys())
             for dmn in estimates[list(estimates.keys())[0]].keys():
                 spent_color, due_color = [], []
