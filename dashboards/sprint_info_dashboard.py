@@ -9,12 +9,12 @@ from plotly import tools
 
 def bulk_convert(domain):
     return {
-        'Common': 'Others', 'Infra': 'Infra', 'Billing': 'Billing', 'Business Analysis': 'BA',
+        'Common': 'Common', 'Infra': 'Infra', 'Billing': 'Billing', 'Business Analysis': 'BA',
         'CRM (Customer Relationship Management)': 'CRM', 'Charge Events Storage': 'Billing',
         'Order Management': 'Ordering', 'Design': 'Design', 'DevOps': 'DevOps', 'DFE (Digital Frontend)': 'DFE',
         'Digital API': 'DFE', 'Documentation': 'Doc', 'Dunning and Collection': 'Billing',
         'Logical Resource Inventory': 'PSC', 'Network Monetization': 'NWM', 'Partner Management': 'PRM',
-        'Payment Management': 'Billing', 'Performance Testing': 'Others', 'Product Management': 'PSC', 'QC': 'Others',
+        'Payment Management': 'Billing', 'Performance Testing': 'Common', 'Product Management': 'PSC', 'QC': 'Common',
         'System Architecture': 'Arch'
     }[domain]
 
@@ -56,13 +56,13 @@ class SprintInfoDashboard(AbstractDashboard):
         data_est, data_st = [], []
         for est in self.est_dict[list(self.est_dict.keys())[0]].keys():
             data_est.append(go.Bar(
-                x=[key for key in self.est_dict.keys() if key != 'Others'],
-                y=[e[est] for key, e in self.est_dict.items() if key != 'Others'],
+                x=[key for key in self.est_dict.keys() if key != 'Common'],
+                y=[e[est] for key, e in self.est_dict.items() if key != 'Common'],
                 xaxis='x1',
                 yaxis='y1',
                 name=est,
                 showlegend=True,
-                text=[round(e[est], 1) for key, e in self.est_dict.items() if key != 'Others'],
+                text=[round(e[est], 1) for key, e in self.est_dict.items() if key != 'Common'],
                 textposition='auto',
                 marker=dict(
                     color=color_for_est(est),
@@ -71,16 +71,16 @@ class SprintInfoDashboard(AbstractDashboard):
                     )
                 )
             ))
-        base = [0]*len([key for key in self.st_dict.keys() if key != 'Others'])
+        base = [0]*len([key for key in self.st_dict.keys() if key != 'Common'])
         for st in self.st_dict[list(self.st_dict.keys())[0]].keys():
             data_st.append(go.Bar(
-                x=[key for key in self.st_dict.keys() if key != 'Others'],
-                y=[s[st] for key, s in self.st_dict.items() if key != 'Others'],
+                x=[key for key in self.st_dict.keys() if key != 'Common'],
+                y=[s[st] for key, s in self.st_dict.items() if key != 'Common'],
                 xaxis='x2',
                 yaxis='y2',
                 name=st,
                 showlegend=True,
-                text=[s[st] for key, s in self.st_dict.items() if key != 'Others'],
+                text=[s[st] for key, s in self.st_dict.items() if key != 'Common'],
                 textposition='auto',
                 base=base,
                 offset=-0.4,
@@ -93,7 +93,7 @@ class SprintInfoDashboard(AbstractDashboard):
                 )
             ))
             base = [bs + cnt for bs, cnt in
-                    zip(base, [counts[st] for key, counts in list(self.st_dict.items()) if key != 'Others'])]
+                    zip(base, [counts[st] for key, counts in list(self.st_dict.items()) if key != 'Common'])]
 
         fig = tools.make_subplots(rows=2, cols=1, vertical_spacing=0.07,
                                   subplot_titles=('<b><i>Ratio of high level estimates, original estimates and spent time</i></b>',

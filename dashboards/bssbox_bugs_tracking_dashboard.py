@@ -53,7 +53,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
         self.all_bugs['BSSBox'] = {'On track': 0, 'Overdue': 0}
         preparing_data = {key: [] for key in data.keys()}
         for i in range(len(data['Key'])):
-            if get_domain(data['Domain'][i]) != 'Others':
+            if get_domain(data['Domain'][i]) != 'Common':
                 for key in data.keys():
                     preparing_data[key].append(data[key][i])
         data = preparing_data

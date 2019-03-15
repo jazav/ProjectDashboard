@@ -68,6 +68,11 @@ class DomainBurndownDashboard(AbstractDashboard):
                     all_original[data_original['component'][i]] = {}
                 original[data_original['component'][i]] += float(data_original['timeoriginalestimate'][i])
                 all_original[data_original['component'][i]][data_original['resolutiondate'][i]] = original[data_original['component'][i]]
+        for dt in self.all_spent['all']['BA'].keys():
+            print('{}: {}'.format(dt, self.all_spent['all']['BA'][dt]))
+        print('----------------------------')
+        for dt in all_original['BA'].keys():
+            print('{}: {}'.format(dt, all_original['BA'][dt]))
         for dmn, spents in self.all_spent['flagged'].items():
             if dmn not in fl_all_original.keys():
                 fl_all_original[dmn] = {dt: 0 for dt in spents.keys()}
@@ -76,7 +81,7 @@ class DomainBurndownDashboard(AbstractDashboard):
                     try:
                         fl_all_original[dmn][dt] = fl_all_original[dmn][max([date for date in fl_all_original[dmn].keys() if date < dt])]
                     except ValueError:
-                        fl_all_original[dmn][dt] = fl_all_original[dmn][list(fl_all_original[dmn].keys())[0]]
+                        fl_all_original[dmn][dt] = fl_all_original[dmn][list(fl_all_original[dmn].keys())[-1]]
         for dmn, spents in self.all_spent['all'].items():
             if dmn not in all_original.keys():
                 all_original[dmn] = {dt: 0 for dt in spents.keys()}
@@ -85,21 +90,31 @@ class DomainBurndownDashboard(AbstractDashboard):
                     try:
                         all_original[dmn][dt] = all_original[dmn][max([date for date in all_original[dmn].keys() if date < dt])]
                     except ValueError:
-                        all_original[dmn][dt] = all_original[dmn][list(all_original[dmn].keys())[0]]
+                        all_original[dmn][dt] = all_original[dmn][list(all_original[dmn].keys())[-1]]
+        print('----------------------------')
+        for dt in self.all_spent['all']['BA'].keys():
+            print('{}: {}'.format(dt, self.all_spent['all']['BA'][dt]))
+        print('----------------------------')
+        for dt in all_original['BA'].keys():
+            print('{}: {}'.format(dt, all_original['BA'][dt]))
         for dmn in self.all_spent['flagged'].keys():
             self.all_remain['flagged'][dmn] = {dt: fl_all_original[dmn][dt] - self.all_spent['flagged'][dmn][dt]
-                                               + float(sum([sp for sp, rd, domain in zip(data_spent['spent'], data_spent['resolutiondate'], data_spent['component'])
-                                                            if domain == dmn and rd is not None and rd < dt])) for dt in self.all_spent['flagged'][dmn].keys()}
+                                               + float(sum([sp for sp, rd, domain, fl in zip(data_spent['spent'], data_spent['resolutiondate'], data_spent['component'], data_spent['flagged'])
+                                                            if fl is not None and domain == dmn and rd is not None and rd < dt])) for dt in self.all_spent['flagged'][dmn].keys()}
         for dmn in self.all_spent['all'].keys():
+            if dmn == 'BA':
+                print([all_original[dmn][dt] for dt in self.all_spent['all'][dmn].keys()])
+                print([self.all_spent['all'][dmn][dt] for dt in self.all_spent['all'][dmn].keys()])
+                print([float(sum([sp for sp, rd, domain in zip(data_spent['spent'], data_spent['resolutiondate'], data_spent['component']) if domain == dmn and rd is not None and rd < dt])) for dt in self.all_spent['all'][dmn].keys()])
             self.all_remain['all'][dmn] = {dt: all_original[dmn][dt] - self.all_spent['all'][dmn][dt]
-                                           + float(sum([sp for sp, rd, domain, fl in zip(data_spent['spent'], data_spent['resolutiondate'], data_spent['component'], data_spent['flagged'])
-                                                        if fl is not None and domain == dmn and rd is not None and rd < dt])) for dt in self.all_spent['all'][dmn].keys()}
-        for fl, data_spent, data_remain in zip(self.all_spent.keys(), self.all_spent.values(), self.all_remain.values()):
-            print(fl)
-            for dmn, spents, remains in zip(data_spent.keys(), data_spent.values(), data_remain.values()):
-                print('    {}'.format(dmn))
-                for dt, sp, rm in zip(spents.keys(), spents.values(), remains.values()):
-                    print('        {}: {} (spent), {} (remain)'.format(dt, sp, rm))
+                                           + float(sum([sp for sp, rd, domain in zip(data_spent['spent'], data_spent['resolutiondate'], data_spent['component'])
+                                                        if domain == dmn and rd is not None and rd < dt])) for dt in self.all_spent['all'][dmn].keys()}
+        # for fl, data_spent, data_remain in zip(self.all_spent.keys(), self.all_spent.values(), self.all_remain.values()):
+        #     print(fl)
+        #     for dmn, spents, remains in zip(data_spent.keys(), data_spent.values(), data_remain.values()):
+        #         print('    {}'.format(dmn))
+        #         for dt, sp, rm in zip(spents.keys(), spents.values(), remains.values()):
+        #             print('        {}: {} (spent), {} (remain)'.format(dt, sp, rm))
 
     def export_to_plotly(self):
         for fl, spents, remains in zip(self.all_spent.keys(), self.all_spent.values(), self.all_remain.values()):

@@ -105,12 +105,17 @@ def get_domain(component):
         'Reference Data Management': 'PSC',
         'Service Activation': 'Ordering',
         '': 'Empty',
-        None: None
+        'CRM Arch & SA': 'CRM',
+        'System Log': 'Infra',
+        'System Monitoring and Operation': 'Infra',
+        'Task Engine': 'Infra',
+        None: None,
     }
     if component in component_to_domain.keys():
         return component_to_domain[component]
     else:
-        return 'Others'
+        return 'Common'
+
 
 def get_domain_by_project(project):
     project_to_domain = {

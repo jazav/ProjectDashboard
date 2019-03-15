@@ -12,7 +12,7 @@ WITH user_stories AS (
 			WHERE fl_cfv.CUSTOMFIELD = '15101') AS flagged ON flagged.ID = us_ji.ID
 	WHERE us_prj.pname = 'BSSBOX' AND us_it.pname = 'User Story (L3)' AND us_cfv.STRINGVALUE = '6980' AND us_is.pname != 'Canceled'),
 epics AS (
-	SELECT e_ji.ID AS 'ID', user_stories.flagged, epics_cmp.component AS 'component'
+	SELECT e_ji.ID AS 'ID', user_stories.flagged, (CASE WHEN epics_cmp.component IS NULL THEN '' ELSE epics_cmp.component END) AS 'component'
 	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS e_ji
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuelink] AS e_il ON e_il.DESTINATION = e_ji.ID
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuelinktype] AS e_ilt ON e_ilt.ID = e_il.LINKTYPE

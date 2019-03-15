@@ -45,7 +45,7 @@ class SprintDashboard(AbstractDashboard):
                 self.accuracy_dict[self.domain_list[i]]['Plan'] += self.timeoriginalestimate_list[i]
                 self.accuracy_dict[self.domain_list[i]]['Fact'] += self.timespent_list[i]
             else:
-                if self.components_list[i] != [''] and get_domain(*self.components_list[i]) != 'Others':
+                if self.components_list[i] != [''] and get_domain(*self.components_list[i]) != 'Common':
                     self.domain_list[i] = get_domain(*self.components_list[i])
                 else:
                     self.domain_list[i] = 'Empty'

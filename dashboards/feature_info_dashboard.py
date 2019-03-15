@@ -8,12 +8,12 @@ from collections import OrderedDict
 
 
 bulk_convert = {
-        'Common': 'Others', 'Infra': 'Infra', 'Billing': 'Billing', 'Business Analysis': 'BA',
+        'Common': 'Common', 'Infra': 'Infra', 'Billing': 'Billing', 'Business Analysis': 'BA',
         'CRM (Customer Relationship Management)': 'CRM', 'Charge Events Storage': 'Billing',
         'Order Management': 'Ordering', 'Design': 'Design', 'DevOps': 'DevOps', 'DFE (Digital Frontend)': 'DFE',
         'Digital API': 'DFE', 'Documentation': 'Doc', 'Dunning and Collection': 'Billing',
         'Logical Resource Inventory': 'PSC', 'Network Monetization': 'NWM', 'Partner Management': 'PRM',
-        'Payment Management': 'Billing', 'Performance Testing': 'Others', 'Product Management': 'PSC', 'QC': 'Others',
+        'Payment Management': 'Billing', 'Performance Testing': 'Common', 'Product Management': 'PSC', 'QC': 'Common',
         'System Architecture': 'Arch'
     }
 
@@ -29,20 +29,20 @@ class FeatureInfoDashboard(AbstractDashboard):
                     self.commited.append(data['Key'][i])
                 if data['Key'][i] not in self.feature_dict.keys():
                     self.feature_dict[data['Key'][i]] = {domain: 0 for domain in bulk_convert.values()
-                                                         if domain != 'Others'}
+                                                         if domain != 'Common'}
                     self.spent_dict[data['Key'][i]] = {domain: 0 for domain in bulk_convert.values()
-                                                       if domain != 'Others'}
+                                                       if domain != 'Common'}
                     self.info.append(' ({})<br>{}<br>Due date: {}<br>Status: {}, '
                                      .format(data['FL'][i], data['Feature name'][i],
                                              data['Due date'][i], data['Status'][i]))
-                    self.due_dates[data['Key'][i]] = {domain: [] for domain in bulk_convert.values() if domain != 'Others'}
-                    self.readiness_dict[data['Key'][i]] = {domain: None for domain in bulk_convert.values() if domain != 'Others'}
+                    self.due_dates[data['Key'][i]] = {domain: [] for domain in bulk_convert.values() if domain != 'Common'}
+                    self.readiness_dict[data['Key'][i]] = {domain: None for domain in bulk_convert.values() if domain != 'Common'}
                 # d = json.loads(data['Estimate'][i]) if data['Estimate'][i] is not None else {}
                 # for domain in [key for key in d.keys() if not key.isdigit() and key != 'Total']:
-                #     if bulk_convert[domain] != 'Others':
+                #     if bulk_convert[domain] != 'Common':
                 #         self.feature_dict[data['Key'][i]][bulk_convert[domain]] += float(d[domain]['v'])
             else:
-                if get_domain(data['Component'][i]) not in ('Empty', 'Others'):
+                if get_domain(data['Component'][i]) not in ('Empty', 'Common'):
                     self.spent_dict[data['Feature'][i]][get_domain(data['Component'][i])] += float(data['Spent time'][i]) / 28800
                     self.feature_dict[data['Feature'][i]][get_domain(data['Component'][i])] += float(data['Original estimate'][i]) / 28800
                     if data['Due date'][i] is not None:
