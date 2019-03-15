@@ -121,7 +121,7 @@ def get_domain_by_project(project):
     project_to_domain = {
         'BSSARBA': 'ARBA',
         'BSSBFAM': 'Billing',
-        'Billing': 'Billing',
+        'BILLING': 'Billing',
         'BSSGUS': 'Billing',
         'BSSCRM': 'CRM',
         'BSSCAM': 'CRM',
@@ -136,7 +136,7 @@ def get_domain_by_project(project):
         'RNDDOC': 'Doc',
         'BSSLIS': 'Billing',
         'BSSPRM': 'PRM',
-        'BSSPSC': 'Catalog',
+        'BSSPSC': 'PSC',
         'BSSPAY': 'Billing',
         'BSSBOX': 'BSSBOX',
         'NWMOCS': 'NWM',
@@ -152,6 +152,10 @@ def get_domain_by_project(project):
         'IOTCMP': 'IOT',
         'IOTAEP': 'IOT',
         'BSSPRMP': 'DFE',
+        'CNC': 'Infra',
+        'PSCPSC': 'PSC',
+        'CRAB': 'Ordering',
+        'SSO': 'Infra',
         None: None
     }
     if project in project_to_domain.keys():
