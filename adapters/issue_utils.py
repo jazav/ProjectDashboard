@@ -86,7 +86,7 @@ def get_domain(component):
         'GUS_DB_ADAPTER': 'Billing',
         'Process Engine': 'CRM',
         'Order Capture': 'CRM',
-        'Analytics': 'ARBA',
+        'Analytics': 'BA',
         'Notification Engine': 'Infra',
         'File Storage': 'Ordering',
         'Digital API': 'DFE',

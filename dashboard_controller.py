@@ -14,7 +14,7 @@ from dashboards.bugs_duration_dashboard import BugsDurationDashboard  # By @alan
 from dashboards.arba_issues_dashboard import ArbaIssuesDashboard  # By @alanbryn
 from dashboards.bugs_dashboard import BugsDashboard  # By @alanbryn
 from dashboards.arba_review_dashboard import ArbaReviewDashboard  # By @alanbryn
-from dashboards.sprint_dashboard import SprintDashboard  # By @alanbryn
+from dashboards.all_bugs_dashboard import AllBugsDashboard  # By @alanbryn
 from dashboards.bugs_progress_dashboard import BugsProgressDashboard  # By @alanbryn
 from dashboards.bssbox_bugs_tracking_dashboard import BssboxBugsTrackingDashboard  # By @alanbryn
 from dashboards.sprint_info_dashboard import SprintInfoDashboard  # By @alanbryn
@@ -328,24 +328,16 @@ class DashboardController:
 
     # By @alanbryn
     @staticmethod
-    def dashboard_sprint(plan, fact, auto_open, fixversion, repository, plotly_auth):
-        if not (plan and fact):
-            raise ValueError('both of plan and fact parameters are false')
-
+    def dashboard_all_bugs(auto_open, repository, mssql_query_file, plotly_auth):
         dc = DataController()
-        data_dao = dc.get_issue_sqllite(query=None, expand=None)
+        data = dc.get_issues_mssql(mssql_query_file=mssql_query_file)
 
-        dashboard = SprintDashboard()
-        dashboard.dashboard_name = 'All bugs in BSSBox and Accuracy factor (fact to plan ratio)'
-        dashboard.items_on_chart = 10
-        dashboard.min_item_tail = 5
-        dashboard.plan = plan
-        dashboard.fact = fact
-        dashboard.fixversion = fixversion
+        dashboard = AllBugsDashboard()
+        dashboard.dashboard_name = 'All bugs in BSSBox and Domains\' projects'
         dashboard.repository = repository
         dashboard.plotly_auth = plotly_auth
         dashboard.auto_open = auto_open
-        dashboard.prepare(data=data_dao)
+        dashboard.prepare(data=data)
         dashboard.export_to_plot()
 
     # By @alanbryn

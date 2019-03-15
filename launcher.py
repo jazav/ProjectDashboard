@@ -221,11 +221,11 @@ def main(argv):
                                        assignees=name_space.assignees, teams=name_space.teams,
                                        details=name_space.details)
 
-        if name_space.name == "sprint":
-            plan, fact = get_plan_fact(parameters=name_space.mode)
-            dshc.dashboard_sprint(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
-                                  fixversion=name_space.fixversion, repository=name_space.repository.lower(),
-                                  plotly_auth=[name_space.plotly_user, name_space.plotly_key])
+        if name_space.name == "all_bugs":
+            dshc.dashboard_all_bugs(auto_open=(name_space.auto_open.upper() == 'TRUE'),
+                                    repository=name_space.repository.lower(),
+                                    mssql_query_file=name_space.mssql.lower(),
+                                    plotly_auth=[name_space.plotly_user, name_space.plotly_key])
 
         if name_space.name == "bugs_progress":
             plan, fact = get_plan_fact(parameters=name_space.mode)
