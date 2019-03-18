@@ -2,7 +2,7 @@ from dashboards.dashboard import AbstractDashboard
 # import json
 import plotly
 import plotly.graph_objs as go
-from datetime import datetime
+from datetime import datetime, date
 from adapters.issue_utils import get_domain
 from collections import OrderedDict
 
@@ -20,7 +20,7 @@ bulk_convert = {
 
 class FeatureInfoDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth = True, None, None
-    feature_dict, spent_dict, info, commited, wrong_estimates, due_dates, readiness_dict = {}, {}, [], [], {}, {}, {}
+    feature_dict, spent_dict, info, commited, wrong_estimates, due_dates, readiness_dict, threat_list = {}, {}, [], [], {}, {}, {}, []
 
     def prepare(self, data):
         for i in range(len(data['Key'])):
@@ -37,6 +37,11 @@ class FeatureInfoDashboard(AbstractDashboard):
                                              data['Due date'][i], data['Status'][i]))
                     self.due_dates[data['Key'][i]] = {domain: [] for domain in bulk_convert.values() if domain != 'Common'}
                     self.readiness_dict[data['Key'][i]] = {domain: None for domain in bulk_convert.values() if domain != 'Common'}
+                    if data['Status'][i] not in ('Testing', 'Ready for Testing', 'Closed'):
+                        if data['Flagged'][i] and datetime.now().date() > date(2019, 3, 19):
+                            self.threat_list.append(data['Key'])
+                        elif not data['Flagged'][i] and datetime.now().date() > date(2019, 3, 29):
+                            self.threat_list.append(data['Key'])
                 # d = json.loads(data['Estimate'][i]) if data['Estimate'][i] is not None else {}
                 # for domain in [key for key in d.keys() if not key.isdigit() and key != 'Total']:
                 #     if bulk_convert[domain] != 'Common':
@@ -163,6 +168,7 @@ class FeatureInfoDashboard(AbstractDashboard):
 
             for el in ['<a href="https://jira.billing.ru/browse/{0}">{0}</a>{1}'.format(key, inf) for key, inf in zip(list(estimates.keys()), info)]:
                 print(el)
+
             layout = dict(
                 title='<b>{0} as of {1}</b>'.format(title, datetime.now().strftime("%d.%m.%y %H:%M"))
                       + (' <sup>in cloud</sup>' if self.repository == 'online' else ''),
@@ -172,12 +178,13 @@ class FeatureInfoDashboard(AbstractDashboard):
                     ticktext=['<a href="https://jira.billing.ru/browse/{0}">{0}</a>{1}'.format(key, inf) for key, inf in zip(list(estimates.keys()), info)],
                     ticks='outside',
                     ticklen=10,
-                    tickcolor='rgba(0,0,0,0)',
-                    tickfont=dict(size=10)
+                    tickcolor='rgba(0,0,0,0)'
                 )
             )
 
             fig = go.Figure(data=data, layout=layout)
+            for key in list(estimates.keys()):
+                fig['layout']['yaxis'].update(tickfont=dict(size=10, color='rgb(230,0,0)' if key in self.threat_list else 'rgb(0,0,0)'))
             if self.repository == 'offline':
                 plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
             elif self.repository == 'online':

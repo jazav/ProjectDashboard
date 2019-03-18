@@ -1,6 +1,6 @@
 WITH user_stories AS (
 	SELECT flagged.flagged AS 'Flagged', us_ji.ID AS 'ID', CONCAT_WS('-', us_prj.pkey, us_ji.issuenum) AS 'Key', us_it.pname AS 'Issue type', bulks.TEXTVALUE AS 'Estimate',
-		NULL AS 'Spent time', NULL AS 'Component', us_is.pname AS 'Status', NULL AS 'Feature', us_ji.SUMMARY AS 'Feature name', us_ji.ASSIGNEE AS 'FL'
+		NULL AS 'Spent time', NULL AS 'Component', us_is.pname AS 'Status', NULL AS 'Feature', us_ji.SUMMARY AS 'Feature name', us_ji.ASSIGNEE AS 'FL', CONVERT(varchar, FORMAT(CONVERT(date, us_ji.DUEDATE), 'dd.MM.yyyy')) AS 'Due date'
 	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS us_ji
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuetype] AS us_it ON us_it.ID = us_ji.issuetype
 		INNER JOIN [srv-jira-prod-report].[dbo].[customfieldvalue] AS us_cfv ON us_cfv.ISSUE = us_ji.ID
@@ -49,7 +49,8 @@ tasks AS (
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuestatus] AS t_is ON t_is.ID = t_ji.issuestatus
 	WHERE t_it.pname != 'Bug' AND t_ilt.LINKNAME = 'Epic-Story Link' AND t_il.SOURCE IN (SELECT ID FROM epics))
 
-SELECT user_stories.*, (CASE WHEN dd.[Due date] IS NULL THEN 'not duedated' ELSE dd.[Due date] END) AS 'Due date', NULL AS 'Original estimate'
+SELECT user_stories.Flagged, user_stories.ID, user_stories.[Key], user_stories.[Issue type], user_stories.Estimate, user_stories.[Spent time], user_stories.Component, user_stories.[Status], user_stories.Feature, user_stories.[Feature name], user_stories.FL,
+	(CASE WHEN user_stories.[Due date] IS NULL THEN (CASE WHEN dd.[Due date] IS NULL THEN 'not duedated' ELSE dd.[Due date] END) ELSE user_stories.[Due date] END) AS 'Due date', NULL AS 'Original estimate'
 FROM user_stories
 	LEFT JOIN (SELECT Feature, max([Due date]) AS 'Due date' FROM epics GROUP BY Feature) AS dd ON dd.Feature = user_stories.[Key]
 UNION ALL
