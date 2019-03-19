@@ -39,9 +39,9 @@ class FeatureInfoDashboard(AbstractDashboard):
                     self.readiness_dict[data['Key'][i]] = {domain: None for domain in bulk_convert.values() if domain != 'Common'}
                     if data['Status'][i] not in ('Testing', 'Ready for Testing', 'Closed'):
                         if data['Flagged'][i] and datetime.now().date() > date(2019, 3, 19):
-                            self.threat_list.append(data['Key'])
+                            self.threat_list.append(data['Key'][i])
                         elif not data['Flagged'][i] and datetime.now().date() > date(2019, 3, 29):
-                            self.threat_list.append(data['Key'])
+                            self.threat_list.append(data['Key'][i])
                 # d = json.loads(data['Estimate'][i]) if data['Estimate'][i] is not None else {}
                 # for domain in [key for key in d.keys() if not key.isdigit() and key != 'Total']:
                 #     if bulk_convert[domain] != 'Common':
