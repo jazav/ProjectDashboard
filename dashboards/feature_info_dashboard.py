@@ -114,7 +114,11 @@ class FeatureInfoDashboard(AbstractDashboard):
                         else:
                             due_color.append('rgb(0,0,0)')
                     else:
-                        if max(d[dmn]) < datetime.now():
+                        if ft in self.commited and max(d[dmn]) > datetime(2019, 3, 19):
+                            due_color.append('rgb(230,0,0)')
+                        elif ft not in self.commited and max(d[dmn]) > datetime(2019, 3, 29):
+                            due_color.append('rgb(230,0,0)')
+                        elif max(d[dmn]) < datetime.now():
                             if readiness[ft][dmn] < 1:
                                 due_color.append('rgb(230,0,0)')
                             else:

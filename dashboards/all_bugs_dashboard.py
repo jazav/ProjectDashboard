@@ -56,7 +56,7 @@ class AllBugsDashboard(AbstractDashboard):
                 ),
                 xaxis='x1',
                 yaxis='y1',
-                showlegend=False
+                showlegend=True
             ))
             data.append(go.Bar(
                 orientation='h',
@@ -128,6 +128,7 @@ class AllBugsDashboard(AbstractDashboard):
             yaxis3=dict(domain=[0.15, 1], anchor='x3', ticks='outside', ticklen=8, tickcolor='rgba(0,0,0,0)'),
             xaxis4=dict(domain=[0.52, 1], anchor='y4'),
             yaxis4=dict(domain=[0, 0.1], anchor='x4', ticks='outside', ticklen=8, tickcolor='rgba(0,0,0,0)'),
+            legend=dict(x=0.39, y=1.04, orientation='h')
         )
 
         fig = go.Figure(data=data, layout=layout)

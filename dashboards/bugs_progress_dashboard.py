@@ -110,7 +110,7 @@ class BugsProgressDashboard(AbstractDashboard):
                 anchor='y1'
             ),
             yaxis1=dict(
-                domain=[0.55, 1],
+                domain=[0.57, 1],
                 anchor='x1',
                 showline=True,
                 title='Number of bugs',
@@ -155,7 +155,7 @@ class BugsProgressDashboard(AbstractDashboard):
                 autorange=True
             ),
             yaxis2=dict(
-                domain=[0, 0.45],
+                domain=[0, 0.43],
                 anchor='x2',
                 showline=True,
                 title='Number of bugs',
