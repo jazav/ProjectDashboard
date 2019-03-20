@@ -182,13 +182,12 @@ class FeatureInfoDashboard(AbstractDashboard):
                     ticktext=['<a href="https://jira.billing.ru/browse/{0}">{0}</a>{1}'.format(key, inf) for key, inf in zip(list(estimates.keys()), info)],
                     ticks='outside',
                     ticklen=10,
-                    tickcolor='rgba(0,0,0,0)'
+                    tickcolor='rgba(0,0,0,0)',
+                    tickfont=dict(size=10)
                 )
             )
 
             fig = go.Figure(data=data, layout=layout)
-            for key in list(estimates.keys()):
-                fig['layout']['yaxis'].update(tickfont=dict(size=10, color='rgb(230,0,0)' if key in self.threat_list else 'rgb(0,0,0)'))
             if self.repository == 'offline':
                 plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
             elif self.repository == 'online':
