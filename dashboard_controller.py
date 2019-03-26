@@ -22,6 +22,7 @@ from dashboards.feature_info_dashboard import FeatureInfoDashboard  # By @alanbr
 from dashboards.iot_dashboard import IotDashboard  # By @alanbryn
 from dashboards.sprint_burndown_dashboard import SprintBurndownDashboard  # By @alanbryn
 from dashboards.domain_burndown_dashboard import DomainBurndownDashboard  # By @alanbryn
+from dashboards.yota_burdown_dashboard import YotaBurndownDashboard  # By @alanbryn
 from dashboards.issue_detail_dashboard import IssueDetailDashboard
 from dashboards.prepare_feature_data import *
 from data_controller import DataController
@@ -408,12 +409,8 @@ class DashboardController:
     @staticmethod
     def dashboard_sprint_burndown(auto_open, repository, mssql_query_file, plotly_auth, dashboard_type):
         dc = DataController()
-        start = datetime.datetime.now()
-        print(start)
         data_spent = dc.get_issues_mssql(mssql_query_file=mssql_query_file[0])
-        print(datetime.datetime.now() - start)
         data_original = dc.get_issues_mssql(mssql_query_file=mssql_query_file[1])
-        print(datetime.datetime.now() - start)
 
         for dt in dashboard_type:
             dashboard = SprintBurndownDashboard() if dt == 'SPRINT' else DomainBurndownDashboard()
@@ -423,3 +420,18 @@ class DashboardController:
             dashboard.plotly_auth = plotly_auth
             dashboard.multi_prepare(data_spent=data_spent, data_original=data_original)
             dashboard.export_to_plot()
+
+    # By @alanbryn
+    @staticmethod
+    def dashboard_yota_burndown(auto_open, repository, mssql_query_file, plotly_auth):
+        dc = DataController()
+        data_spent = dc.get_issues_mssql(mssql_query_file=mssql_query_file[0])
+        data_original = dc.get_issues_mssql(mssql_query_file=mssql_query_file[1])
+
+        dashboard = YotaBurndownDashboard()
+        dashboard.dashboard_name = 'Burndown for Yota'
+        dashboard.auto_open = auto_open
+        dashboard.repository = repository
+        dashboard.plotly_auth = plotly_auth
+        dashboard.multi_prepare(data_spent=data_spent, data_original=data_original)
+        dashboard.export_to_plot()
