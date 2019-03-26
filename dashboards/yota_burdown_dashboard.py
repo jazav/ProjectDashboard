@@ -39,7 +39,10 @@ class YotaBurndownDashboard(AbstractDashboard):
         if len(self.all_spent.keys()) == 0:
             raise ValueError('There is no issues to show')
 
-        start, end = datetime.date(2019, 2, 18), datetime.date(2019, 7, 18)
+        start, end = datetime.date(2019, 2, 18), datetime.date(2019, 7, 19)
+        xaxis = [start]
+        while xaxis[-1] != end:
+            xaxis.append(xaxis[-1] + datetime.timedelta(days=1))
         data = [go.Scatter(
             x=list(self.all_spent.keys()),
             y=list(self.all_spent.values()),
@@ -110,7 +113,9 @@ class YotaBurndownDashboard(AbstractDashboard):
                 tickangle=45,
                 showline=True,
                 range=[start - datetime.timedelta(days=1), end + datetime.timedelta(days=1)],
-                showticklabels=False
+                tickvals=xaxis,
+                ticktext=[xaxis[i] if not i % 5 else '' for i in range(len(xaxis))],
+                automargin=True
             ),
             yaxis1=dict(
                 domain=[0, 1],
@@ -123,7 +128,8 @@ class YotaBurndownDashboard(AbstractDashboard):
                 tickfont=dict(
                     size=16
                 ),
-                range=[0, max(self.all_remain.values()) + 100]
+                range=[0, max(self.all_remain.values()) + 100],
+                automargin=True
             ),
             title=title + (' <sup>in cloud</sup>' if self.repository == 'online' else ''),
             legend=dict(
