@@ -3,6 +3,7 @@ import plotly
 import plotly.graph_objs as go
 import datetime
 import json
+from adapters.citrix_sharefile_adapter import CitrixShareFile
 
 
 class YotaBurndownDashboard(AbstractDashboard):
@@ -150,6 +151,16 @@ class YotaBurndownDashboard(AbstractDashboard):
         elif self.repository == 'online':
             plotly.tools.set_credentials_file(username=self.plotly_auth[0], api_key=self.plotly_auth[1])
             plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
+        elif self.repository == 'citrix':
+            html_file = self.png_dir + "{0}.html".format(title)
+            plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
+            citrix = CitrixShareFile(hostname='nexign.sharefile.eu',
+                                     client_id='',
+                                     client_secret='',
+                                     username='TSGS_RND_Exch@nexign-systems.com',
+                                     password='SvMx10~bJL')
+            citrix.upload_file(folder_id='fofd8511-6564-44f3-94cb-338688544aac',
+                               local_path=html_file)
 
     def export_to_plot(self):
         self.export_to_plotly()

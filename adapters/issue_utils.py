@@ -110,6 +110,12 @@ def get_domain(component):
         'System Monitoring and Operation': 'Infra',
         'Task Engine': 'Infra',
         None: None,
+        'Billing Arch & SA': 'Billing',
+        'Collection Arch & SA': 'Billing',
+        'OM Architecture': 'Ordering',
+        'OM System Analysis': 'Ordering',
+        'Partners Arch & SA': 'PRM',
+        'Pays Arch & SA': 'Billing'
     }
     if component in component_to_domain.keys():
         return component_to_domain[component]
