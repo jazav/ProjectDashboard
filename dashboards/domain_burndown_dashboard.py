@@ -2,7 +2,7 @@ from dashboards.dashboard import AbstractDashboard
 import plotly
 import plotly.graph_objs as go
 import datetime
-from adapters.issue_utils import get_domain
+from adapters.issue_utils import get_domain_bssbox
 import math
 from plotly import tools
 
@@ -15,8 +15,8 @@ class DomainBurndownDashboard(AbstractDashboard):
         all_original, spent, original = {}, {}, {}
         fl_all_original, fl_spent, fl_original = {}, {}, {}
         for i in range(len(data_spent['key'])):
-            data_spent['component'][i] = get_domain(data_spent['component'][i])
-            if data_spent['created'][i] < datetime.date(2019, 2, 18):
+            data_spent['component'][i] = get_domain_bssbox(data_spent['component'][i])
+            if data_spent['created'][i] < datetime.date(2019, 4, 1):
                 if data_spent['component'][i] not in spent.keys():
                     spent[data_spent['component'][i]] = 0
                 spent[data_spent['component'][i]] += float(data_spent['spent'][i])
@@ -31,7 +31,7 @@ class DomainBurndownDashboard(AbstractDashboard):
                     if data_spent['component'][i] not in fl_spent.keys():
                         fl_spent[data_spent['component'][i]] = 0
         for i in range(len(data_original['key'])):
-            data_original['component'][i] = get_domain(data_original['component'][i])
+            data_original['component'][i] = get_domain_bssbox(data_original['component'][i])
             if data_original['status'][i] not in ('Closed', 'Resolved'):
                 if data_original['component'][i] not in original.keys():
                     original[data_original['component'][i]] = 0
@@ -47,7 +47,7 @@ class DomainBurndownDashboard(AbstractDashboard):
                     if data_original['component'][i] not in fl_original.keys():
                         fl_original[data_original['component'][i]] = 0
         for i in range(len(data_spent['key'])):
-            if data_spent['created'][i] > datetime.date(2019, 2, 17):
+            if data_spent['created'][i] > datetime.date(2019, 3, 31):
                 if data_spent['flagged'][i] is not None:
                     if data_spent['component'][i] not in self.all_spent['flagged'].keys():
                         self.all_spent['flagged'][data_spent['component'][i]] = {}
@@ -87,6 +87,8 @@ class DomainBurndownDashboard(AbstractDashboard):
                     except ValueError:
                         all_original[dmn][dt] = all_original[dmn][list(all_original[dmn].keys())[-1]]
         for dmn, origs in fl_all_original.items():
+            if dmn not in self.all_spent['flagged']:
+                self.all_spent['flagged'][dmn] = {dt: 0 for dt in origs.keys()}
             for dt in origs.keys():
                 if dt not in self.all_spent['flagged'][dmn].keys():
                     try:
@@ -94,6 +96,8 @@ class DomainBurndownDashboard(AbstractDashboard):
                     except ValueError:
                         self.all_spent['flagged'][dmn][dt] = self.all_spent['flagged'][dmn][list(self.all_spent['flagged'][dmn].keys())[-1]]
         for dmn, origs in all_original.items():
+            if dmn not in self.all_spent['all']:
+                self.all_spent['all'][dmn] = {dt: 0 for dt in origs.keys()}
             for dt in origs.keys():
                 if dt not in self.all_spent['all'][dmn].keys():
                     try:
@@ -120,7 +124,7 @@ class DomainBurndownDashboard(AbstractDashboard):
 
     def export_to_plotly(self):
         for fl, spents, remains in zip(self.all_spent.keys(), self.all_spent.values(), self.all_remain.values()):
-            end = datetime.date(2019, 3, 18) if fl == 'flagged' else datetime.date(2019, 3, 29)
+            end = datetime.date(2019, 5, 17) if fl == 'flagged' else datetime.date(2019, 5, 17)
             trace_dict = {dmn: [] for dmn in spents.keys()}
             for dmn in spents.keys():
                 trace_dict[dmn].append(go.Scatter(

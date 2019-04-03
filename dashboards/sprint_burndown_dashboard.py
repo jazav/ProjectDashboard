@@ -14,7 +14,7 @@ class SprintBurndownDashboard(AbstractDashboard):
         spent, fl_spent = 0, 0
         original, fl_original = 0, 0
         for i in range(len(data_spent['key'])):
-            if data_spent['created'][i] < datetime.date(2019, 2, 18):
+            if data_spent['created'][i] < datetime.date(2019, 4, 1):
                 k = set()
                 for j in range(len(data_spent['key'])):
                     if data_spent['key'][j] == data_spent['key'][i]:
@@ -32,7 +32,7 @@ class SprintBurndownDashboard(AbstractDashboard):
                     fl_original += float(data_original['timeoriginalestimate'][i]) / len(k)
                 original += float(data_original['timeoriginalestimate'][i]) / len(k)
         for i in range(len(data_spent['key'])):
-            if data_spent['created'][i] > datetime.date(2019, 2, 17):
+            if data_spent['created'][i] > datetime.date(2019, 3, 31):
                 k = set()
                 for j in range(len(data_spent['key'])):
                     if data_spent['key'][j] == data_spent['key'][i]:
@@ -70,7 +70,7 @@ class SprintBurndownDashboard(AbstractDashboard):
         if len(self.all_spent.keys()) == 0:
             raise ValueError('There is no issues to show')
 
-        start, end1, end2 = datetime.date(2019, 2, 18), datetime.date(2019, 3, 18), datetime.date(2019, 3, 29)
+        start, end1, end2 = datetime.date(2019, 4, 1), datetime.date(2019, 5, 17), datetime.date(2019, 5, 17)
         data = [go.Scatter(
             x=list(self.all_spent.keys()),
             y=list(self.all_spent.values()),
@@ -118,18 +118,6 @@ class SprintBurndownDashboard(AbstractDashboard):
                 color='rgb(200,200,200)',
                 width=2,
                 dash='dash'),
-            showlegend=False
-        ), go.Scatter(
-            x=[end1, end1],
-            y=[0, max(self.all_remain.values()) + 100],
-            xaxis='x1',
-            yaxis='y1',
-            mode='lines',
-            line=dict(
-                color='rgb(255,153,153)',
-                width=2,
-                dash='dash'
-            ),
             showlegend=False
         ), go.Scatter(
             x=list(self.fl_all_spent.keys()),
@@ -180,18 +168,6 @@ class SprintBurndownDashboard(AbstractDashboard):
                 color='rgb(200,200,200)',
                 width=2,
                 dash='dash'),
-            showlegend=False
-        ), go.Scatter(
-            x=[end1, end1],
-            y=[0, max(self.fl_all_remain.values()) + 100],
-            xaxis='x2',
-            yaxis='y2',
-            mode='lines',
-            line=dict(
-                color='rgb(255,153,153)',
-                width=2,
-                dash='dash'
-            ),
             showlegend=False
         )]
 

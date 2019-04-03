@@ -3,19 +3,17 @@ from dashboards.dashboard import AbstractDashboard
 import plotly
 import plotly.graph_objs as go
 from datetime import datetime, date
-from adapters.issue_utils import get_domain
-from collections import OrderedDict
+from adapters.issue_utils import get_domain_bssbox
 
 
-bulk_convert = {
-        'Common': 'Common', 'Infra': 'Infra', 'Billing': 'Billing', 'Business Analysis': 'BA',
-        'CRM (Customer Relationship Management)': 'CRM', 'Charge Events Storage': 'Billing',
-        'Order Management': 'Ordering', 'Design': 'Design', 'DevOps': 'DevOps', 'DFE (Digital Frontend)': 'DFE',
-        'Digital API': 'DFE', 'Documentation': 'Doc', 'Dunning and Collection': 'Billing',
-        'Logical Resource Inventory': 'PSC', 'Network Monetization': 'NWM', 'Partner Management': 'PRM',
-        'Payment Management': 'Billing', 'Performance Testing': 'Common', 'Product Management': 'PSC', 'QC': 'Common',
-        'System Architecture': 'Arch'
-    }
+bulk_convert = {'Common': 'Common', 'Arch & SA': 'Arch & SA', 'Billing': 'Billing', 'Business Analysis': 'BA',
+                'Charge Events Storage': 'Billing', 'CRM1 (Customer Relationship Management)': 'CRM',
+                'CRM2 (Customer Relationship Management)': 'CRM', 'Design': 'Design', 'DevOps': 'Common',
+                'Documentation': 'Doc', 'Dunning and Collection': 'Billing', 'Infra': 'Infra',
+                'Network Monetization': 'NWM', 'Order Management & Partner Management': 'Ordering & PRM',
+                'Product Instances': 'Product Instances', 'Payment Management': 'Billing',
+                'Performance Testing': 'Common', 'Product Management': 'PSC', 'QC': 'Common',
+                'System Architecture': 'Arch'}
 
 
 class FeatureInfoDashboard(AbstractDashboard):
@@ -38,20 +36,23 @@ class FeatureInfoDashboard(AbstractDashboard):
                     self.due_dates[data['Key'][i]] = {domain: [] for domain in bulk_convert.values() if domain != 'Common'}
                     self.readiness_dict[data['Key'][i]] = {domain: None for domain in bulk_convert.values() if domain != 'Common'}
                     if data['Status'][i] not in ('Testing', 'Ready for Testing', 'Closed'):
-                        if data['Flagged'][i] and datetime.now().date() > date(2019, 3, 19):
+                        if data['Flagged'][i] and datetime.now().date() > date(2019, 5, 17):
                             self.threat_list.append(data['Key'][i])
-                        elif not data['Flagged'][i] and datetime.now().date() > date(2019, 3, 29):
+                        elif not data['Flagged'][i] and datetime.now().date() > date(2019, 5, 17):
                             self.threat_list.append(data['Key'][i])
                 # d = json.loads(data['Estimate'][i]) if data['Estimate'][i] is not None else {}
                 # for domain in [key for key in d.keys() if not key.isdigit() and key != 'Total']:
                 #     if bulk_convert[domain] != 'Common':
                 #         self.feature_dict[data['Key'][i]][bulk_convert[domain]] += float(d[domain]['v'])
             else:
-                if get_domain(data['Component'][i]) not in ('Empty', 'Common'):
-                    self.spent_dict[data['Feature'][i]][get_domain(data['Component'][i])] += float(data['Spent time'][i]) / 28800
-                    self.feature_dict[data['Feature'][i]][get_domain(data['Component'][i])] += float(data['Original estimate'][i]) / 28800
-                    if data['Due date'][i] is not None:
-                        self.due_dates[data['Feature'][i]][get_domain(data['Component'][i])].append(datetime.strptime(data['Due date'][i], '%d.%m.%Y'))
+                try:
+                    if get_domain_bssbox(data['Component'][i]) not in ('Empty', 'Common'):
+                        self.spent_dict[data['Feature'][i]][get_domain_bssbox(data['Component'][i])] += float(data['Spent time'][i]) / 28800
+                        self.feature_dict[data['Feature'][i]][get_domain_bssbox(data['Component'][i])] += float(data['Original estimate'][i]) / 28800
+                        if data['Due date'][i] is not None:
+                            self.due_dates[data['Feature'][i]][get_domain_bssbox(data['Component'][i])].append(datetime.strptime(data['Due date'][i], '%d.%m.%Y'))
+                except KeyError:
+                    print(data['Component'][i])
         for ft, bulk in self.feature_dict.items():
             self.wrong_estimates[ft] = []
             for dmn in bulk.keys():
@@ -114,9 +115,9 @@ class FeatureInfoDashboard(AbstractDashboard):
                         else:
                             due_color.append('rgb(0,0,0)')
                     else:
-                        if ft in self.commited and max(d[dmn]) > datetime(2019, 3, 19):
+                        if ft in self.commited and max(d[dmn]) > datetime(2019, 5, 17):
                             due_color.append('rgb(230,0,0)')
-                        elif ft not in self.commited and max(d[dmn]) > datetime(2019, 3, 29):
+                        elif ft not in self.commited and max(d[dmn]) > datetime(2019, 5, 17):
                             due_color.append('rgb(230,0,0)')
                         elif max(d[dmn]) < datetime.now():
                             if readiness[ft][dmn] < 1:

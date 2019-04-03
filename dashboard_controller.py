@@ -384,7 +384,7 @@ class DashboardController:
 
         for dt in dashboard_type:
             dashboard = SprintInfoDashboard() if dt == 'DOMAIN' else FeatureInfoDashboard()
-            dashboard.dashboard_name = 'Super Sprint 8'
+            dashboard.dashboard_name = 'Super Sprint 9'
             dashboard.auto_open = auto_open
             dashboard.repository = repository
             dashboard.plotly_auth = plotly_auth
@@ -414,7 +414,7 @@ class DashboardController:
 
         for dt in dashboard_type:
             dashboard = SprintBurndownDashboard() if dt == 'SPRINT' else DomainBurndownDashboard()
-            dashboard.dashboard_name = 'Burndown for Super Sprint 8'
+            dashboard.dashboard_name = 'Burndown for Super Sprint 9'
             dashboard.auto_open = auto_open
             dashboard.repository = repository
             dashboard.plotly_auth = plotly_auth

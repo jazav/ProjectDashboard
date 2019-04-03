@@ -1,5 +1,5 @@
 from dashboards.dashboard import AbstractDashboard
-from adapters.issue_utils import get_domain
+from adapters.issue_utils import get_domain_bssbox
 import json
 import plotly
 import plotly.graph_objs as go
@@ -9,12 +9,25 @@ from plotly import tools
 
 def bulk_convert(domain):
     return {
-        'Common': 'Common', 'Infra': 'Infra', 'Billing': 'Billing', 'Business Analysis': 'BA',
-        'CRM (Customer Relationship Management)': 'CRM', 'Charge Events Storage': 'Billing',
-        'Order Management': 'Ordering', 'Design': 'Design', 'DevOps': 'DevOps', 'DFE (Digital Frontend)': 'DFE',
-        'Digital API': 'DFE', 'Documentation': 'Doc', 'Dunning and Collection': 'Billing',
-        'Logical Resource Inventory': 'PSC', 'Network Monetization': 'NWM', 'Partner Management': 'PRM',
-        'Payment Management': 'Billing', 'Performance Testing': 'Common', 'Product Management': 'PSC', 'QC': 'Common',
+        'Common': 'Common',
+        'Arch & SA': 'Arch & SA',
+        'Billing': 'Billing',
+        'Business Analysis': 'BA',
+        'Charge Events Storage': 'Billing',
+        'CRM1 (Customer Relationship Management)': 'CRM',
+        'CRM2 (Customer Relationship Management)': 'CRM',
+        'Design': 'Design',
+        'DevOps': 'Common',
+        'Documentation': 'Doc',
+        'Dunning and Collection': 'Billing',
+        'Infra': 'Infra',
+        'Network Monetization': 'NWM',
+        'Order Management & Partner Management': 'Ordering & PRM',
+        'Product Instances': 'Product Instances',
+        'Payment Management': 'Billing',
+        'Performance Testing': 'Common',
+        'Product Management': 'PSC',
+        'QC': 'Common',
         'System Architecture': 'Arch'
     }[domain]
 
@@ -34,7 +47,7 @@ class SprintInfoDashboard(AbstractDashboard):
     def prepare(self, data):
         for i in range(len(data['Key'])):
             if data['Issue type'][i] != 'User Story (L3)':
-                data['Component'][i] = get_domain(data['Component'][i])
+                data['Component'][i] = get_domain_bssbox(data['Component'][i])
                 if data['Component'][i] not in self.est_dict.keys():
                     self.est_dict[data['Component'][i]] = {'Bulk Estimate': 0, 'Original Estimate': 0, 'Spent Time': 0}
                     self.st_dict[data['Component'][i]] = {'Open': 0, 'Dev': 0, 'Done': 0}
@@ -62,6 +75,7 @@ class SprintInfoDashboard(AbstractDashboard):
                 yaxis='y1',
                 name=est,
                 showlegend=True,
+                legendgroup='group',
                 text=[round(e[est], 1) for key, e in self.est_dict.items() if key != 'Common'],
                 textposition='auto',
                 marker=dict(
@@ -80,6 +94,7 @@ class SprintInfoDashboard(AbstractDashboard):
                 yaxis='y2',
                 name=st,
                 showlegend=True,
+                legendgroup='group1',
                 text=[s[st] for key, s in self.st_dict.items() if key != 'Common'],
                 textposition='auto',
                 base=base,
