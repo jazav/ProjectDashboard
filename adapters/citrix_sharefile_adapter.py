@@ -4,6 +4,8 @@ import os
 import mimetypes
 import time
 import urllib.parse as urlparse
+import io
+import base64
 
 
 class CitrixShareFile:
@@ -167,7 +169,7 @@ class CitrixShareFile:
             print('No Upload URL received')
 
     def multipart_form_post_upload(self, url, filepath):
-        newline = '\r\n'
+        newline = b'\r\n'
         filename = os.path.basename(filepath)
         data = []
         headers = {}
@@ -181,7 +183,7 @@ class CitrixShareFile:
         data.append('--{}--'.format(boundary))
         data.append('')
 
-        data_str = newline.join(data)
+        data_str = newline.join([item if isinstance(item, bytes) else bytes(item, 'utf-8') for item in data])
         headers['content-length'] = len(data_str)
 
         uri = urlparse.urlparse(url)

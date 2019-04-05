@@ -4,10 +4,12 @@ import plotly.graph_objs as go
 import datetime
 import json
 from adapters.citrix_sharefile_adapter import CitrixShareFile
+import shutil
+import time
 
 
 class YotaBurndownDashboard(AbstractDashboard):
-    auto_open, repository, plotly_auth, dashboard_type = True, None, None, None
+    auto_open, repository, plotly_auth, dashboard_type, citrix_token = True, None, None, None, None
     all_spent, all_remain = {}, {}
     start, end = datetime.date(2019, 2, 18), datetime.date(2019, 7, 19)
 
@@ -152,15 +154,14 @@ class YotaBurndownDashboard(AbstractDashboard):
             plotly.tools.set_credentials_file(username=self.plotly_auth[0], api_key=self.plotly_auth[1])
             plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
         elif self.repository == 'citrix':
-            html_file = self.png_dir + "{0}.html".format(title)
-            plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
-            citrix = CitrixShareFile(hostname='nexign.sharefile.eu',
-                                     client_id='',
-                                     client_secret='',
-                                     username='TSGS_RND_Exch@nexign-systems.com',
-                                     password='SvMx10~bJL')
+            plotly.offline.plot(fig, image_filename=title, image='png', image_height=1080, image_width=1920)
+            time.sleep(5)
+            shutil.move('C:/Users/Aleksey.Bryntsev/Downloads/{}.png'.format(title), './files/{}.png'.format(title))
+            citrix = CitrixShareFile(hostname=self.citrix_token['hostname'], client_id=self.citrix_token['client_id'],
+                                     client_secret=self.citrix_token['client_secret'],
+                                     username=self.citrix_token['username'], password=self.citrix_token['password'])
             citrix.upload_file(folder_id='fofd8511-6564-44f3-94cb-338688544aac',
-                               local_path=html_file)
+                               local_path='./files/{}.png'.format(title))
 
     def export_to_plot(self):
         self.export_to_plotly()

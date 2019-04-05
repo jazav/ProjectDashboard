@@ -3,6 +3,9 @@ from adapters.issue_utils import get_domain, get_domain_by_project
 import plotly
 import plotly.graph_objs as go
 from datetime import datetime
+from adapters.citrix_sharefile_adapter import CitrixShareFile
+import shutil
+import time
 
 
 def color_for_status(status):
@@ -15,7 +18,7 @@ def color_for_status(status):
 
 
 class AllBugsDashboard(AbstractDashboard):
-    auto_open, repository, plotly_auth = True, None, None
+    auto_open, repository, plotly_auth, citrix_token = True, None, None, None
     bssbox_dict, domain_dict = {'BSSBox': {'open': 0, 'in fix': 0, 'resolved': 0, 'closed': 0}},\
                                {'Total': {'open': 0, 'in fix': 0, 'resolved': 0, 'closed': 0}}
 
@@ -137,6 +140,15 @@ class AllBugsDashboard(AbstractDashboard):
         elif self.repository == 'online':
             plotly.tools.set_credentials_file(username=self.plotly_auth[0], api_key=self.plotly_auth[1])
             plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
+        elif self.repository == 'citrix':
+            plotly.offline.plot(fig, image_filename=title, image='png', image_height=1080, image_width=1920)
+            time.sleep(5)
+            shutil.move('C:/Users/Aleksey.Bryntsev/Downloads/{}.png'.format(title), './files/{}.png'.format(title))
+            citrix = CitrixShareFile(hostname=self.citrix_token['hostname'], client_id=self.citrix_token['client_id'],
+                                     client_secret=self.citrix_token['client_secret'],
+                                     username=self.citrix_token['username'], password=self.citrix_token['password'])
+            citrix.upload_file(folder_id='fofd8511-6564-44f3-94cb-338688544aac',
+                               local_path='./files/{}.png'.format(title))
 
     def export_to_plot(self):
         self.export_to_plotly()
