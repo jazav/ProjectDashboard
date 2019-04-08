@@ -203,6 +203,7 @@ class SprintBurndownDashboard(AbstractDashboard):
         )]
 
         layout = go.Layout(
+            hovermode='closest',
             annotations=annotations,
             xaxis2=dict(
                 domain=[0, 1],

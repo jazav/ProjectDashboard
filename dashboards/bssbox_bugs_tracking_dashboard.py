@@ -1,5 +1,5 @@
 from dashboards.dashboard import AbstractDashboard
-from adapters.issue_utils import get_domain
+from adapters.issue_utils import get_domain_bssbox
 import datetime
 import numpy
 import plotly
@@ -56,14 +56,14 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
         self.all_bugs['BSSBox'] = {'On track': 0, 'Overdue': 0}
         preparing_data = {key: [] for key in data.keys()}
         for i in range(len(data['Key'])):
-            if get_domain(data['Domain'][i]) != 'Common':
+            if get_domain_bssbox(data['Domain'][i]) != 'Common':
                 for key in data.keys():
                     preparing_data[key].append(data[key][i])
         data = preparing_data
         created = [cr for cr, st in zip(data['Days in progress'], data['Status']) if st not in ('Closed', 'Resolved')]
         self.created_dict = created
         for i in range(len(data['Key'])):
-            data['Domain'][i] = get_domain(data['Domain'][i]) if data['Domain'][i] is not None else 'Empty'
+            data['Domain'][i] = get_domain_bssbox(data['Domain'][i]) if data['Domain'][i] is not None else 'Empty'
             if data['Days in progress'][i] < datetime.datetime(2019, 1, 28):
                 self.old_list.append(data['Key'][i])
             data['Days in progress'][i] =\
@@ -207,6 +207,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
 
         axis = dict()
         layout = go.Layout(
+            hovermode='closest',
             title='<b>{} ({})</b>'.format(title, datetime.datetime.now().strftime("%d.%m.%y %H:%M"))
                   + ('<sup> in cloud</sup>' if self.repository == 'online' else '')
                   + '<br><i>SLA: Blockers - 1 day, Criticals - 2 days</i>',

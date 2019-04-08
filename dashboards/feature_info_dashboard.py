@@ -11,12 +11,12 @@ import time
 
 bulk_convert = {'Common': 'Common', 'Arch & SA': 'Arch & SA', 'Billing': 'Billing', 'Business Analysis': 'BA',
                 'Charge Events Storage': 'Billing', 'CRM1 (Customer Relationship Management)': 'CRM',
-                'CRM2 (Customer Relationship Management)': 'CRM', 'Design': 'Design', 'DevOps': 'Common',
+                'CRM2 (Customer Relationship Management)': 'CRM', 'Design': 'Design', 'DevOps': 'DevOps',
                 'Documentation': 'Doc', 'Dunning and Collection': 'Billing', 'Infra': 'Infra',
                 'Network Monetization': 'NWM', 'Order Management & Partner Management': 'Ordering & PRM',
                 'Product Instances': 'Product Instances', 'Payment Management': 'Billing',
-                'Performance Testing': 'Common', 'Product Management': 'PSC', 'QC': 'Common',
-                'System Architecture': 'Arch'}
+                'Performance Testing': 'Performance Testing', 'Product Management': 'PSC', 'QC': 'QC',
+                'System Architecture': 'System Architecture'}
 
 
 class FeatureInfoDashboard(AbstractDashboard):
@@ -188,7 +188,8 @@ class FeatureInfoDashboard(AbstractDashboard):
                     ticklen=10,
                     tickcolor='rgba(0,0,0,0)',
                     tickfont=dict(size=10)
-                )
+                ),
+                hovermode='closest'
             )
 
             fig = go.Figure(data=data, layout=layout)

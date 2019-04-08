@@ -90,6 +90,7 @@ class BugsProgressDashboard(AbstractDashboard):
         html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 
         layout = go.Layout(
+            hovermode='closest',
             xaxis1=dict(
                 domain=[0, 1],
                 type='date',

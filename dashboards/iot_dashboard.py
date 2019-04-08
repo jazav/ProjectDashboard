@@ -83,6 +83,7 @@ class IotDashboard(AbstractDashboard):
 
         axis = dict()
         layout = dict(
+            hovermode='closest',
             title='<b>{0} as of {1}</b>'.format(self.dashboard_name, datetime.datetime.now().strftime("%d.%m.%y %H:%M"))
                   + (' <sup>in cloud</sup>' if self.repository == 'online' else ''),
             xaxis1=dict(axis, **dict(domain=[0, 0.49], anchor='y1', showgrid=True, title=xtitle['AEP'])),

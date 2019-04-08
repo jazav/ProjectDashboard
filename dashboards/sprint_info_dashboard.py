@@ -20,7 +20,7 @@ def bulk_convert(domain):
         'CRM1 (Customer Relationship Management)': 'CRM',
         'CRM2 (Customer Relationship Management)': 'CRM',
         'Design': 'Design',
-        'DevOps': 'Common',
+        'DevOps': 'DevOps',
         'Documentation': 'Doc',
         'Dunning and Collection': 'Billing',
         'Infra': 'Infra',
@@ -28,10 +28,10 @@ def bulk_convert(domain):
         'Order Management & Partner Management': 'Ordering & PRM',
         'Product Instances': 'Product Instances',
         'Payment Management': 'Billing',
-        'Performance Testing': 'Common',
+        'Performance Testing': 'Performance Testing',
         'Product Management': 'PSC',
-        'QC': 'Common',
-        'System Architecture': 'Arch'
+        'QC': 'QC',
+        'System Architecture': 'System Architecture'
     }[domain]
 
 
@@ -125,10 +125,10 @@ class SprintInfoDashboard(AbstractDashboard):
         html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 
         fig['layout'].update(title='<b>{0} as of {1}</b>'.format(self.dashboard_name, datetime.datetime.now().strftime("%d.%m.%y %H:%M"))
-                                   + (' <sup>in cloud</sup>' if self.repository == 'online' else ''), legend=dict(y=0.5))
-        fig['layout']['xaxis1'].update(anchor='y1', showgrid=True)
+                                   + (' <sup>in cloud</sup>' if self.repository == 'online' else ''), legend=dict(y=0.5), hovermode='closest')
+        fig['layout']['xaxis1'].update(anchor='y1', showgrid=True, tickfont=dict(size=9))
         fig['layout']['yaxis1'].update(anchor='x1', showline=True, title='Man-days')
-        fig['layout']['xaxis2'].update(anchor='y2', showgrid=True)
+        fig['layout']['xaxis2'].update(anchor='y2', showgrid=True, tickfont=dict(size=9))
         fig['layout']['yaxis2'].update(anchor='x2', showline=True, title='Count of tasks and sub-tasks')
 
         if self.repository == 'offline':

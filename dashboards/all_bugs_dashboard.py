@@ -1,5 +1,5 @@
 from dashboards.dashboard import AbstractDashboard
-from adapters.issue_utils import get_domain, get_domain_by_project
+from adapters.issue_utils import get_domain_bssbox, get_domain_by_project
 import plotly
 import plotly.graph_objs as go
 from datetime import datetime
@@ -31,7 +31,7 @@ class AllBugsDashboard(AbstractDashboard):
                 self.domain_dict[domain][status] += 1
                 self.domain_dict['Total'][status] += 1
             else:
-                domain = get_domain(component)
+                domain = get_domain_bssbox(component)
                 if domain not in self.bssbox_dict.keys():
                     self.bssbox_dict[domain] = {'open': 0, 'in fix': 0, 'resolved': 0, 'closed': 0}
                 self.bssbox_dict[domain][status] += 1
@@ -120,6 +120,7 @@ class AllBugsDashboard(AbstractDashboard):
         html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 
         layout = dict(
+            hovermode='closest',
             title='<b>{0} as of {1}</b>'.format(self.dashboard_name, datetime.now().strftime("%d.%m.%y %H:%M"))
                   + (' <sup>in cloud</sup>' if self.repository == 'online' else ''),
             barmode='stack',
