@@ -219,7 +219,7 @@ class SprintBurndownDashboard(AbstractDashboard):
                 ),
                 tickangle=45,
                 showline=True,
-                range=[start-datetime.timedelta(days=1), end2+datetime.timedelta(days=1)]
+                range=[start - datetime.timedelta(days=1), end2 + datetime.timedelta(days=1)]
             ),
             yaxis2=dict(
                 domain=[0.55, 1],
