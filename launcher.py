@@ -109,7 +109,7 @@ def get_command_namespace(argv):
     dashboard_parser.add_argument('-plotly_key', '-plk', action='store', help='Plot.ly authorisation api key',
                                   required=False, default='')
     dashboard_parser.add_argument('-citrix_token', '-ct', action='store', help='Token for Citric ShareFile API',
-                                  required=False, default='')
+                                  required=False, default='{}')
     # ------------------------------------------------------------------------------------------------------------------
     
     for subparser in [init_parser, update_parser, issue_parser, dashboard_parser]:
