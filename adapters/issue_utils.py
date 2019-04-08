@@ -179,7 +179,7 @@ def get_domain_bssbox(component):
         'System Monitoring and Operation': 'Infra',
         'Task Engine': 'Infra',
         '': 'Empty',
-        None: ''
+        None: 'Empty'
     }[component]
 
 
