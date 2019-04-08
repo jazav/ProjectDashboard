@@ -251,6 +251,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
             plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
         elif self.repository == 'citrix':
             plotly.offline.plot(fig, image_filename=title, image='png', image_height=1080, image_width=1920)
+            plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
             time.sleep(5)
             shutil.move('C:/Users/Aleksey.Bryntsev/Downloads/{}.png'.format(title), './files/{}.png'.format(title))
             citrix = CitrixShareFile(hostname=self.citrix_token['hostname'], client_id=self.citrix_token['client_id'],
@@ -258,6 +259,8 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                                      username=self.citrix_token['username'], password=self.citrix_token['password'])
             citrix.upload_file(folder_id='fofd8511-6564-44f3-94cb-338688544aac',
                                local_path='./files/{}.png'.format(title))
+            citrix.upload_file(folder_id='fofd8511-6564-44f3-94cb-338688544aac',
+                               local_path=html_file)
 
     def export_to_plot(self):
         self.export_to_plotly()
