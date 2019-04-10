@@ -11,7 +11,7 @@ import time
 class YotaBurndownDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth, dashboard_type, citrix_token = True, None, None, None, None
     all_spent, all_remain = {}, {}
-    start, end = datetime.date(2019, 2, 18), datetime.date(2019, 7, 19)
+    start, end = datetime.date(2019, 2, 18), datetime.date(2019, 10, 1)
 
     def multi_prepare(self, data_spent, data_original):
         all_original, spent, original = {}, 0, 0
@@ -137,7 +137,7 @@ class YotaBurndownDashboard(AbstractDashboard):
                 tickfont=dict(
                     size=16
                 ),
-                range=[0, max(self.all_remain.values()) + 100],
+                range=[0, max(self.all_remain.values()) + 250],
                 automargin=True
             ),
             title=title + (' <sup>in cloud</sup>' if self.repository == 'online' else ''),
