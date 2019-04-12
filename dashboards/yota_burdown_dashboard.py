@@ -23,10 +23,11 @@ class YotaBurndownDashboard(AbstractDashboard):
                 self.all_spent[data_spent['created'][i]] = spent
         for i in range(len(data_original['key'])):
             if data_original['issue type'][i] == 'User Story (L3)':
-                d = json.loads(data_original['estimate'][i]) if data_original['estimate'][i] else {}
-                data_original['estimate'][i] = {d[cmp]['n']: float(d[cmp]['v'].rstrip('d')) for cmp in d.keys()
-                                                if cmp.isdigit() and d[cmp]['v'] not in ('0', '?')}
-                original += float(d['Total']['v']) if d.keys() else 0
+                d = json.loads(data_original['estimate'][i])
+                d = {key: float(val) for key, val in d.items()}
+                d['Total'] = sum(list(d.values()))
+                data_original['estimate'][i] = d
+                original += float(d['Total']) if d.keys() else 0
                 all_original[self.start] = original
             else:
                 if data_original['resolution date'][i] and data_original['component'][i]:
@@ -48,6 +49,7 @@ class YotaBurndownDashboard(AbstractDashboard):
         if len(self.all_spent.keys()) == 0:
             raise ValueError('There is no issues to show')
 
+        print('lfkjdslkjvlsfdjkbldsfvblsv')
         xaxis = [self.start]
         while xaxis[-1] != self.end:
             xaxis.append(xaxis[-1] + datetime.timedelta(days=1))
@@ -168,4 +170,5 @@ class YotaBurndownDashboard(AbstractDashboard):
                                local_path=html_file)
 
     def export_to_plot(self):
+        print('134748761932469132876923817649271')
         self.export_to_plotly()
