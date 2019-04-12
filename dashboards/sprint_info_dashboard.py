@@ -10,31 +10,6 @@ import shutil
 import time
 
 
-def bulk_convert(domain):
-    return {
-        'Common': 'Common',
-        'Arch & SA': 'Arch & SA',
-        'Billing': 'Billing',
-        'Business Analysis': 'BA',
-        'Charge Events Storage': 'Billing',
-        'CRM1 (Customer Relationship Management)': 'CRM',
-        'CRM2 (Customer Relationship Management)': 'CRM',
-        'Design': 'Design',
-        'DevOps': 'DevOps',
-        'Documentation': 'Doc',
-        'Dunning and Collection': 'Billing',
-        'Infra': 'Infra',
-        'Network Monetization': 'NWM',
-        'Order Management & Partner Management': 'Ordering & PRM',
-        'Product Instances': 'Product Instances',
-        'Payment Management': 'Billing',
-        'Performance Testing': 'Performance Testing',
-        'Product Management': 'PSC',
-        'QC': 'QC',
-        'System Architecture': 'System Architecture'
-    }[domain]
-
-
 def color_for_status(status):
     return {'Open': 'rgb(217,98,89)', 'Dev': 'rgb(254,210,92)', 'Done': 'rgb(29,137,49)'}[status]
 
@@ -58,12 +33,13 @@ class SprintInfoDashboard(AbstractDashboard):
                 self.est_dict[data['Component'][i]]['Spent Time'] += int(data['Spent time'][i]) / 28800
                 self.st_dict[data['Component'][i]][data['Status'][i]] += 1
             else:
-                d = json.loads(data['Estimate'][i]) if data['Estimate'][i] is not None else {}
-                for domain in [key for key in d.keys() if not key.isdigit() and key != 'Total']:
-                    if bulk_convert(domain) not in self.est_dict.keys():
-                        self.est_dict[bulk_convert(domain)] = {'Bulk Estimate': 0, 'Original Estimate': 0, 'Spent Time': 0}
-                        self.st_dict[bulk_convert(domain)] = {'Open': 0, 'Dev': 0, 'Done': 0}
-                    self.est_dict[bulk_convert(domain)]['Bulk Estimate'] += float(d[domain]['v'])
+                d = json.loads(data['Estimate'][i])
+                for cmp in d.keys():
+                    domain = get_domain_bssbox(cmp)
+                    if domain not in self.est_dict.keys():
+                        self.est_dict[domain] = {'Bulk Estimate': 0, 'Original Estimate': 0, 'Spent Time': 0}
+                        self.st_dict[domain] = {'Open': 0, 'Dev': 0, 'Done': 0}
+                    self.est_dict[domain]['Bulk Estimate'] += float(d[cmp])
 
     def export_to_plotly(self):
         if len(self.est_dict.keys()) == 0:

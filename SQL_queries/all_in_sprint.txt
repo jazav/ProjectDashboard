@@ -1,27 +1,29 @@
 WITH user_stories AS (
-	SELECT flagged.flagged AS 'Flagged', us_ji.ID AS 'ID', CONCAT_WS('-', us_prj.pkey, us_ji.issuenum) AS 'Key', us_it.pname AS 'Issue type', bulks.TEXTVALUE AS 'Estimate',
-		NULL AS 'Spent time', NULL AS 'Component', us_is.pname AS 'Status', NULL AS 'Feature', us_ji.SUMMARY AS 'Feature name', us_pm.STRINGVALUE AS 'FL', CONVERT(varchar, FORMAT(CONVERT(date, us_ji.DUEDATE), 'dd.MM.yyyy')) AS 'Due date'
-	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS us_ji
-		INNER JOIN [srv-jira-prod-report].[dbo].[issuetype] AS us_it ON us_it.ID = us_ji.issuetype
-		INNER JOIN [srv-jira-prod-report].[dbo].[customfieldvalue] AS us_cfv ON us_cfv.ISSUE = us_ji.ID
-		INNER JOIN [srv-jira-prod-report].[dbo].[project] AS us_prj ON us_prj.ID = us_ji.PROJECT
-		INNER JOIN [srv-jira-prod-report].[dbo].[issuestatus] AS us_is ON us_is.ID = us_ji.issuestatus
-		LEFT JOIN (
-			SELECT uspm_cfv.ISSUE, uspm_cfv.STRINGVALUE
-			FROM [srv-jira-prod-report].[dbo].[customfieldvalue] AS uspm_cfv
-				INNER JOIN [srv-jira-prod-report].[dbo].[customfield] AS uspm_cf ON uspm_cf.ID = uspm_cfv.CUSTOMFIELD
-			WHERE uspm_cf.cfname = 'Project manager') AS us_pm ON us_pm.ISSUE = us_ji.ID
-		FULL JOIN (
-			SELECT usb_cf.cfname, usb_cfv.ISSUE, usb_cfv.TEXTVALUE
-			FROM [srv-jira-prod-report].[dbo].[customfieldvalue] AS usb_cfv
-				INNER JOIN [srv-jira-prod-report].[dbo].[customfield] AS usb_cf ON usb_cf.ID = usb_cfv.CUSTOMFIELD
-			WHERE usb_cf.cfname = 'Bulk Estimate') AS bulks ON bulks.ISSUE = us_ji.ID
-		LEFT JOIN (
-			SELECT fl_ji.ID AS 'ID', 'flagged' AS 'flagged'
-			FROM [srv-jira-prod-report].[dbo].[jiraissue] AS fl_ji
-				INNER JOIN [srv-jira-prod-report].[dbo].[customfieldvalue] AS fl_cfv ON fl_cfv.ISSUE = fl_ji.ID
-			WHERE fl_cfv.CUSTOMFIELD = '15101') AS flagged ON flagged.ID = us_ji.ID
-	WHERE us_prj.pname = 'BSSBOX' AND us_it.pname = 'User Story (L3)' AND us_cfv.STRINGVALUE = '7067' AND us_is.pname != 'Canceled'),
+	SELECT us.Flagged, us.ID, us.[Key], us.[Issue type], CONCAT('{', STRING_AGG(us.Estimate, ', '), '}') AS 'Estimate', us.[Spent time], us.Component, us.[Status], us.Feature, us.[Feature name], us.FL, us.[Due date]
+	FROM (
+		SELECT flagged.flagged AS 'Flagged', us_ji.ID AS 'ID', CONCAT_WS('-', us_prj.pkey, us_ji.issuenum) AS 'Key', us_it.pname AS 'Issue type', (CASE WHEN bulks.Estimate IS NULL THEN '' ELSE CONCAT('"', bulks.Component, '": "', bulks.Estimate, '"') END) AS 'Estimate',
+			NULL AS 'Spent time', NULL AS 'Component', us_is.pname AS 'Status', NULL AS 'Feature', us_ji.SUMMARY AS 'Feature name', us_pm.STRINGVALUE AS 'FL', CONVERT(varchar, FORMAT(CONVERT(date, us_ji.DUEDATE), 'dd.MM.yyyy')) AS 'Due date'
+		FROM [srv-jira-prod-report].[dbo].[jiraissue] AS us_ji
+			INNER JOIN [srv-jira-prod-report].[dbo].[issuetype] AS us_it ON us_it.ID = us_ji.issuetype
+			INNER JOIN [srv-jira-prod-report].[dbo].[customfieldvalue] AS us_cfv ON us_cfv.ISSUE = us_ji.ID
+			INNER JOIN [srv-jira-prod-report].[dbo].[project] AS us_prj ON us_prj.ID = us_ji.PROJECT
+			INNER JOIN [srv-jira-prod-report].[dbo].[issuestatus] AS us_is ON us_is.ID = us_ji.issuestatus
+			LEFT JOIN (
+				SELECT uspm_cfv.ISSUE, uspm_cfv.STRINGVALUE
+				FROM [srv-jira-prod-report].[dbo].[customfieldvalue] AS uspm_cfv
+					INNER JOIN [srv-jira-prod-report].[dbo].[customfield] AS uspm_cf ON uspm_cf.ID = uspm_cfv.CUSTOMFIELD
+				WHERE uspm_cf.cfname = 'Project manager') AS us_pm ON us_pm.ISSUE = us_ji.ID
+			LEFT JOIN (
+				SELECT be.ISSUE_ID, be.[VALUE] AS 'Estimate', cmp.cname AS 'Component'
+				FROM [srv-jira-prod-report].[dbo].[AO_983835_BE_ITEM] AS be
+					INNER JOIN [srv-jira-prod-report].[dbo].[component] AS cmp ON cmp.ID = be.COMPONENT_ID) AS bulks ON bulks.ISSUE_ID = us_ji.ID
+			LEFT JOIN (
+				SELECT fl_ji.ID AS 'ID', 'flagged' AS 'flagged'
+				FROM [srv-jira-prod-report].[dbo].[jiraissue] AS fl_ji
+					INNER JOIN [srv-jira-prod-report].[dbo].[customfieldvalue] AS fl_cfv ON fl_cfv.ISSUE = fl_ji.ID
+				WHERE fl_cfv.CUSTOMFIELD = '15101') AS flagged ON flagged.ID = us_ji.ID
+		WHERE us_prj.pname = 'BSSBOX' AND us_it.pname = 'User Story (L3)' AND us_cfv.STRINGVALUE = '7067' AND us_is.pname != 'Canceled') AS us
+	GROUP BY us.Flagged, us.ID, us.[Key], us.[Issue type], us.[Spent time], us.Component, us.[Status], us.Feature, us.[Feature name], us.FL, us.[Due date]),
 epics AS (
 	SELECT user_stories.Flagged AS 'Flagged', e_ji.ID AS 'ID', epics_cmp.Component AS 'Component', user_stories.[Key] AS 'Feature', user_stories.[Feature name] AS 'Feature name', user_stories.FL AS 'FL', CONVERT(varchar, FORMAT(CONVERT(date, e_ji.DUEDATE), 'dd.MM.yyyy')) AS 'Due date'
 	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS e_ji

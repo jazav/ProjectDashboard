@@ -180,7 +180,8 @@ def get_domain_bssbox(component):
         'Task Engine': 'Infra',
         '': 'Empty',
         None: 'Empty',
-        'SSO': 'Infra'
+        'SSO': 'Infra',
+        'Ordering Arch & SA': 'Arch & SA'
     }[component]
 
 
