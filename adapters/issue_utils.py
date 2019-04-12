@@ -181,7 +181,8 @@ def get_domain_bssbox(component):
         '': 'Empty',
         None: 'Empty',
         'SSO': 'Infra',
-        'Ordering Arch & SA': 'Arch & SA'
+        'Ordering Arch & SA': 'Arch & SA',
+        'Custom CSRP': 'Custom'
     }[component]
 
 
