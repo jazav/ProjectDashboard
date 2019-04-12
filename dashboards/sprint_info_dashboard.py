@@ -15,33 +15,40 @@ def color_for_status(status):
 
 
 def color_for_est(est):
-    return {'Bulk Estimate': 'rgb(97,100,223)', 'Original Estimate': 'rgb(82,162,218)', 'Spent Time': 'rgb(75,223,156)'}[est]
+    return {'Bulk estimate': 'rgb(97,100,223)', 'Original estimate': 'rgb(82,162,218)', 'Spent time': 'rgb(75,223,156)'}[est]
 
 
 class SprintInfoDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth, citrix_token = True, None, None, None
     est_dict, st_dict = {}, {}
+    prj_est, prj_st = {'Bulk estimate': 0, 'Original estimate': 0, 'Spent time': 0}, {'Open': 0, 'Dev': 0, 'Done': 0}
 
     def prepare(self, data):
         for i in range(len(data['Key'])):
             if data['Issue type'][i] != 'User Story (L3)':
                 data['Component'][i] = get_domain_bssbox(data['Component'][i])
                 if data['Component'][i] not in self.est_dict.keys():
-                    self.est_dict[data['Component'][i]] = {'Bulk Estimate': 0, 'Original Estimate': 0, 'Spent Time': 0}
+                    self.est_dict[data['Component'][i]] = {'Bulk estimate': 0, 'Original estimate': 0, 'Spent time': 0}
                     self.st_dict[data['Component'][i]] = {'Open': 0, 'Dev': 0, 'Done': 0}
-                self.est_dict[data['Component'][i]]['Original Estimate'] += int(data['Estimate'][i]) / 28800
-                self.est_dict[data['Component'][i]]['Spent Time'] += int(data['Spent time'][i]) / 28800
+                self.est_dict[data['Component'][i]]['Original estimate'] += int(data['Estimate'][i]) / 28800
+                self.prj_est['Original estimate'] += int(data['Estimate'][i]) / 28800
+                self.est_dict[data['Component'][i]]['Spent time'] += int(data['Spent time'][i]) / 28800
+                self.prj_est['Spent time'] += int(data['Spent time'][i]) / 28800
                 self.st_dict[data['Component'][i]][data['Status'][i]] += 1
+                self.prj_st[data['Status'][i]] += 1
             else:
                 d = json.loads(data['Estimate'][i])
                 for cmp in d.keys():
                     domain = get_domain_bssbox(cmp)
                     if domain not in self.est_dict.keys():
-                        self.est_dict[domain] = {'Bulk Estimate': 0, 'Original Estimate': 0, 'Spent Time': 0}
+                        self.est_dict[domain] = {'Bulk estimate': 0, 'Original estimate': 0, 'Spent time': 0}
                         self.st_dict[domain] = {'Open': 0, 'Dev': 0, 'Done': 0}
-                    self.est_dict[domain]['Bulk Estimate'] += float(d[cmp])
+                    self.est_dict[domain]['Bulk estimate'] += float(d[cmp])
+                    self.prj_est['Bulk estimate'] += float(d[cmp])
 
     def export_to_plotly(self):
+        print(self.prj_est)
+        print(self.prj_st)
         if len(self.est_dict.keys()) == 0:
             raise ValueError('There is no issues to show')
 
