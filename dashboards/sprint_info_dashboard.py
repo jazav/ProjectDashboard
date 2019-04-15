@@ -22,8 +22,10 @@ class SprintInfoDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth, citrix_token = True, None, None, None
     est_dict, st_dict = {}, {}
     prj_est, prj_st = {'Bulk estimate': 0, 'Original estimate': 0, 'Spent time': 0}, {'Open': 0, 'Dev': 0, 'Done': 0}
+    readiness = 0
 
     def prepare(self, data):
+        spent, original = 0, 0
         for i in range(len(data['Key'])):
             if data['Issue type'][i] != 'User Story (L3)':
                 data['Component'][i] = get_domain_bssbox(data['Component'][i])
@@ -32,8 +34,10 @@ class SprintInfoDashboard(AbstractDashboard):
                     self.st_dict[data['Component'][i]] = {'Open': 0, 'Dev': 0, 'Done': 0}
                 self.est_dict[data['Component'][i]]['Original estimate'] += int(data['Estimate'][i]) / 28800
                 self.prj_est['Original estimate'] += int(data['Estimate'][i]) / 28800
+                original += int(data['Estimate'][i]) / 28800
                 self.est_dict[data['Component'][i]]['Spent time'] += int(data['Spent time'][i]) / 28800
                 self.prj_est['Spent time'] += int(data['Spent time'][i]) / 28800
+                spent += int(data['Spent time'][i]) / 28800 if data['Status'] != 'Done' else int(data['Estimate'][i]) / 28800
                 self.st_dict[data['Component'][i]][data['Status'][i]] += 1
                 self.prj_st[data['Status'][i]] += 1
             else:
@@ -45,6 +49,7 @@ class SprintInfoDashboard(AbstractDashboard):
                         self.st_dict[domain] = {'Open': 0, 'Dev': 0, 'Done': 0}
                     self.est_dict[domain]['Bulk estimate'] += float(d[cmp])
                     self.prj_est['Bulk estimate'] += float(d[cmp])
+        self.readiness = round(spent / original * 100)
 
     def export_to_plotly(self):
         print(self.prj_est)
@@ -96,9 +101,11 @@ class SprintInfoDashboard(AbstractDashboard):
             base = [bs + cnt for bs, cnt in
                     zip(base, [counts[st] for key, counts in list(self.st_dict.items()) if key != 'Common'])]
 
-        fig = tools.make_subplots(rows=2, cols=1, vertical_spacing=0.07,
-                                  subplot_titles=('<b><i>Ratio of high level estimates, original estimates and spent time</i></b>',
-                                                  '<b><i>Progress of development work</i></b>'))
+        est_title = '<i><b>Ratio of high level estimates, original estimates and spent time<br>Total: </b>{}. <b>Readiness: </b>{}%</i>'.\
+            format(', '.join(['{} - {}'.format(key, round(val)) for key, val in self.prj_est.items()]), self.readiness)
+        st_title = '<i><b>Progress of development work</b>Total: </b>{}</i>'.\
+            format(', '.join(['{} - {}'.format(key, val) for key, val in self.prj_st.items()]))
+        fig = tools.make_subplots(rows=2, cols=1, vertical_spacing=0.07, subplot_titles=(est_title, st_title))
         for trace_est, trace_st in zip(data_est, data_st):
             fig.append_trace(trace_est, 1, 1)
             fig.append_trace(trace_st, 2, 1)
@@ -113,6 +120,9 @@ class SprintInfoDashboard(AbstractDashboard):
         fig['layout']['yaxis1'].update(anchor='x1', showline=True, title='Man-days')
         fig['layout']['xaxis2'].update(anchor='y2', showgrid=True, tickfont=dict(size=9))
         fig['layout']['yaxis2'].update(anchor='x2', showline=True, title='Count of tasks and sub-tasks')
+
+        for annotation in fig['layout']['annotations']:
+            annotation['font'] = dict(size=14)
 
         if self.repository == 'offline':
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
