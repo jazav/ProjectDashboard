@@ -19,7 +19,7 @@ def color_for_est(est):
 
 
 class SprintInfoDashboard(AbstractDashboard):
-    auto_open, repository, plotly_auth, citrix_token = True, None, None, None
+    auto_open, repository, plotly_auth, citrix_token, local_user = True, None, None, None, None
     est_dict, st_dict = {}, {}
     prj_est, prj_st = {'Bulk estimate': 0, 'Original estimate': 0, 'Spent time': 0}, {'Open': 0, 'Dev': 0, 'Done': 0}
     readiness = 0
@@ -133,7 +133,7 @@ class SprintInfoDashboard(AbstractDashboard):
             plotly.offline.plot(fig, image_filename=title, image='png', image_height=1080, image_width=1920)
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
             time.sleep(5)
-            shutil.move('C:/Users/Aleksey.Bryntsev/Downloads/{}.png'.format(title), './files/{}.png'.format(title))
+            shutil.move('C:/Users/{}/Downloads/{}.png'.format(self.local_user, title), './files/{}.png'.format(title))
             citrix = CitrixShareFile(hostname=self.citrix_token['hostname'], client_id=self.citrix_token['client_id'],
                                      client_secret=self.citrix_token['client_secret'],
                                      username=self.citrix_token['username'], password=self.citrix_token['password'])

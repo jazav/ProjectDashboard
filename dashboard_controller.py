@@ -245,7 +245,8 @@ class DashboardController:
     
     # By @alanbryn
     @staticmethod
-    def dashboard_bugs_duration(plan, fact, auto_open, priorities, labels, creators, repository, plotly_auth, citrix_token):
+    def dashboard_bugs_duration(plan, fact, auto_open, priorities, labels, creators, repository, plotly_auth,
+                                citrix_token, local_user):
         if not (plan and fact):
             raise ValueError('both of plan and fact parameters are false')
 
@@ -263,6 +264,7 @@ class DashboardController:
             dashboard.repository = repository
             dashboard.plotly_auth = plotly_auth
             dashboard.citrix_token = citrix_token
+            dashboard.local_user = local_user
             dashboard.priority = priority.strip()
             dashboard.creators = creators
             dashboard.labels = labels
@@ -271,7 +273,7 @@ class DashboardController:
 
     # By @alanbryn
     @staticmethod
-    def dashboard_arba_issues(plan, fact, auto_open, assignees, teams, details):
+    def dashboard_arba_issues(plan, fact, auto_open, assignees, teams, details, repository, citrix_token, local_user):
         if not (plan and fact):
             raise ValueError('both of plan and fact parameters are false')
 
@@ -286,6 +288,9 @@ class DashboardController:
             dashboard.plan = plan
             dashboard.fact = fact
             dashboard.auto_open = auto_open
+            dashboard.repository = repository
+            dashboard.citrix_token = citrix_token
+            dashboard.local_user = local_user
             dashboard.assignees = assignees
             dashboard.prepare(data=data_dao)
             dashboard.export_to_plot()
@@ -297,6 +302,9 @@ class DashboardController:
             dashboard.plan = plan
             dashboard.fact = fact
             dashboard.auto_open = auto_open
+            dashboard.repository = repository
+            dashboard.citrix_token = citrix_token
+            dashboard.local_user = local_user
             dashboard.assignees = assignees
             dashboard.prepare(data=data_dao)
             dashboard.export_to_plot()
@@ -330,7 +338,7 @@ class DashboardController:
 
     # By @alanbryn
     @staticmethod
-    def dashboard_all_bugs(auto_open, repository, mssql_query_file, plotly_auth, citrix_token):
+    def dashboard_all_bugs(auto_open, repository, mssql_query_file, plotly_auth, citrix_token, local_user):
         dc = DataController()
         data = dc.get_issues_mssql(mssql_query_file=mssql_query_file)
 
@@ -340,12 +348,13 @@ class DashboardController:
         dashboard.plotly_auth = plotly_auth
         dashboard.auto_open = auto_open
         dashboard.citrix_token = citrix_token
+        dashboard.local_user = local_user
         dashboard.prepare(data=data)
         dashboard.export_to_plot()
 
     # By @alanbryn
     @staticmethod
-    def dashboard_bugs_progress(plan, fact, auto_open, repository, plotly_auth, citrix_token):
+    def dashboard_bugs_progress(plan, fact, auto_open, repository, plotly_auth, citrix_token, local_user):
         if not (plan and fact):
             raise ValueError('both of plan and fact parameters are false')
 
@@ -362,12 +371,13 @@ class DashboardController:
         dashboard.repository = repository
         dashboard.plotly_auth = plotly_auth
         dashboard.citrix_token = citrix_token
+        dashboard.local_user = local_user
         dashboard.prepare(data=data_dao)
         dashboard.export_to_plot()
 
     # By @alanbryn
     @staticmethod
-    def dashboard_bssbox_bugs_tracking(auto_open, repository, mssql_query_file, plotly_auth, citrix_token):
+    def dashboard_bssbox_bugs_tracking(auto_open, repository, mssql_query_file, plotly_auth, citrix_token, local_user):
         dc = DataController()
         data = dc.get_issues_mssql(mssql_query_file=mssql_query_file)
 
@@ -377,12 +387,14 @@ class DashboardController:
         dashboard.repository = repository
         dashboard.plotly_auth = plotly_auth
         dashboard.citrix_token = citrix_token
+        dashboard.local_user = local_user
         dashboard.prepare(data=data)
         dashboard.export_to_plot()
 
     # By @alanbryn
     @staticmethod
-    def dashboard_sprint_info(auto_open, repository, mssql_query_file, plotly_auth, dashboard_type, citrix_token):
+    def dashboard_sprint_info(auto_open, repository, mssql_query_file, plotly_auth, dashboard_type, citrix_token,
+                              local_user):
         dc = DataController()
         data = dc.get_issues_mssql(mssql_query_file=mssql_query_file)
 
@@ -393,12 +405,13 @@ class DashboardController:
             dashboard.repository = repository
             dashboard.plotly_auth = plotly_auth
             dashboard.citrix_token = citrix_token
+            dashboard.local_user = local_user
             dashboard.prepare(data=data)
             dashboard.export_to_plot()
 
     # By @alanbryn
     @staticmethod
-    def dashboard_iot(auto_open, repository, mssql_query_file, plotly_auth):
+    def dashboard_iot(auto_open, repository, mssql_query_file, plotly_auth, citrix_token, local_user):
         dc = DataController()
         data = dc.get_issues_mssql(mssql_query_file=mssql_query_file)
 
@@ -407,12 +420,15 @@ class DashboardController:
         dashboard.auto_open = auto_open
         dashboard.repository = repository
         dashboard.plotly_auth = plotly_auth
+        dashboard.citrix_token = citrix_token
+        dashboard.local_user = local_user
         dashboard.prepare(data=data)
         dashboard.export_to_plot()
 
     # By @alanbryn
     @staticmethod
-    def dashboard_sprint_burndown(auto_open, repository, mssql_query_file, plotly_auth, dashboard_type, citrix_token):
+    def dashboard_sprint_burndown(auto_open, repository, mssql_query_file, plotly_auth, dashboard_type, citrix_token,
+                                  local_user):
         dc = DataController()
         data_spent = dc.get_issues_mssql(mssql_query_file=mssql_query_file[0])
         data_original = dc.get_issues_mssql(mssql_query_file=mssql_query_file[1])
@@ -424,12 +440,13 @@ class DashboardController:
             dashboard.repository = repository
             dashboard.plotly_auth = plotly_auth
             dashboard.citrix_token = citrix_token
+            dashboard.local_user = local_user
             dashboard.multi_prepare(data_spent=data_spent, data_original=data_original)
             dashboard.export_to_plot()
 
     # By @alanbryn
     @staticmethod
-    def dashboard_yota_burndown(auto_open, repository, mssql_query_file, plotly_auth, citrix_token):
+    def dashboard_yota_burndown(auto_open, repository, mssql_query_file, plotly_auth, citrix_token, local_user):
         dc = DataController()
         data_spent = dc.get_issues_mssql(mssql_query_file=mssql_query_file[0])
         data_original = dc.get_issues_mssql(mssql_query_file=mssql_query_file[1])
@@ -440,5 +457,6 @@ class DashboardController:
         dashboard.repository = repository
         dashboard.plotly_auth = plotly_auth
         dashboard.citrix_token = citrix_token
+        dashboard.local_user = local_user
         dashboard.multi_prepare(data_spent=data_spent, data_original=data_original)
         dashboard.export_to_plot()

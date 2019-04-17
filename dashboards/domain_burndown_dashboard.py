@@ -11,7 +11,7 @@ import time
 
 
 class DomainBurndownDashboard(AbstractDashboard):
-    auto_open, repository, plotly_auth, dashboard_type, citrix_token = True, None, None, None, None
+    auto_open, repository, plotly_auth, dashboard_type, citrix_token, local_user = True, None, None, None, None, None
     all_spent, all_remain = {'flagged': {}, 'all': {}}, {'flagged': {}, 'all': {}}
 
     def multi_prepare(self, data_spent, data_original):
@@ -120,7 +120,7 @@ class DomainBurndownDashboard(AbstractDashboard):
                 print([all_original[dmn][dt] for dt in sorted(all_original[dmn].keys())])
                 print([round(sp, 3) for sp in self.all_spent['all'][dmn].values()])
                 print([float(sum([sp for sp, rd, domain in zip(data_spent['spent'], data_spent['resolutiondate'], data_spent['component'])
-                                                        if domain == dmn and rd is not None and rd < dt])) for dt in self.all_spent['all'][dmn].keys()])
+                                  if domain == dmn and rd is not None and rd < dt])) for dt in self.all_spent['all'][dmn].keys()])
             self.all_remain['all'][dmn] = {dt: all_original[dmn][dt] - self.all_spent['all'][dmn][dt]
                                            + float(sum([sp for sp, rd, domain in zip(data_spent['spent'], data_spent['resolutiondate'], data_spent['component'])
                                                         if domain == dmn and rd is not None and rd < dt])) for dt in self.all_spent['all'][dmn].keys()}
@@ -204,7 +204,7 @@ class DomainBurndownDashboard(AbstractDashboard):
                 plotly.offline.plot(fig, image_filename=title, image='png', image_height=1080, image_width=1920)
                 plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
                 time.sleep(5)
-                shutil.move('C:/Users/Aleksey.Bryntsev/Downloads/{}.png'.format(title), './files/{}.png'.format(title))
+                shutil.move('C:/Users/{}/Downloads/{}.png'.format(self.local_user, title), './files/{}.png'.format(title))
                 citrix = CitrixShareFile(hostname=self.citrix_token['hostname'],
                                          client_id=self.citrix_token['client_id'],
                                          client_secret=self.citrix_token['client_secret'],

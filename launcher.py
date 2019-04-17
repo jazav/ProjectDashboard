@@ -106,10 +106,15 @@ def get_command_namespace(argv):
 
     dashboard_parser.add_argument('-plotly_user', '-plu', action='store', help='Plot.ly authorisation username',
                                   required=False, default='')
+
     dashboard_parser.add_argument('-plotly_key', '-plk', action='store', help='Plot.ly authorisation api key',
                                   required=False, default='')
+
     dashboard_parser.add_argument('-citrix_token', '-ct', action='store', help='Token for Citrix ShareFile API',
                                   required=False, default='{}')
+
+    dashboard_parser.add_argument('-local_user', '-lu', action='store', help='Local user on current PC',
+                                  required=False, default='')
     # ------------------------------------------------------------------------------------------------------------------
     
     for subparser in [init_parser, update_parser, issue_parser, dashboard_parser]:
@@ -209,7 +214,8 @@ def main(argv):
                                          priorities=name_space.priorities.split(","), labels=name_space.labels,
                                          creators=name_space.creators, repository=name_space.repository.lower(),
                                          plotly_auth=[name_space.plotly_user, name_space.plotly_key],
-                                         citrix_token=json.loads(name_space.citrix_token.replace('\'', '"')))
+                                         citrix_token=json.loads(name_space.citrix_token.replace('\'', '"')),
+                                         local_user=name_space.local_user.lower())
 
         if name_space.name == "bugs_info":
             plan, fact = get_plan_fact(parameters=name_space.mode)
@@ -223,28 +229,33 @@ def main(argv):
             plan, fact = get_plan_fact(parameters=name_space.mode)
             dshc.dashboard_arba_issues(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
                                        assignees=name_space.assignees, teams=name_space.teams,
-                                       details=name_space.details)
+                                       details=name_space.details, repository=name_space.repository.lower(),
+                                       citrix_token=json.loads(name_space.citrix_token.replace('\'', '"')),
+                                       local_user=name_space.local_user.lower())
 
         if name_space.name == "all_bugs":
             dshc.dashboard_all_bugs(auto_open=(name_space.auto_open.upper() == 'TRUE'),
                                     repository=name_space.repository.lower(),
                                     mssql_query_file=name_space.mssql.lower(),
                                     plotly_auth=[name_space.plotly_user, name_space.plotly_key],
-                                    citrix_token=json.loads(name_space.citrix_token.replace('\'', '"')))
+                                    citrix_token=json.loads(name_space.citrix_token.replace('\'', '"')),
+                                    local_user=name_space.local_user.lower())
 
         if name_space.name == "bugs_progress":
             plan, fact = get_plan_fact(parameters=name_space.mode)
             dshc.dashboard_bugs_progress(plan=plan, fact=fact, auto_open=(name_space.auto_open.upper() == 'TRUE'),
                                          repository=name_space.repository.lower(),
                                          plotly_auth=[name_space.plotly_user, name_space.plotly_key],
-                                         citrix_token=json.loads(name_space.citrix_token.replace('\'', '"')))
+                                         citrix_token=json.loads(name_space.citrix_token.replace('\'', '"')),
+                                         local_user=name_space.local_user.lower())
 
         if name_space.name == "bssbox_bugs_tracking":
             dshc.dashboard_bssbox_bugs_tracking(auto_open=(name_space.auto_open.upper() == 'TRUE'),
                                                 repository=name_space.repository.lower(),
                                                 mssql_query_file=name_space.mssql.lower(),
                                                 plotly_auth=[name_space.plotly_user, name_space.plotly_key],
-                                                citrix_token=json.loads(name_space.citrix_token.replace('\'', '"')))
+                                                citrix_token=json.loads(name_space.citrix_token.replace('\'', '"')),
+                                                local_user=name_space.local_user.lower())
 
         if name_space.name == "sprint_info":
             dshc.dashboard_sprint_info(auto_open=(name_space.auto_open.upper() == 'TRUE'),
@@ -252,13 +263,16 @@ def main(argv):
                                        mssql_query_file=name_space.mssql.lower(),
                                        plotly_auth=[name_space.plotly_user, name_space.plotly_key],
                                        dashboard_type=[dt.upper().strip() for dt in name_space.dashboard_type.split(',')],
-                                       citrix_token=json.loads(name_space.citrix_token.replace('\'', '"')))
+                                       citrix_token=json.loads(name_space.citrix_token.replace('\'', '"')),
+                                       local_user=name_space.local_user.lower())
 
         if name_space.name == "iot":
             dshc.dashboard_iot(auto_open=(name_space.auto_open.upper() == 'TRUE'),
                                repository=name_space.repository.lower(),
                                mssql_query_file=name_space.mssql.lower(),
-                               plotly_auth=[name_space.plotly_user, name_space.plotly_key])
+                               plotly_auth=[name_space.plotly_user, name_space.plotly_key],
+                               citrix_token=json.loads(name_space.citrix_token.replace('\'', '"')),
+                               local_user=name_space.local_user.lower())
 
         if name_space.name == "sprint_burndown":
             dshc.dashboard_sprint_burndown(auto_open=(name_space.auto_open.upper() == 'TRUE'),
@@ -266,14 +280,16 @@ def main(argv):
                                            mssql_query_file=[mssql.lower().strip() for mssql in name_space.mssql.split(',')],
                                            plotly_auth=[name_space.plotly_user, name_space.plotly_key],
                                            dashboard_type=[dt.upper().strip() for dt in name_space.dashboard_type.split(',')],
-                                           citrix_token=json.loads(name_space.citrix_token.replace('\'', '"')))
+                                           citrix_token=json.loads(name_space.citrix_token.replace('\'', '"')),
+                                           local_user=name_space.local_user.lower())
 
         if name_space.name == "yota_burndown":
             dshc.dashboard_yota_burndown(auto_open=(name_space.auto_open.upper() == 'TRUE'),
                                          repository=name_space.repository.lower(),
                                          mssql_query_file=[mssql.lower().strip() for mssql in name_space.mssql.split(',')],
                                          plotly_auth=[name_space.plotly_user, name_space.plotly_key],
-                                         citrix_token=json.loads(name_space.citrix_token.replace('\'', '"')))
+                                         citrix_token=json.loads(name_space.citrix_token.replace('\'', '"')),
+                                         local_user=name_space.local_user.lower())
         # --------------------------------------------------------------------------------------------------------------
 
         if name_space.name == "hm":

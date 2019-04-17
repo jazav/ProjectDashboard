@@ -47,7 +47,7 @@ def deadline(fromdate, days):
 
 
 class BssboxBugsTrackingDashboard(AbstractDashboard):
-    auto_open, repository, plotly_auth, citrix_token = True, None, None, None
+    auto_open, repository, plotly_auth, citrix_token, local_user = True, None, None, None, None
     tracking_data, pivot_data, all_bugs, overdue_data, created_dict, old_list = {}, {}, {}, {}, [], []
     jql_all = 'https://jira.billing.ru/issues/?jql=key in ('
 
@@ -254,7 +254,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
             plotly.offline.plot(fig, image_filename=title, image='png', image_height=1080, image_width=1920)
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
             time.sleep(5)
-            shutil.move('C:/Users/Aleksey.Bryntsev/Downloads/{}.png'.format(title), './files/{}.png'.format(title))
+            shutil.move('C:/Users/{}/Downloads/{}.png'.format(self.local_user, title), './files/{}.png'.format(title))
             citrix = CitrixShareFile(hostname=self.citrix_token['hostname'], client_id=self.citrix_token['client_id'],
                                      client_secret=self.citrix_token['client_secret'],
                                      username=self.citrix_token['username'], password=self.citrix_token['password'])

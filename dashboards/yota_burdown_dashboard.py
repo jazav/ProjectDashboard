@@ -9,7 +9,7 @@ import time
 
 
 class YotaBurndownDashboard(AbstractDashboard):
-    auto_open, repository, plotly_auth, dashboard_type, citrix_token = True, None, None, None, None
+    auto_open, repository, plotly_auth, dashboard_type, citrix_token, local_user = True, None, None, None, None, None
     all_spent, all_remain = {}, {}
     start, end = datetime.date(2019, 2, 18), datetime.date(2019, 10, 1)
 
@@ -160,7 +160,7 @@ class YotaBurndownDashboard(AbstractDashboard):
             plotly.offline.plot(fig, image_filename=title, image='png', image_height=1080, image_width=1920)
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
             time.sleep(5)
-            shutil.move('C:/Users/Aleksey.Bryntsev/Downloads/{}.png'.format(title), './files/{}.png'.format(title))
+            shutil.move('C:/Users/{}/Downloads/{}.png'.format(self.local_user, title), './files/{}.png'.format(title))
             citrix = CitrixShareFile(hostname=self.citrix_token['hostname'], client_id=self.citrix_token['client_id'],
                                      client_secret=self.citrix_token['client_secret'],
                                      username=self.citrix_token['username'], password=self.citrix_token['password'])

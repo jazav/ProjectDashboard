@@ -14,7 +14,8 @@ import time
 
 class BugsDurationDashboard(AbstractDashboard):
     project_list, name_list, created_list, resolutiondate_list, components_list = [], [], [], [], []
-    auto_open, labels, priority, creators, repository, plotly_auth, citrix_token = True, None, None, None, None, None, None
+    auto_open, labels, priority, creators, repository, plotly_auth, citrix_token, local_user\
+        = True, None, None, None, None, None, None, None
     days_dict, average_list, median_list, max_list, count_list = {}, [], [], [], []
 
     def prepare(self, data):
@@ -242,7 +243,7 @@ class BugsDurationDashboard(AbstractDashboard):
             plotly.offline.plot(fig, image_filename=title, image='png', image_height=1080, image_width=1920)
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
             time.sleep(5)
-            shutil.move('C:/Users/Aleksey.Bryntsev/Downloads/{}.png'.format(title), './files/{}.png'.format(title))
+            shutil.move('C:/Users/{}/Downloads/{}.png'.format(self.local_user, title), './files/{}.png'.format(title))
             citrix = CitrixShareFile(hostname=self.citrix_token['hostname'], client_id=self.citrix_token['client_id'],
                                      client_secret=self.citrix_token['client_secret'],
                                      username=self.citrix_token['username'], password=self.citrix_token['password'])
