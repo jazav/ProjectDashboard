@@ -27,9 +27,13 @@ class BugsProgressDashboard(AbstractDashboard):
         self.status_list = data.get_bugs_progress()
         for status in self.status_list:
             self.bugs_statuses[status] += 1
+        with open(os.path.abspath('//billing.ru/dfs/incoming/ABryntsev/bugs_progress.csv'), 'r', newline='\n') as csvfile:
+            data = csv.reader(csvfile, delimiter=';')
+            last_date = [row[0] for row in data][-1]
         with open(os.path.abspath('//billing.ru/dfs/incoming/ABryntsev/bugs_progress.csv'), 'a', newline='\n') as csvfile:
             data = csv.writer(csvfile, delimiter=';')
-            data.writerow([str(datetime.datetime.now().date())] + list(map(str, self.bugs_statuses.values())))
+            if last_date != str(datetime.datetime.now().date()):
+                data.writerow([str(datetime.datetime.now().date())] + list(map(str, self.bugs_statuses.values())))
 
     def export_to_plotly(self):
         if len(self.status_list) == 0:

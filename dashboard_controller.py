@@ -343,7 +343,7 @@ class DashboardController:
         data = dc.get_issues_mssql(mssql_query_file=mssql_query_file)
 
         dashboard = AllBugsDashboard()
-        dashboard.dashboard_name = 'All bugs in BSSBox and Domains\' projects'
+        dashboard.dashboard_name = 'All bugs in BSSBox and Domains projects'
         dashboard.repository = repository
         dashboard.plotly_auth = plotly_auth
         dashboard.auto_open = auto_open
