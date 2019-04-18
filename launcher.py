@@ -290,6 +290,14 @@ def main(argv):
                                          plotly_auth=[name_space.plotly_user, name_space.plotly_key],
                                          citrix_token=json.loads(name_space.citrix_token.replace('\'', '"')),
                                          local_user=name_space.local_user)
+
+        if name_space.name == "ba_work_distribution":
+            dshc.dashboard_ba_work_distribution(auto_open=(name_space.auto_open.upper() == 'TRUE'),
+                                                repository=name_space.repository.lower(),
+                                                mssql_query_file=name_space.mssql.lower(),
+                                                plotly_auth=[name_space.plotly_user, name_space.plotly_key],
+                                                citrix_token=json.loads(name_space.citrix_token.replace('\'', '"')),
+                                                local_user=name_space.local_user)
         # --------------------------------------------------------------------------------------------------------------
 
         if name_space.name == "hm":

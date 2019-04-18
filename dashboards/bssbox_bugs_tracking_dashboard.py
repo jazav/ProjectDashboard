@@ -1,7 +1,7 @@
 from dashboards.dashboard import AbstractDashboard
 from adapters.issue_utils import get_domain_bssbox
 import datetime
-import numpy
+import textwrap
 import plotly
 import plotly.graph_objs as go
 from adapters.citrix_sharefile_adapter import CitrixShareFile
@@ -56,20 +56,22 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
         self.all_bugs['BSSBox'] = {'On track': 0, 'Overdue': 0}
         preparing_data = {key: [] for key in data.keys()}
         for i in range(len(data['Key'])):
-            if get_domain_bssbox(data['Domain'][i]) != 'Common':
+            if get_domain_bssbox(data['Domain'][i]) != 'Common':  # exclude specific components
                 for key in data.keys():
                     preparing_data[key].append(data[key][i])
         data = preparing_data
         created = [cr for cr, st in zip(data['Days in progress'], data['Status']) if st not in ('Closed', 'Resolved')]
         self.created_dict = created
         for i in range(len(data['Key'])):
-            data['Domain'][i] = get_domain_bssbox(data['Domain'][i]) if data['Domain'][i] is not None else 'Empty'
+            data['Domain'][i] = get_domain_bssbox(data['Domain'][i])
             if data['Days in progress'][i] < datetime.datetime(2019, 1, 28):
                 self.old_list.append(data['Key'][i])
             data['Days in progress'][i] =\
                 workdays(data['Days in progress'][i], datetime.datetime.now())\
                 if data['Status'][i] not in ('Closed', 'Resolved')\
                 else workdays(data['Days in progress'][i], data['Resolved'][i])
+            if data['Key'][i] == data['Key'][i-1] and data['Domain'][i] == data['Domain'][i-1]:
+                continue
             if data['Status'][i] not in ('Closed', 'Resolved'):
                 for key in self.tracking_data.keys():
                     self.tracking_data[key].append(data[key][i])
@@ -238,9 +240,13 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                 )
             )],
             xaxis1=dict(axis, **dict(domain=[0.77, 0.99], anchor='y1')),
-            yaxis1=dict(axis, **dict(domain=[0.18, 0.99], anchor='x1', ticksuffix='  ')),
+            yaxis1=dict(axis, **dict(domain=[0.18, 0.99], anchor='x1', tickvals=list(self.pivot_data.keys()),
+                                     ticktext=[text if len(text) < 11 else '<br>'.join(textwrap.wrap(text, 10))
+                                               for text in list(self.pivot_data.keys())],
+                                     ticks='outside', ticklen=5, tickcolor='rgba(0,0,0,0)')),
             xaxis2=dict(axis, **dict(domain=[0.77, 0.99], anchor='y2')),
-            yaxis2=dict(axis, **dict(domain=[0.03, 0.12], anchor='x2', ticksuffix='  ')),
+            yaxis2=dict(axis, **dict(domain=[0.03, 0.12], anchor='x2',
+                                     ticks='outside', ticklen=5, tickcolor='rgba(0,0,0,0)')),
             barmode='stack'
         )
 

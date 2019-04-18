@@ -23,6 +23,7 @@ from dashboards.iot_dashboard import IotDashboard  # By @alanbryn
 from dashboards.sprint_burndown_dashboard import SprintBurndownDashboard  # By @alanbryn
 from dashboards.domain_burndown_dashboard import DomainBurndownDashboard  # By @alanbryn
 from dashboards.yota_burdown_dashboard import YotaBurndownDashboard  # By @alanbryn
+from dashboards.ba_work_distribution_dashboard import BaWorkDistributionDashboard  # By @alanbryn
 from dashboards.issue_detail_dashboard import IssueDetailDashboard
 from dashboards.prepare_feature_data import *
 from data_controller import DataController
@@ -459,4 +460,20 @@ class DashboardController:
         dashboard.citrix_token = citrix_token
         dashboard.local_user = local_user
         dashboard.multi_prepare(data_spent=data_spent, data_original=data_original)
+        dashboard.export_to_plot()
+
+    # By @alanbryn
+    @staticmethod
+    def dashboard_ba_work_distribution(auto_open, repository, mssql_query_file, plotly_auth, citrix_token, local_user):
+        dc = DataController()
+        data = dc.get_issues_mssql(mssql_query_file=mssql_query_file)
+
+        dashboard = BaWorkDistributionDashboard()
+        dashboard.dashboard_name = 'Business Analysts work distribution'
+        dashboard.auto_open = auto_open
+        dashboard.repository = repository
+        dashboard.plotly_auth = plotly_auth
+        dashboard.citrix_token = citrix_token
+        dashboard.local_user = local_user
+        dashboard.prepare(data=data)
         dashboard.export_to_plot()
