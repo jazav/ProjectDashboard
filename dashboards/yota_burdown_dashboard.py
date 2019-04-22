@@ -49,7 +49,6 @@ class YotaBurndownDashboard(AbstractDashboard):
         if len(self.all_spent.keys()) == 0:
             raise ValueError('There is no issues to show')
 
-        print('lfkjdslkjvlsfdjkbldsfvblsv')
         xaxis = [self.start]
         while xaxis[-1] != self.end:
             xaxis.append(xaxis[-1] + datetime.timedelta(days=1))
@@ -170,5 +169,4 @@ class YotaBurndownDashboard(AbstractDashboard):
                                local_path=html_file)
 
     def export_to_plot(self):
-        print('134748761932469132876923817649271')
         self.export_to_plotly()
