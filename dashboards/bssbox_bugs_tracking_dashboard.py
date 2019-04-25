@@ -110,8 +110,8 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                         deadline(cr, 1) for cr, pr in zip(self.created_dict, self.tracking_data['Priority'])]]
         data = [go.Table(
             domain=dict(
-                x=[0, 0.72],
-                y=[0, 1]
+                x=[0, 1],
+                y=[0, 0.6]
             ),
             columnorder=[1, 2, 3, 4, 5, 6, 7, 8, 9],
             columnwidth=[3, 10, 3, 2, 2, 2, 2, 2, 2.5],
@@ -131,9 +131,8 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                 line=dict(width=2)
             )
         ), go.Bar(
-            orientation='h',
-            y=list(self.pivot_data.keys()),
-            x=[value['On track'] for value in self.pivot_data.values()],
+            x=list(self.pivot_data.keys()),
+            y=[value['On track'] for value in self.pivot_data.values()],
             xaxis='x1',
             yaxis='y1',
             name='On track',
@@ -149,16 +148,15 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                 )
             )
         ), go.Bar(
-            orientation='h',
-            y=list(self.pivot_data.keys()),
-            x=[value['Overdue'] for value in self.pivot_data.values()],
+            x=list(self.pivot_data.keys()),
+            y=[value['Overdue'] for value in self.pivot_data.values()],
             xaxis='x1',
             yaxis='y1',
             name='Overdue',
             showlegend=False,
             text=list(map(lambda el, link: '<a href = "{}">Overdue: <b>{}</b> </a>'.format(link, el),
                           [value['Overdue'] for value in self.pivot_data.values()], self.overdue_data.values())),
-            textposition='inside',
+            textposition='outside',
             marker=dict(
                 color='rgb(255,204,204)',
                 line=dict(
@@ -167,9 +165,8 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                 )
             )
         ), go.Bar(
-            orientation='h',
-            y=list(self.all_bugs.keys()),
-            x=[value['On track'] for value in self.all_bugs.values()],
+            x=list(self.all_bugs.keys()),
+            y=[value['On track'] for value in self.all_bugs.values()],
             xaxis='x2',
             yaxis='y2',
             name='On track',
@@ -185,16 +182,15 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                 )
             )
         ), go.Bar(
-            orientation='h',
-            y=list(self.all_bugs.keys()),
-            x=[value['Overdue'] for value in self.all_bugs.values()],
+            x=list(self.all_bugs.keys()),
+            y=[value['Overdue'] for value in self.all_bugs.values()],
             xaxis='x2',
             yaxis='y2',
             name='Overdue',
             showlegend=False,
             text=list(map(lambda el: '<a href = "{}">Overdue: <b>{}</b> </a>'.format(self.jql_all, el),
                           [value['Overdue'] for value in self.all_bugs.values()])),
-            textposition='inside',
+            textposition='outside',
             marker=dict(
                 color='rgb(255,204,204)',
                 line=dict(
@@ -208,6 +204,8 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
         html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 
         axis = dict()
+        max_dmn = max([sum(pd.values()) for pd in self.pivot_data.values()])
+        max_all = max([sum(pd.values()) for pd in self.all_bugs.values()])
         layout = go.Layout(
             hovermode='closest',
             title='<b>{} ({})</b>'.format(title, datetime.datetime.now().strftime("%d.%m.%y %H:%M"))
@@ -218,9 +216,9 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                 type='rect',
                 xref='paper',
                 yref='paper',
-                x0=0.73,
-                y0=0.15,
-                x1=1,
+                x0=0,
+                y0=0.62,
+                x1=0.88,
                 y1=1,
                 line=dict(
                     color='rgb(0,0,0)',
@@ -230,23 +228,21 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                 type='rect',
                 xref='paper',
                 yref='paper',
-                x0=0.73,
-                y0=0,
+                x0=0.89,
+                y0=0.62,
                 x1=1,
-                y1=0.13,
+                y1=1,
                 line=dict(
                     color='rgb(0,0,0)',
                     width=1
                 )
             )],
-            xaxis1=dict(axis, **dict(domain=[0.77, 0.99], anchor='y1')),
-            yaxis1=dict(axis, **dict(domain=[0.18, 0.99], anchor='x1', tickvals=list(self.pivot_data.keys()),
-                                     ticktext=[text if len(text) < 11 else '<br>'.join(textwrap.wrap(text, 10))
-                                               for text in list(self.pivot_data.keys())],
-                                     ticks='outside', ticklen=5, tickcolor='rgba(0,0,0,0)')),
-            xaxis2=dict(axis, **dict(domain=[0.77, 0.99], anchor='y2')),
-            yaxis2=dict(axis, **dict(domain=[0.03, 0.12], anchor='x2',
-                                     ticks='outside', ticklen=5, tickcolor='rgba(0,0,0,0)')),
+            xaxis1=dict(axis, **dict(showline=True, domain=[0.02, 0.86], anchor='y1')),
+            yaxis1=dict(axis, **dict(showline=True, domain=[0.65, 0.97], anchor='x1',
+                                     ticks='outside', ticklen=5, tickcolor='rgba(0,0,0,0)'), range=[0, max_dmn+50]),
+            xaxis2=dict(axis, **dict(showline=True, domain=[0.91, 0.98], anchor='y2')),
+            yaxis2=dict(axis, **dict(showline=True, domain=[0.65, 0.97], anchor='x2',
+                                     ticks='outside', ticklen=5, tickcolor='rgba(0,0,0,0)'), range=[0, max_all+50]),
             barmode='stack'
         )
 
