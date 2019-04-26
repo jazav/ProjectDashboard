@@ -49,5 +49,5 @@ FROM [srv-jira-prod-report].[dbo].[jiraissue] AS ji
 	INNER JOIN [srv-jira-prod-report].[dbo].[issuestatus] AS ist ON ist.ID = ji.issuestatus
 	INNER JOIN [srv-jira-prod-report].[dbo].[project] AS prj ON prj.ID = ji.PROJECT
 	INNER JOIN (SELECT * FROM tasks UNION SELECT * FROM subtasks) AS issues ON issues.ID = ji.ID
-WHERE ji.ID IN (SELECT [ID] FROM tasks UNION SELECT [ID] FROM subtasks) AND (ji.RESOLUTIONDATE BETWEEN '2019-04-01 00:00:00.000' AND GETDATE() OR ji.RESOLUTIONDATE IS NULL)
+WHERE ji.ID IN (SELECT [ID] FROM tasks UNION SELECT [ID] FROM subtasks) /* AND (ji.RESOLUTIONDATE BETWEEN '2019-04-01 00:00:00.000' AND GETDATE() OR ji.RESOLUTIONDATE IS NULL) */
 ORDER BY [resolutiondate] DESC, [status]

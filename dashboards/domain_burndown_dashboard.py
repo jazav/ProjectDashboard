@@ -19,20 +19,20 @@ class DomainBurndownDashboard(AbstractDashboard):
         fl_all_original, fl_spent, fl_original = {}, {}, {}
         for i in range(len(data_spent['key'])):
             data_spent['component'][i] = get_domain_bssbox(data_spent['component'][i])
-            if data_spent['created'][i] < datetime.date(2019, 4, 1):
-                if data_spent['component'][i] not in spent.keys():
-                    spent[data_spent['component'][i]] = 0
-                spent[data_spent['component'][i]] += float(data_spent['spent'][i])
-                if data_spent['flagged'][i] is not None:
-                    if data_spent['component'][i] not in fl_spent.keys():
-                        fl_spent[data_spent['component'][i]] = 0
-                    fl_spent[data_spent['component'][i]] += float(data_spent['spent'][i])
-            else:
-                if data_spent['component'][i] not in spent.keys():
-                    spent[data_spent['component'][i]] = 0
-                if data_spent['flagged'][i] is not None:
-                    if data_spent['component'][i] not in fl_spent.keys():
-                        fl_spent[data_spent['component'][i]] = 0
+            # if data_spent['created'][i] < datetime.date(2019, 4, 1):
+            if data_spent['component'][i] not in spent.keys():
+                spent[data_spent['component'][i]] = 0
+            # spent[data_spent['component'][i]] += float(data_spent['spent'][i])
+            if data_spent['flagged'][i] is not None:
+                if data_spent['component'][i] not in fl_spent.keys():
+                    fl_spent[data_spent['component'][i]] = 0
+                # fl_spent[data_spent['component'][i]] += float(data_spent['spent'][i])
+            # else:
+            #     if data_spent['component'][i] not in spent.keys():
+            #         spent[data_spent['component'][i]] = 0
+            #     if data_spent['flagged'][i] is not None:
+            #         if data_spent['component'][i] not in fl_spent.keys():
+            #             fl_spent[data_spent['component'][i]] = 0
         for i in range(len(data_original['key'])):
             data_original['component'][i] = get_domain_bssbox(data_original['component'][i])
             if data_original['status'][i] not in ('Closed', 'Resolved'):
@@ -50,16 +50,16 @@ class DomainBurndownDashboard(AbstractDashboard):
                     if data_original['component'][i] not in fl_original.keys():
                         fl_original[data_original['component'][i]] = 0
         for i in range(len(data_spent['key'])):
-            if data_spent['created'][i] > datetime.date(2019, 3, 31):
-                if data_spent['flagged'][i] is not None:
-                    if data_spent['component'][i] not in self.all_spent['flagged'].keys():
-                        self.all_spent['flagged'][data_spent['component'][i]] = {}
-                    fl_spent[data_spent['component'][i]] += float(data_spent['spent'][i])
-                    self.all_spent['flagged'][data_spent['component'][i]][data_spent['created'][i]] = fl_spent[data_spent['component'][i]]
-                if data_spent['component'][i] not in self.all_spent['all'].keys():
-                    self.all_spent['all'][data_spent['component'][i]] = {}
-                spent[data_spent['component'][i]] += float(data_spent['spent'][i])
-                self.all_spent['all'][data_spent['component'][i]][data_spent['created'][i]] = spent[data_spent['component'][i]]
+            # if data_spent['created'][i] > datetime.date(2019, 3, 31):
+            if data_spent['flagged'][i] is not None:
+                if data_spent['component'][i] not in self.all_spent['flagged'].keys():
+                    self.all_spent['flagged'][data_spent['component'][i]] = {}
+                fl_spent[data_spent['component'][i]] += float(data_spent['spent'][i])
+                self.all_spent['flagged'][data_spent['component'][i]][data_spent['created'][i]] = fl_spent[data_spent['component'][i]]
+            if data_spent['component'][i] not in self.all_spent['all'].keys():
+                self.all_spent['all'][data_spent['component'][i]] = {}
+            spent[data_spent['component'][i]] += float(data_spent['spent'][i])
+            self.all_spent['all'][data_spent['component'][i]][data_spent['created'][i]] = spent[data_spent['component'][i]]
         for i in range(len(data_original['key'])):
             if data_original['resolutiondate'][i] is not None:
                 if data_original['flagged'][i] is not None:
@@ -89,6 +89,10 @@ class DomainBurndownDashboard(AbstractDashboard):
                         all_original[dmn][dt] = all_original[dmn][max([date for date in all_original[dmn].keys() if date < dt])]
                     except ValueError:
                         all_original[dmn][dt] = all_original[dmn][list(all_original[dmn].keys())[-1]]
+        for dmn in fl_all_original:
+            fl_all_original[dmn] = {dt: fl_all_original[dmn][dt] for dt in sorted(fl_all_original[dmn].keys())}
+        for dmn in all_original:
+            all_original[dmn] = {dt: all_original[dmn][dt] for dt in sorted(all_original[dmn].keys())}
         for dmn, origs in fl_all_original.items():
             if dmn not in self.all_spent['flagged']:
                 self.all_spent['flagged'][dmn] = {dt: 0 for dt in origs.keys()}
@@ -97,7 +101,7 @@ class DomainBurndownDashboard(AbstractDashboard):
                     try:
                         self.all_spent['flagged'][dmn][dt] = self.all_spent['flagged'][dmn][max([date for date in self.all_spent['flagged'][dmn].keys() if date < dt])]
                     except ValueError:
-                        self.all_spent['flagged'][dmn][dt] = self.all_spent['flagged'][dmn][list(self.all_spent['flagged'][dmn].keys())[-1]]
+                        self.all_spent['flagged'][dmn][dt] = self.all_spent['flagged'][dmn][list(self.all_spent['flagged'][dmn].keys())[0]]
         for dmn, origs in all_original.items():
             if dmn not in self.all_spent['all']:
                 self.all_spent['all'][dmn] = {dt: 0 for dt in origs.keys()}
@@ -106,7 +110,7 @@ class DomainBurndownDashboard(AbstractDashboard):
                     try:
                         self.all_spent['all'][dmn][dt] = self.all_spent['all'][dmn][max([date for date in self.all_spent['all'][dmn].keys() if date < dt])]
                     except ValueError:
-                        self.all_spent['all'][dmn][dt] = self.all_spent['all'][dmn][list(self.all_spent['all'][dmn].keys())[-1]]
+                        self.all_spent['all'][dmn][dt] = self.all_spent['all'][dmn][list(self.all_spent['all'][dmn].keys())[0]]
         for dmn in self.all_spent['flagged']:
             self.all_spent['flagged'][dmn] = {dt: self.all_spent['flagged'][dmn][dt] for dt in sorted(self.all_spent['flagged'][dmn].keys())}
         for dmn in self.all_spent['all']:
@@ -114,7 +118,7 @@ class DomainBurndownDashboard(AbstractDashboard):
         for dmn in self.all_spent['flagged'].keys():
             self.all_remain['flagged'][dmn] = {dt: fl_all_original[dmn][dt] - self.all_spent['flagged'][dmn][dt]
                                                + float(sum([sp for sp, rd, domain, fl in zip(data_spent['spent'], data_spent['resolutiondate'], data_spent['component'], data_spent['flagged'])
-                                                            if fl is not None and domain == dmn and rd is not None and rd < dt])) for dt in self.all_spent['flagged'][dmn].keys()}
+                                                            if fl is not None and domain == dmn and rd is not None and rd <= dt])) for dt in self.all_spent['flagged'][dmn].keys()}
         for dmn in self.all_spent['all'].keys():
             if dmn == 'BA':
                 print([all_original[dmn][dt] for dt in sorted(all_original[dmn].keys())])
@@ -123,7 +127,7 @@ class DomainBurndownDashboard(AbstractDashboard):
                                   if domain == dmn and rd is not None and rd < dt])) for dt in self.all_spent['all'][dmn].keys()])
             self.all_remain['all'][dmn] = {dt: all_original[dmn][dt] - self.all_spent['all'][dmn][dt]
                                            + float(sum([sp for sp, rd, domain in zip(data_spent['spent'], data_spent['resolutiondate'], data_spent['component'])
-                                                        if domain == dmn and rd is not None and rd < dt])) for dt in self.all_spent['all'][dmn].keys()}
+                                                        if domain == dmn and rd is not None and rd <= dt])) for dt in self.all_spent['all'][dmn].keys()}
 
     def export_to_plotly(self):
         for fl, spents, remains in zip(self.all_spent.keys(), self.all_spent.values(), self.all_remain.values()):
