@@ -9,7 +9,7 @@ WITH us AS (
 			SELECT us_cfv.ISSUE,
 				(CASE
 					WHEN us_cfv.STRINGVALUE = '6977' THEN 'Super Sprint 6'
-					WHEN us_cfv.STRINGVALUE = '6978' THEN 'Super Sprint 7'
+					WHEN us_cfv.STRINGVALUE IN ('6978', '6494') THEN 'Super Sprint 7'
 					WHEN us_cfv.STRINGVALUE = '6979' THEN 'Super Sprint 7.1'
 					WHEN us_cfv.STRINGVALUE = '6980' THEN 'Super Sprint 8'
 					WHEN us_cfv.STRINGVALUE = '6981' THEN 'Super Sprint 8 candidates'
@@ -17,6 +17,10 @@ WITH us AS (
 					WHEN us_cfv.STRINGVALUE = '6983' THEN 'Super Sprint 10 candidates'
 					WHEN us_cfv.STRINGVALUE = '7067' THEN 'Super Sprint 9'
 					WHEN us_cfv.STRINGVALUE = '7198' THEN 'Super Sprint 10'
+					WHEN us_cfv.STRINGVALUE = '7199' THEN 'Super Sprint 11'
+					WHEN us_cfv.STRINGVALUE = '7326' THEN 'Super Sprint 12'
+					WHEN us_cfv.STRINGVALUE = '7327' THEN 'Super Sprint 13'
+					WHEN us_cfv.STRINGVALUE = '7328' THEN 'Super Sprint 14'
 					ELSE us_cfv.STRINGVALUE
 				END) AS 'Sprint'
 			FROM [srv-jira-prod-report].[dbo].[customfieldvalue] us_cfv
