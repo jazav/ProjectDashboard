@@ -183,7 +183,19 @@ def get_domain_bssbox(component):
         'SSO': 'Infra',
         'Ordering Arch & SA': 'Arch & SA',
         'Custom CSRP': 'Custom',
-        'Custom Billing & Finances': 'Custom'
+        'Custom Billing & Finances': 'Custom',
+        'Custom DAPI': 'Custom',
+        'Custom Components': 'Custom',
+        'Custom Datamarts': 'Custom',
+        'Custom Documents': 'Custom',
+        'Custom Infrastructure': 'Custom',
+        'Custom Inventory': 'Custom',
+        'Custom OCS': 'Custom',
+        'Custom Ordering': 'Custom',
+        'Custom Party & Searching': 'Custom',
+        'Custom Payments': 'Custom',
+        'Custom PI & Marketplace': 'Custom',
+        'Custom Processes': 'Custom'
     }[component]
 
 
