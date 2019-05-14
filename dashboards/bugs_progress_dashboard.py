@@ -163,6 +163,7 @@ class BugsProgressDashboard(AbstractDashboard):
                 autorange=True
             ),
             yaxis2=dict(
+                range=[0, int(max(bugs_statuses_progress['Closed'])) + 100],
                 domain=[0, 0.43],
                 anchor='x2',
                 showline=True,

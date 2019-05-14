@@ -5,6 +5,7 @@ from adapters.citrix_sharefile_adapter import CitrixShareFile
 import shutil
 import time
 import datetime
+import textwrap
 
 
 class BaWorkDistributionDashboard(AbstractDashboard):
@@ -42,7 +43,8 @@ class BaWorkDistributionDashboard(AbstractDashboard):
         layout = go.Layout(
             hovermode='closest',
             title='<b>{} as of {}</b>'.format(title, datetime.datetime.now().strftime("%d.%m.%y %H:%M")),
-            xaxis=dict(title='Sprints'),
+            xaxis=dict(title='Sprints', automargin=True, tickvals=list(self.sprint_distribution.keys()),
+                       ticktext=[tick if len(tick) < 16 else '<br>'.join(textwrap.wrap(tick, 17)) for tick in list(self.sprint_distribution.keys())]),
             yaxis=dict(title='Man-days')
         )
 

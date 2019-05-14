@@ -8,6 +8,7 @@ from plotly import tools
 from adapters.citrix_sharefile_adapter import CitrixShareFile
 import shutil
 import time
+import textwrap
 
 
 def color_for_status(status):
@@ -103,9 +104,9 @@ class SprintInfoDashboard(AbstractDashboard):
 
         est_title = '<i><b>Ratio of high level estimates, original estimates and spent time<br>Total: </b>{}. <b>Readiness: </b>{}%</i>'.\
             format(', '.join(['{} - {}'.format(key, round(val)) for key, val in self.prj_est.items()]), self.readiness)
-        st_title = '<i><b>Progress of development work</b>Total: </b>{}</i>'.\
+        st_title = '<i><b>Progress of development work<br>Total: </b>{}</i>'.\
             format(', '.join(['{} - {}'.format(key, val) for key, val in self.prj_st.items()]))
-        fig = tools.make_subplots(rows=2, cols=1, vertical_spacing=0.07, subplot_titles=(est_title, st_title))
+        fig = tools.make_subplots(rows=2, cols=1, vertical_spacing=0.12, subplot_titles=(est_title, st_title))
         for trace_est, trace_st in zip(data_est, data_st):
             fig.append_trace(trace_est, 1, 1)
             fig.append_trace(trace_st, 2, 1)
@@ -116,9 +117,15 @@ class SprintInfoDashboard(AbstractDashboard):
 
         fig['layout'].update(title='<b>{0} as of {1}</b>'.format(self.dashboard_name, datetime.datetime.now().strftime("%d.%m.%y %H:%M"))
                                    + (' <sup>in cloud</sup>' if self.repository == 'online' else ''), legend=dict(y=0.5), hovermode='closest')
-        fig['layout']['xaxis1'].update(anchor='y1', showgrid=True, tickfont=dict(size=9))
+        fig['layout']['xaxis1'].update(anchor='y1', showgrid=True, tickfont=dict(size=9),
+                                       tickvals=[key for key in self.est_dict.keys() if key != 'Common'],
+                                       ticktext=[key if len(key) < 8 else '<br>'.join(textwrap.wrap(key, 12))
+                                                 for key in self.est_dict.keys() if key != 'Common'])
         fig['layout']['yaxis1'].update(anchor='x1', showline=True, title='Man-days')
-        fig['layout']['xaxis2'].update(anchor='y2', showgrid=True, tickfont=dict(size=9))
+        fig['layout']['xaxis2'].update(anchor='y2', showgrid=True, tickfont=dict(size=9),
+                                       tickvals=[key for key in self.st_dict.keys() if key != 'Common'],
+                                       ticktext=[key if len(key) < 8 else '<br>'.join(textwrap.wrap(key, 12))
+                                                 for key in self.st_dict.keys() if key != 'Common'])
         fig['layout']['yaxis2'].update(anchor='x2', showline=True, title='Count of tasks and sub-tasks')
 
         for annotation in fig['layout']['annotations']:

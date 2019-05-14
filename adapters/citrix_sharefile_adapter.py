@@ -4,8 +4,6 @@ import os
 import mimetypes
 import time
 import urllib.parse as urlparse
-import io
-import base64
 
 
 class CitrixShareFile:

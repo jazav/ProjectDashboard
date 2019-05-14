@@ -417,7 +417,7 @@ class DashboardController:
         data = dc.get_issues_mssql(mssql_query_file=mssql_query_file)
 
         dashboard = IotDashboard()
-        dashboard.dashboard_name = 'IoT Super Sprint 9'
+        dashboard.dashboard_name = 'IoT Super Sprint 10'
         dashboard.auto_open = auto_open
         dashboard.repository = repository
         dashboard.plotly_auth = plotly_auth

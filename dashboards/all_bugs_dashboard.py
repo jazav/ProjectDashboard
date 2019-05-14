@@ -6,6 +6,7 @@ from datetime import datetime
 from adapters.citrix_sharefile_adapter import CitrixShareFile
 import shutil
 import time
+import textwrap
 
 
 def color_for_status(status):
@@ -62,9 +63,9 @@ class AllBugsDashboard(AbstractDashboard):
                 showlegend=True
             ))
             data.append(go.Bar(
-                orientation='h',
-                x=[self.bssbox_dict['BSSBox'][status]],
-                y=['BSSBox'],
+                orientation='v',
+                x=['BSSBox'],
+                y=[self.bssbox_dict['BSSBox'][status]],
                 text=[self.bssbox_dict['BSSBox'][status]],
                 name=status,
                 textposition='auto',
@@ -98,9 +99,9 @@ class AllBugsDashboard(AbstractDashboard):
                 showlegend=False
             ))
             data.append(go.Bar(
-                orientation='h',
-                x=[self.domain_dict['Total'][status]],
-                y=['Total'],
+                orientation='v',
+                x=['Total'],
+                y=[self.domain_dict['Total'][status]],
                 text=[self.domain_dict['Total'][status]],
                 name=status,
                 textposition='auto',
@@ -124,14 +125,19 @@ class AllBugsDashboard(AbstractDashboard):
             title='<b>{0} as of {1}</b>'.format(self.dashboard_name, datetime.now().strftime("%d.%m.%y %H:%M"))
                   + (' <sup>in cloud</sup>' if self.repository == 'online' else ''),
             barmode='stack',
-            xaxis1=dict(domain=[0, 0.48], anchor='y1', ticks='outside', ticklen=4, tickcolor='rgba(0,0,0,0)'),
-            yaxis1=dict(domain=[0.15, 1], anchor='x1', ticks='outside', ticklen=8, tickcolor='rgba(0,0,0,0)'),
-            xaxis2=dict(domain=[0, 0.48], anchor='y2'),
-            yaxis2=dict(domain=[0, 0.1], anchor='x2', ticks='outside', ticklen=8, tickcolor='rgba(0,0,0,0)'),
-            xaxis3=dict(domain=[0.52, 1], anchor='y3', ticks='outside', ticklen=4, tickcolor='rgba(0,0,0,0)'),
-            yaxis3=dict(domain=[0.15, 1], anchor='x3', ticks='outside', ticklen=8, tickcolor='rgba(0,0,0,0)'),
-            xaxis4=dict(domain=[0.52, 1], anchor='y4'),
-            yaxis4=dict(domain=[0, 0.1], anchor='x4', ticks='outside', ticklen=8, tickcolor='rgba(0,0,0,0)'),
+            xaxis1=dict(domain=[0.065, 0.555], anchor='y1', ticks='outside', ticklen=4, tickcolor='rgba(0,0,0,0)',
+                        automargin=True, tickangle=-90, showgrid=True,
+                        tickvals=[dmn for dmn in self.bssbox_dict if dmn != 'BSSBox'],
+                        ticktext=[dmn if len(dmn) < 8 else '<br>'.join(textwrap.wrap(dmn, 9))
+                                  for dmn in self.bssbox_dict if dmn != 'BSSBox']),
+            yaxis1=dict(domain=[0, 1], anchor='x1', ticks='outside', ticklen=8, tickcolor='rgba(0,0,0,0)'),
+            xaxis2=dict(domain=[0, 0.035], anchor='y2', tickangle=-90, showgrid=True),
+            yaxis2=dict(domain=[0, 1], anchor='x2', ticks='outside', ticklen=8, tickcolor='rgba(0,0,0,0)'),
+            xaxis3=dict(domain=[0.585, 0.935], anchor='y3', ticks='outside', ticklen=4, tickcolor='rgba(0,0,0,0)',
+                        automargin=True, tickangle=-90, showgrid=True),
+            yaxis3=dict(domain=[0, 1], anchor='x3', ticks='outside', ticklen=8, tickcolor='rgba(0,0,0,0)'),
+            xaxis4=dict(domain=[0.965, 1], anchor='y4', tickangle=-90, showgrid=True),
+            yaxis4=dict(domain=[0, 1], anchor='x4', ticks='outside', ticklen=8, tickcolor='rgba(0,0,0,0)'),
             legend=dict(x=0.39, y=1.04, orientation='h')
         )
 
