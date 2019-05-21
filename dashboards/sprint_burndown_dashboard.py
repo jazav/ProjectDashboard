@@ -180,7 +180,7 @@ class SprintBurndownDashboard(AbstractDashboard):
 
         annotations = [dict(
             x=0.98,
-            y=0.97,
+            y=0.8,
             xref='paper',
             yref='paper',
             text='<b><i>Chart for committed features<br>Deadline 17.05.19</b></i>',
@@ -191,7 +191,7 @@ class SprintBurndownDashboard(AbstractDashboard):
             align='center'
         ), dict(
             x=0.98,
-            y=0.4,
+            y=0.2,
             xref='paper',
             yref='paper',
             text='<b><i>Chart for all features<br>Deadline 17.05.19</b></i>',
@@ -219,7 +219,7 @@ class SprintBurndownDashboard(AbstractDashboard):
                 ),
                 tickangle=45,
                 showline=True,
-                range=[start - datetime.timedelta(days=1), end2 + datetime.timedelta(days=1)]
+                range=[start - datetime.timedelta(days=1), datetime.datetime.now().date() + datetime.timedelta(days=1)]
             ),
             yaxis2=dict(
                 domain=[0.55, 1],
@@ -248,7 +248,7 @@ class SprintBurndownDashboard(AbstractDashboard):
                 ),
                 tickangle=45,
                 showline=True,
-                range=[start - datetime.timedelta(days=1), end2 + datetime.timedelta(days=1)]
+                range=[start - datetime.timedelta(days=1), datetime.datetime.now().date() + datetime.timedelta(days=1)]
             ),
             yaxis1=dict(
                 domain=[0, 0.45],

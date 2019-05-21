@@ -139,7 +139,7 @@ def get_domain_bssbox(component):
         'Default Configuration': 'Common',
         'Design': 'Design',
         'DevOps': 'DevOps',
-        'DFE': 'CRM',
+        'DFE': 'DFE',
         'Digital API': 'CRM',
         'Documentation': 'Doc',
         'Dunning and Collection': 'Billing',

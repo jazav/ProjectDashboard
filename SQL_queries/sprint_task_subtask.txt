@@ -25,7 +25,7 @@ epics AS (
 				INNER JOIN [srv-jira-prod-report].[dbo].[component] AS ec_cmp ON ec_cmp.ID = ec_na.SINK_NODE_ID
 			WHERE ec_ilt.LINKNAME = 'nexign_hierarchy_link' AND ec_il.SOURCE IN (SELECT ID FROM user_stories) AND ec_na.ASSOCIATION_TYPE = 'IssueComponent') AS epics_cmp ON epics_cmp.ID = e_ji.ID
 		INNER JOIN user_stories ON user_stories.ID = e_il.SOURCE
-	WHERE e_ilt.LINKNAME = 'nexign_hierarchy_link' AND e_il.SOURCE IN (SELECT ID FROM user_stories)),
+	WHERE e_ilt.LINKNAME = 'nexign_hierarchy_link' AND e_il.SOURCE IN (SELECT ID FROM user_stories) AND epics_cmp.component != 'QC'),
 tasks AS (
 	SELECT t_ji.ID AS 'ID', epics.flagged, epics.component AS 'component'
 	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS t_ji

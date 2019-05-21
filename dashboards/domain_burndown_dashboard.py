@@ -16,7 +16,7 @@ class DomainBurndownDashboard(AbstractDashboard):
 
     def multi_prepare(self, data_spent, data_original):
         dmns = ['BA', 'Design', 'System Architecture', 'Arch & SA', 'Billing', 'CRM', 'Ordering & PRM',
-                'Product Instances', 'PSC', 'Performance Testing', 'DevOps', 'QC', 'Doc']
+                'Product Instances', 'PSC', 'Performance Testing', 'DevOps', 'Doc']
         self.all_spent['flagged'], self.all_spent['all'] = {dmn: {} for dmn in dmns}, {dmn: {} for dmn in dmns}
         all_original, spent, original = {}, {}, {}
         fl_all_original, fl_spent, fl_original = {}, {}, {}

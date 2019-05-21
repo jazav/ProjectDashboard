@@ -9,6 +9,7 @@ from adapters.citrix_sharefile_adapter import CitrixShareFile
 import shutil
 import time
 import textwrap
+import collections
 
 
 def color_for_status(status):
@@ -34,13 +35,14 @@ class SprintInfoDashboard(AbstractDashboard):
                     self.est_dict[data['Component'][i]] = {'Bulk estimate': 0, 'Original estimate': 0, 'Spent time': 0}
                     self.st_dict[data['Component'][i]] = {'Open': 0, 'Dev': 0, 'Done': 0}
                 self.est_dict[data['Component'][i]]['Original estimate'] += int(data['Estimate'][i]) / 28800
-                self.prj_est['Original estimate'] += int(data['Estimate'][i]) / 28800
-                original += int(data['Estimate'][i]) / 28800
+                self.prj_est['Original estimate'] += int(data['Estimate'][i]) / 28800 / data['Key'].count(data['Key'][i])
+                original += int(data['Estimate'][i]) / 28800 / data['Key'].count(data['Key'][i])
                 self.est_dict[data['Component'][i]]['Spent time'] += int(data['Spent time'][i]) / 28800
-                self.prj_est['Spent time'] += int(data['Spent time'][i]) / 28800
-                spent += int(data['Spent time'][i]) / 28800 if data['Status'] != 'Done' else int(data['Estimate'][i]) / 28800
+                self.prj_est['Spent time'] += int(data['Spent time'][i]) / 28800 / data['Key'].count(data['Key'][i])
+                spent += int(data['Spent time'][i]) / 28800 / data['Key'].count(data['Key'][i])\
+                    if data['Status'][i] != 'Done' else int(data['Estimate'][i]) / 28800 / data['Key'].count(data['Key'][i])
                 self.st_dict[data['Component'][i]][data['Status'][i]] += 1
-                self.prj_st[data['Status'][i]] += 1
+                self.prj_st[data['Status'][i]] += 1 / data['Key'].count(data['Key'][i])
             else:
                 d = json.loads(data['Estimate'][i])
                 for cmp in d.keys():
@@ -105,7 +107,7 @@ class SprintInfoDashboard(AbstractDashboard):
         est_title = '<i><b>Ratio of high level estimates, original estimates and spent time<br>Total: </b>{}. <b>Readiness: </b>{}%</i>'.\
             format(', '.join(['{} - {}'.format(key, round(val)) for key, val in self.prj_est.items()]), self.readiness)
         st_title = '<i><b>Progress of development work<br>Total: </b>{}</i>'.\
-            format(', '.join(['{} - {}'.format(key, val) for key, val in self.prj_st.items()]))
+            format(', '.join(['{} - {}'.format(key, round(val)) for key, val in self.prj_st.items()]))
         fig = tools.make_subplots(rows=2, cols=1, vertical_spacing=0.12, subplot_titles=(est_title, st_title))
         for trace_est, trace_st in zip(data_est, data_st):
             fig.append_trace(trace_est, 1, 1)
