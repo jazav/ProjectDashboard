@@ -10,13 +10,18 @@ import textwrap
 
 class BaWorkDistributionDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth, citrix_token, local_user = True, None, None, None, None
-    sprint_distribution = {}
+    sprint_distribution = {'Backlog': 0, 'Out of Yota scope': 0, 'Super Sprint 6': 0, 'Super Sprint 7': 0,
+                           'Super Sprint 7.1': 0, 'Super Sprint 8': 0, 'Super Sprint 8 candidates': 0,
+                           'Super Sprint 9': 0, 'Super Sprint 9 candidates': 0, 'Super Sprint 10': 0,
+                           'Super Sprint 10 candidates': 0, 'Super Sprint 11': 0, 'Super Sprint 12': 0,
+                           'Super Sprint 13': 0, 'Super Sprint 14': 0}
 
     def prepare(self, data):
         for i in range(len(data['Sprint'])):
             if data['Sprint'][i] not in self.sprint_distribution.keys():
                 self.sprint_distribution[data['Sprint'][i]] = 0
             self.sprint_distribution[data['Sprint'][i]] += int(data['Spent'][i]) / 28800
+        self.sprint_distribution = {sprint: spent for sprint, spent in self.sprint_distribution.items() if spent != 0}
 
     def export_to_plotly(self):
         if len(self.sprint_distribution.keys()) == 0:

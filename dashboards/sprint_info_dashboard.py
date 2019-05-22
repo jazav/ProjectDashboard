@@ -1,5 +1,5 @@
 from dashboards.dashboard import AbstractDashboard
-from adapters.issue_utils import get_domain_bssbox
+from adapters.issue_utils import get_domain_bssbox, domain_shortener
 import json
 import plotly
 import plotly.graph_objs as go
@@ -9,7 +9,13 @@ from adapters.citrix_sharefile_adapter import CitrixShareFile
 import shutil
 import time
 import textwrap
-import collections
+import requests
+
+
+def load_capacity():
+    url = 'https://stash.billing.ru/projects/RNDQC/repos/super-sprints-config/raw/sprint/ss9.json'
+    r = requests.get(url=url)
+    return r.json()['capacity']
 
 
 def color_for_status(status):
@@ -17,17 +23,20 @@ def color_for_status(status):
 
 
 def color_for_est(est):
-    return {'Bulk estimate': 'rgb(97,100,223)', 'Original estimate': 'rgb(82,162,218)', 'Spent time': 'rgb(75,223,156)'}[est]
+    return {'Capacity': 'rgb(158,244,82)', 'Bulk estimate': 'rgb(97,100,223)', 'Original estimate': 'rgb(82,162,218)',
+            'Spent time': 'rgb(75,223,156)'}[est]
 
 
 class SprintInfoDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth, citrix_token, local_user = True, None, None, None, None
     est_dict, st_dict = {}, {}
     prj_est, prj_st = {'Bulk estimate': 0, 'Original estimate': 0, 'Spent time': 0}, {'Open': 0, 'Dev': 0, 'Done': 0}
-    readiness = 0
+    readiness = {'Open': {'Spent': 0, 'Original': 0}, 'Dev': {'Spent': 0, 'Original': 0},
+                 'Done': {'Spent': 0, 'Original': 0}, 'Total': 0}
 
     def prepare(self, data):
         spent, original = 0, 0
+        capacity_dict = {domain_shortener(cap[0]): cap[1] for cap in load_capacity()}
         for i in range(len(data['Key'])):
             if data['Issue type'][i] != 'User Story (L3)':
                 data['Component'][i] = get_domain_bssbox(data['Component'][i])
@@ -36,27 +45,32 @@ class SprintInfoDashboard(AbstractDashboard):
                     self.st_dict[data['Component'][i]] = {'Open': 0, 'Dev': 0, 'Done': 0}
                 self.est_dict[data['Component'][i]]['Original estimate'] += int(data['Estimate'][i]) / 28800
                 self.prj_est['Original estimate'] += int(data['Estimate'][i]) / 28800 / data['Key'].count(data['Key'][i])
-                original += int(data['Estimate'][i]) / 28800 / data['Key'].count(data['Key'][i])
                 self.est_dict[data['Component'][i]]['Spent time'] += int(data['Spent time'][i]) / 28800
                 self.prj_est['Spent time'] += int(data['Spent time'][i]) / 28800 / data['Key'].count(data['Key'][i])
-                spent += int(data['Spent time'][i]) / 28800 / data['Key'].count(data['Key'][i])\
-                    if data['Status'][i] != 'Done' else int(data['Estimate'][i]) / 28800 / data['Key'].count(data['Key'][i])
                 self.st_dict[data['Component'][i]][data['Status'][i]] += 1
                 self.prj_st[data['Status'][i]] += 1 / data['Key'].count(data['Key'][i])
+                self.readiness[data['Status'][i]]['Spent'] += int(data['Spent time'][i]) / 28800 / data['Key'].count(data['Key'][i])\
+                    if data['Status'][i] not in ('Closed', 'Resolved', 'Done')\
+                    else int(data['Estimate'][i]) / 28800 / data['Key'].count(data['Key'][i])
+                self.readiness[data['Status'][i]]['Original'] += int(data['Estimate'][i]) / 28800 / data['Key'].count(data['Key'][i])
+                if data['Component'][i] not in ('QC', 'Doc'):
+                    spent += int(data['Spent time'][i]) / 28800 / data['Key'].count(data['Key'][i])\
+                        if data['Status'][i] not in ('Closed', 'Resolved', 'Done')\
+                        else int(data['Estimate'][i]) / 28800 / data['Key'].count(data['Key'][i])
+                    original += int(data['Estimate'][i]) / 28800 / data['Key'].count(data['Key'][i])
             else:
                 d = json.loads(data['Estimate'][i])
                 for cmp in d.keys():
                     domain = get_domain_bssbox(cmp)
                     if domain not in self.est_dict.keys():
-                        self.est_dict[domain] = {'Bulk estimate': 0, 'Original estimate': 0, 'Spent time': 0}
+                        self.est_dict[domain] = {'Capacity': capacity_dict.get(domain, 0),
+                                                 'Bulk estimate': 0, 'Original estimate': 0, 'Spent time': 0}
                         self.st_dict[domain] = {'Open': 0, 'Dev': 0, 'Done': 0}
                     self.est_dict[domain]['Bulk estimate'] += float(d[cmp])
                     self.prj_est['Bulk estimate'] += float(d[cmp])
-        self.readiness = round(spent / original * 100)
+        self.readiness['Total'] = round(spent / original * 100)
 
     def export_to_plotly(self):
-        print(self.prj_est)
-        print(self.prj_st)
         if len(self.est_dict.keys()) == 0:
             raise ValueError('There is no issues to show')
 
@@ -105,12 +119,14 @@ class SprintInfoDashboard(AbstractDashboard):
                     zip(base, [counts[st] for key, counts in list(self.st_dict.items()) if key != 'Common'])]
 
         est_title = '<i><b>Ratio of high level estimates, original estimates and spent time<br>Total: </b>{}. <b>Readiness: </b>{}%</i>'.\
-            format(', '.join(['{} - {}'.format(key, round(val)) for key, val in self.prj_est.items()]), self.readiness)
+            format(', '.join(['{} - {}'.format(key, round(val)) for key, val in self.prj_est.items()]), self.readiness['Total'])
         st_title = '<i><b>Progress of development work<br>Total: </b>{}</i>'.\
-            format(', '.join(['{} - {}'.format(key, round(val)) for key, val in self.prj_st.items()]))
+            format(', '.join(['{} - {} ({} out of {} md)'.format(key, round(val), round(self.readiness[key]['Spent'], 1),
+                                                                 round(self.readiness[key]['Original'], 1)) for key, val in self.prj_st.items()]))
         fig = tools.make_subplots(rows=2, cols=1, vertical_spacing=0.12, subplot_titles=(est_title, st_title))
-        for trace_est, trace_st in zip(data_est, data_st):
+        for trace_est in data_est:
             fig.append_trace(trace_est, 1, 1)
+        for trace_st in data_st:
             fig.append_trace(trace_st, 2, 1)
 
         title = self.dashboard_name

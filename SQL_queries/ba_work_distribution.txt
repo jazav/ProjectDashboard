@@ -21,6 +21,7 @@ WITH us AS (
 					WHEN us_cfv.STRINGVALUE = '7326' THEN 'Super Sprint 12'
 					WHEN us_cfv.STRINGVALUE = '7327' THEN 'Super Sprint 13'
 					WHEN us_cfv.STRINGVALUE = '7328' THEN 'Super Sprint 14'
+					WHEN us_cfv.STRINGVALUE = '7329' THEN 'Out of Yota scope'
 					ELSE us_cfv.STRINGVALUE
 				END) AS 'Sprint'
 			FROM [srv-jira-prod-report].[dbo].[customfieldvalue] us_cfv
