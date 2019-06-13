@@ -51,7 +51,7 @@ st_spents AS (
 						INNER JOIN [srv-jira-prod-report].[dbo].[project] AS e_prj ON e_prj.ID = e_ji.PROJECT
 					WHERE e_ilt.LINKNAME = 'Epic-Story Link') AS e_link ON e_link.Destination = t_ji.ID
 			WHERE t_ilt.LINKNAME = 'jira_subtask_link') AS t_link ON t_link.Destination = ji.ID
-	WHERE cgi.FIELD = 'timespent' AND (cg.CREATED BETWEEN '2019-05-01 00:00:00.000' AND GETDATE()) AND prj.pkey in ('IOTCMP', 'IOTAEP') AND it.pname = 'Sub-task'
+	WHERE cgi.FIELD = 'timespent' AND (cg.CREATED BETWEEN wsdxz AND GETDATE()) AND prj.pkey in ('IOTCMP', 'IOTAEP') AND it.pname = 'Sub-task'
 	GROUP BY ji.ID, CONCAT_WS('-',prj.pkey, ji.issuenum), ji.SUMMARY, it.pname, t_link.[Epic key], t_link.[Epic name])
 
 SELECT ji.ID AS 'ID', CONCAT_WS('-', prj.pkey, ji.issuenum) AS 'Key', ji.SUMMARY AS 'Summary', it.pname AS 'Issue type', NULL AS 'Epic key', NULL AS 'Epic name',

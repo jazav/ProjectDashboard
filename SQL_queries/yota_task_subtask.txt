@@ -10,7 +10,7 @@ WITH user_stories AS (
 			SELECT be.ISSUE_ID, be.[VALUE] AS 'Estimate', cmp.cname AS 'Component'
 			FROM [srv-jira-prod-report].[dbo].[AO_983835_BE_ITEM] AS be
 				INNER JOIN [srv-jira-prod-report].[dbo].[component] AS cmp ON cmp.ID = be.COMPONENT_ID) AS bulks ON bulks.ISSUE_ID = us_ji.ID
-	WHERE us_prj.pname = 'BSSBOX' AND us_it.pname = 'User Story (L3)' AND us_is.pname != 'Canceled' AND us_lbl.LABEL IN ('Yota', 'yota')),
+	WHERE us_prj.pname = 'BSSBOX' AND us_it.pname = 'User Story (L3)' AND us_is.pname != 'Canceled' AND us_lbl.LABEL IN ('Swap', 'swap')),
 epics AS (
 	SELECT DISTINCT e_ji.ID AS 'id', CONCAT_WS('-', e_prj.pkey, e_ji.issuenum) AS 'key', e_it.pname AS 'issue type', e_is.pname AS 'status', CONVERT(date, e_ji.RESOLUTIONDATE) AS 'resolution date',
 		epics_cmp.Component AS 'component', user_stories.[key] AS 'L3', NULL AS 'estimate'

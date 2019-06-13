@@ -1,9 +1,8 @@
 from dashboards.dashboard import AbstractDashboard
-# import json
 import plotly
 import plotly.graph_objs as go
 from datetime import datetime, date
-from adapters.issue_utils import get_domain_bssbox
+from adapters.issue_utils import get_domain_bssbox, domain_shortener
 from adapters.citrix_sharefile_adapter import CitrixShareFile
 import shutil
 import time

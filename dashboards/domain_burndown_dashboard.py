@@ -15,8 +15,8 @@ class DomainBurndownDashboard(AbstractDashboard):
     all_spent, all_remain = {'flagged': {}, 'all': {}}, {'flagged': {}, 'all': {}}
 
     def multi_prepare(self, data_spent, data_original):
-        dmns = ['BA', 'Design', 'System Architecture', 'Arch & SA', 'Billing', 'CRM', 'Ordering & PRM',
-                'Product Instances', 'PSC', 'Performance Testing', 'DevOps', 'Doc']
+        dmns = ['BA', 'Design', 'System Architecture', 'Arch & SA', 'Billing', 'CES', 'Pays', 'CRM1', 'CRM2',
+                'Ordering & PRM', 'Product Instances', 'PSC', 'Performance Testing', 'DevOps', 'Doc']
         self.all_spent['flagged'], self.all_spent['all'] = {dmn: {} for dmn in dmns}, {dmn: {} for dmn in dmns}
         all_original, spent, original = {}, {}, {}
         fl_all_original, fl_spent, fl_original = {}, {}, {}
@@ -104,7 +104,7 @@ class DomainBurndownDashboard(AbstractDashboard):
                     try:
                         self.all_spent['flagged'][dmn][dt] = self.all_spent['flagged'][dmn][max([date for date in self.all_spent['flagged'][dmn].keys() if date < dt])]
                     except ValueError:
-                        self.all_spent['flagged'][dmn][dt] = self.all_spent['flagged'][dmn][list(self.all_spent['flagged'][dmn].keys())[0]]
+                        self.all_spent['flagged'][dmn][dt] = self.all_spent['flagged'][dmn][list(self.all_spent['flagged'][dmn].keys())[0]] if self.all_spent['flagged'][dmn] else 0
         for dmn, origs in all_original.items():
             if dmn not in self.all_spent['all']:
                 self.all_spent['all'][dmn] = {dt: 0 for dt in origs.keys()}
@@ -134,7 +134,7 @@ class DomainBurndownDashboard(AbstractDashboard):
 
     def export_to_plotly(self):
         for fl, spents, remains in zip(self.all_spent.keys(), self.all_spent.values(), self.all_remain.values()):
-            end = datetime.date(2019, 5, 17) if fl == 'flagged' else datetime.date(2019, 5, 17)
+            end = datetime.date(2019, 7, 2) if fl == 'flagged' else datetime.date(2019, 6, 2)
             trace_dict = {dmn: [] for dmn in spents.keys()}
             for dmn in spents.keys():
                 trace_dict[dmn].append(go.Scatter(
@@ -167,17 +167,20 @@ class DomainBurndownDashboard(AbstractDashboard):
                     ),
                     showlegend=True if dmn == list(spents.keys())[0] else False
                 ))
-                trace_dict[dmn].append(go.Scatter(
-                    x=[min(remains[dmn].keys()), end],
-                    y=[max([math.fabs(rmn) for rmn in remains[dmn].values()]), 0],
-                    name='',
-                    mode='lines',
-                    line=dict(
-                        color='rgb(200,200,200)',
-                        width=2,
-                        dash='dash'),
-                    showlegend=False
-                ))
+                try:
+                    trace_dict[dmn].append(go.Scatter(
+                        x=[min(remains[dmn].keys()), end],
+                        y=[max([math.fabs(rmn) for rmn in remains[dmn].values()]), 0],
+                        name='',
+                        mode='lines',
+                        line=dict(
+                            color='rgb(200,200,200)',
+                            width=2,
+                            dash='dash'),
+                        showlegend=False
+                    ))
+                except ValueError:
+                    pass
             cols = math.ceil(len(spents.keys()) / 2)
             fig = tools.make_subplots(rows=2, cols=cols, subplot_titles=list(spents.keys()))
             for traces, i, dmn in zip(trace_dict.values(), range(len(trace_dict.keys())), trace_dict.keys()):
@@ -189,7 +192,8 @@ class DomainBurndownDashboard(AbstractDashboard):
                     type='date',
                     dtick=86400000,
                     showline=True,
-                    showticklabels=False
+                    showticklabels=False,
+                    showgrid=False
                 )
                 fig["layout"][yaxis].update(
                     showline=True,

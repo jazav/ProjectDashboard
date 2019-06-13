@@ -17,7 +17,7 @@ class SprintBurndownDashboard(AbstractDashboard):
         spent, fl_spent = 0, 0
         original, fl_original = 0, 0
         for i in range(len(data_spent['key'])):
-            if data_spent['created'][i] < datetime.date(2019, 4, 1):
+            if data_spent['created'][i] < datetime.date(2019, 5, 21):
                 k = set()
                 for j in range(len(data_spent['key'])):
                     if data_spent['key'][j] == data_spent['key'][i]:
@@ -35,7 +35,7 @@ class SprintBurndownDashboard(AbstractDashboard):
                     fl_original += float(data_original['timeoriginalestimate'][i]) / len(k)
                 original += float(data_original['timeoriginalestimate'][i]) / len(k)
         for i in range(len(data_spent['key'])):
-            if data_spent['created'][i] > datetime.date(2019, 3, 31):
+            if data_spent['created'][i] > datetime.date(2019, 5, 20):
                 k = set()
                 for j in range(len(data_spent['key'])):
                     if data_spent['key'][j] == data_spent['key'][i]:
@@ -61,7 +61,10 @@ class SprintBurndownDashboard(AbstractDashboard):
                 all_original[dt] = all_original[max([date for date in all_original.keys() if date < dt])]
         for dt in self.fl_all_spent:
             if dt not in fl_all_original.keys():
-                fl_all_original[dt] = fl_all_original[max([date for date in fl_all_original.keys() if date < dt])]
+                try:
+                    fl_all_original[dt] = fl_all_original[max([date for date in fl_all_original.keys() if date < dt])]
+                except ValueError:
+                    fl_all_original[dt] = fl_all_original[list(fl_all_original.keys())[-1]]
         self.all_remain = {dt: all_original[dt] - self.all_spent[dt] + float(sum(
             [sp for sp, rd in zip(data_spent['spent'], data_spent['resolutiondate']) if rd is not None and rd < dt]))
                            for dt in self.all_spent.keys()}
@@ -73,7 +76,7 @@ class SprintBurndownDashboard(AbstractDashboard):
         if len(self.all_spent.keys()) == 0:
             raise ValueError('There is no issues to show')
 
-        start, end1, end2 = datetime.date(2019, 4, 1), datetime.date(2019, 5, 17), datetime.date(2019, 5, 17)
+        start, end1, end2 = datetime.date(2019, 5, 20), datetime.date(2019, 7, 2), datetime.date(2019, 7, 2)
         data = [go.Scatter(
             x=list(self.all_spent.keys()),
             y=list(self.all_spent.values()),
@@ -183,7 +186,7 @@ class SprintBurndownDashboard(AbstractDashboard):
             y=0.8,
             xref='paper',
             yref='paper',
-            text='<b><i>Chart for committed features<br>Deadline 17.05.19</b></i>',
+            text='<b><i>Chart for committed features<br>Deadline 02.07.19</b></i>',
             showarrow=False,
             bordercolor='black',
             borderwidth=1,
@@ -194,7 +197,7 @@ class SprintBurndownDashboard(AbstractDashboard):
             y=0.2,
             xref='paper',
             yref='paper',
-            text='<b><i>Chart for all features<br>Deadline 17.05.19</b></i>',
+            text='<b><i>Chart for all features<br>Deadline 02.07.19</b></i>',
             showarrow=False,
             bordercolor='black',
             borderwidth=1,
@@ -219,7 +222,7 @@ class SprintBurndownDashboard(AbstractDashboard):
                 ),
                 tickangle=45,
                 showline=True,
-                range=[start - datetime.timedelta(days=1), datetime.datetime.now().date() + datetime.timedelta(days=1)]
+                range=[start - datetime.timedelta(days=1), end2 + datetime.timedelta(days=1)]
             ),
             yaxis2=dict(
                 domain=[0.55, 1],
@@ -248,7 +251,7 @@ class SprintBurndownDashboard(AbstractDashboard):
                 ),
                 tickangle=45,
                 showline=True,
-                range=[start - datetime.timedelta(days=1), datetime.datetime.now().date() + datetime.timedelta(days=1)]
+                range=[start - datetime.timedelta(days=1), end1 + datetime.timedelta(days=1)]
             ),
             yaxis1=dict(
                 domain=[0, 0.45],

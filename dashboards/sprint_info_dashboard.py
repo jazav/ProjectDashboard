@@ -13,7 +13,7 @@ import requests
 
 
 def load_capacity():
-    url = 'https://stash.billing.ru/projects/RNDQC/repos/super-sprints-config/raw/sprint/ss9.json'
+    url = 'https://stash.billing.ru/projects/RNDQC/repos/super-sprints-config/raw/sprint/ss10.json'
     r = requests.get(url=url)
     return r.json()['capacity']
 
@@ -41,7 +41,8 @@ class SprintInfoDashboard(AbstractDashboard):
             if data['Issue type'][i] != 'User Story (L3)':
                 data['Component'][i] = get_domain_bssbox(data['Component'][i])
                 if data['Component'][i] not in self.est_dict.keys():
-                    self.est_dict[data['Component'][i]] = {'Bulk estimate': 0, 'Original estimate': 0, 'Spent time': 0}
+                    self.est_dict[data['Component'][i]] = {'Capacity': capacity_dict.get(data['Component'][i], 0),
+                                                           'Bulk estimate': 0, 'Original estimate': 0, 'Spent time': 0}
                     self.st_dict[data['Component'][i]] = {'Open': 0, 'Dev': 0, 'Done': 0}
                 self.est_dict[data['Component'][i]]['Original estimate'] += int(data['Estimate'][i]) / 28800
                 self.prj_est['Original estimate'] += int(data['Estimate'][i]) / 28800 / data['Key'].count(data['Key'][i])
@@ -76,6 +77,7 @@ class SprintInfoDashboard(AbstractDashboard):
 
         data_est, data_st = [], []
         for est in self.est_dict[list(self.est_dict.keys())[0]].keys():
+            print(self.est_dict.items())
             data_est.append(go.Bar(
                 x=[key for key in self.est_dict.keys() if key != 'Common'],
                 y=[e[est] for key, e in self.est_dict.items() if key != 'Common'],
