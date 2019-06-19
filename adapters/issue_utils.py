@@ -198,14 +198,14 @@ def get_domain_bssbox(component):
         None: 'Empty',
         'Custom Lifecycle': 'Custom',
         'NWM Configuration': 'Custom',
-        'PSC Configuration': 'Custom',
         'Prorate': 'Common',
         'Lifecycle': 'Common',
         'CAM': 'Megafon',
         'CCM': 'Megafon',
         'FPM': 'Megafon',
         'GUS': 'Megafon',
-        'OAPI': 'Megafon'
+        'OAPI': 'Megafon',
+        'Custom PSC': 'Custom'
     }[component]
 
 

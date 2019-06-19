@@ -11,7 +11,7 @@ import time
 class YotaBurndownDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth, dashboard_type, citrix_token, local_user = True, None, None, None, None, None
     all_spent, all_remain = {}, {}
-    start, end = datetime.date(2019, 2, 18), datetime.date(2019, 10, 1)
+    start, end = datetime.date(2019, 2, 18), datetime.date(2020, 3, 1)
 
     def multi_prepare(self, data_spent, data_original):
         all_original, spent, original = {}, 0, 0
@@ -58,7 +58,7 @@ class YotaBurndownDashboard(AbstractDashboard):
             xaxis='x1',
             yaxis='y1',
             name='Spent',
-            text=[str(round(sp, 1)) if not i % 4 else '' for i, sp in enumerate(self.all_spent.values())],
+            text=[str(round(sp, 1)) if not i % 10 else '' for i, sp in enumerate(self.all_spent.values())],
             textposition='top left',
             textfont=dict(size=8),
             mode='lines+markers+text',
@@ -67,7 +67,7 @@ class YotaBurndownDashboard(AbstractDashboard):
                 color='rgb(31,119,180)',
             ),
             marker=dict(
-                size=5,
+                size=1,
                 color='rgb(31,119,180)',
             )
         ), go.Scatter(
@@ -76,7 +76,7 @@ class YotaBurndownDashboard(AbstractDashboard):
             xaxis='x1',
             yaxis='y1',
             name='Remain',
-            text=[str(round(sp, 1)) if not i % 4 else '' for i, sp in enumerate(self.all_remain.values())],
+            text=[str(round(sp, 1)) if not i % 10 else '' for i, sp in enumerate(self.all_remain.values())],
             textposition='top right',
             textfont=dict(size=8),
             mode='lines+markers+text',
@@ -85,7 +85,7 @@ class YotaBurndownDashboard(AbstractDashboard):
                 color='rgb(255,127,14)',
             ),
             marker=dict(
-                size=5,
+                size=1,
                 color='rgb(255,127,14)',
             )
         ), go.Scatter(
@@ -138,7 +138,7 @@ class YotaBurndownDashboard(AbstractDashboard):
                 tickfont=dict(
                     size=16
                 ),
-                range=[0, max(self.all_remain.values()) + 250],
+                range=[0, max(self.all_remain.values()) + 1000],
                 automargin=True
             ),
             title=title + (' <sup>in cloud</sup>' if self.repository == 'online' else ''),
