@@ -20,13 +20,11 @@ bulk_convert = {'Common': 'Common', 'Arch & SA': 'Arch & SA', 'Billing': 'Billin
 
 class FeatureInfoDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth, citrix_token, local_user = True, None, None, None, None
-    feature_dict, spent_dict, info, commited, wrong_estimates, due_dates, readiness_dict, threat_list = {}, {}, [], [], {}, {}, {}, []
+    feature_dict, spent_dict, info, wrong_estimates, due_dates, readiness_dict, threat_list = {}, {}, [], {}, {}, {}, []
 
     def prepare(self, data):
         for i in range(len(data['Key'])):
             if data['Issue type'][i] == 'User Story (L3)':
-                if data['Flagged'][i]:
-                    self.commited.append(data['Key'][i])
                 if data['Key'][i] not in self.feature_dict.keys():
                     self.feature_dict[data['Key'][i]] = {domain: 0 for domain in bulk_convert.values()
                                                          if domain != 'Common'}
@@ -38,9 +36,7 @@ class FeatureInfoDashboard(AbstractDashboard):
                     self.due_dates[data['Key'][i]] = {domain: [] for domain in bulk_convert.values() if domain != 'Common'}
                     self.readiness_dict[data['Key'][i]] = {domain: None for domain in bulk_convert.values() if domain != 'Common'}
                     if data['Status'][i] not in ('Testing', 'Ready for Testing', 'Closed'):
-                        if data['Flagged'][i] and datetime.now().date() > date(2019, 5, 17):
-                            self.threat_list.append(data['Key'][i])
-                        elif not data['Flagged'][i] and datetime.now().date() > date(2019, 5, 17):
+                        if datetime.now().date() > date(2019, 7, 2):
                             self.threat_list.append(data['Key'][i])
                 # d = json.loads(data['Estimate'][i]) if data['Estimate'][i] is not None else {}
                 # for domain in [key for key in d.keys() if not key.isdigit() and key != 'Total']:
@@ -104,9 +100,7 @@ class FeatureInfoDashboard(AbstractDashboard):
             for dmn in estimates[list(estimates.keys())[0]].keys():
                 spent_color, due_color = [], []
                 for ft in list(spents.keys()):
-                    if ft in self.commited and dmn not in self.wrong_estimates[ft]:
-                        spent_color.append('rgba(153,222,153,0.6)')
-                    elif dmn in self.wrong_estimates[ft]:
+                    if dmn in self.wrong_estimates[ft]:
                         spent_color.append('rgba(222,110,110,0.6)')
                     else:
                         spent_color.append('rgba(200,200,200,0.6)')
@@ -117,9 +111,7 @@ class FeatureInfoDashboard(AbstractDashboard):
                         else:
                             due_color.append('rgb(0,0,0)')
                     else:
-                        if ft in self.commited and max(d[dmn]) > datetime(2019, 5, 17):
-                            due_color.append('rgb(230,0,0)')
-                        elif ft not in self.commited and max(d[dmn]) > datetime(2019, 5, 17):
+                        if max(d[dmn]) > datetime(2019, 7, 2):
                             due_color.append('rgb(230,0,0)')
                         elif max(d[dmn]) < datetime.now():
                             if readiness[ft][dmn] < 1:
@@ -141,10 +133,10 @@ class FeatureInfoDashboard(AbstractDashboard):
                         color=due_color
                     ),
                     marker=dict(
-                        color=['rgb(245,255,245)' if ft in self.commited else 'rgb(250,250,250)' for ft in list(estimates.keys())],
+                        color='rgb(250,250,250)',
                         opacity=0.5,
                         line=dict(
-                            color=['rgb(0,150,0)' if ft in self.commited else 'rgb(0,0,0)' for ft in list(estimates.keys())],
+                            color='rgb(0,0,0)',
                             width=2
                         )
                     ),
