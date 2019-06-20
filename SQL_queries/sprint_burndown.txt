@@ -1,18 +1,13 @@
 WITH user_stories AS (
-	SELECT us_ji.ID AS 'ID', flagged.flagged
+	SELECT us_ji.ID AS 'ID'
 	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS us_ji
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuetype] AS us_it ON us_it.ID = us_ji.issuetype
 		INNER JOIN [srv-jira-prod-report].[dbo].[customfieldvalue] AS us_cfv ON us_cfv.ISSUE = us_ji.ID
 		INNER JOIN [srv-jira-prod-report].[dbo].[project] AS us_prj ON us_prj.ID = us_ji.PROJECT
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuestatus] AS us_is ON us_is.ID = us_ji.issuestatus
-		LEFT JOIN (
-			SELECT fl_ji.ID AS 'ID', 'flagged' AS 'flagged'
-			FROM [srv-jira-prod-report].[dbo].[jiraissue] AS fl_ji
-				INNER JOIN [srv-jira-prod-report].[dbo].[customfieldvalue] AS fl_cfv ON fl_cfv.ISSUE = fl_ji.ID
-			WHERE fl_cfv.CUSTOMFIELD = '15101') AS flagged ON flagged.ID = us_ji.ID
 	WHERE us_prj.pname = 'BSSBOX' AND us_it.pname = 'User Story (L3)' AND us_cfv.STRINGVALUE = '7198' AND us_is.pname != 'Canceled'),
 epics AS (
-	SELECT e_ji.ID AS 'ID', user_stories.flagged, (CASE WHEN epics_cmp.component IS NULL THEN '' ELSE epics_cmp.component END) AS 'component'
+	SELECT e_ji.ID AS 'ID', (CASE WHEN epics_cmp.component IS NULL THEN '' ELSE epics_cmp.component END) AS 'component'
 	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS e_ji
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuelink] AS e_il ON e_il.DESTINATION = e_ji.ID
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuelinktype] AS e_ilt ON e_ilt.ID = e_il.LINKTYPE
@@ -24,10 +19,9 @@ epics AS (
 				INNER JOIN [srv-jira-prod-report].[dbo].[nodeassociation] AS ec_na ON ec_na.SOURCE_NODE_ID = ec_ji.ID
 				INNER JOIN [srv-jira-prod-report].[dbo].[component] AS ec_cmp ON ec_cmp.ID = ec_na.SINK_NODE_ID
 			WHERE ec_ilt.LINKNAME = 'nexign_hierarchy_link' AND ec_il.SOURCE IN (SELECT ID FROM user_stories) AND ec_na.ASSOCIATION_TYPE = 'IssueComponent') AS epics_cmp ON epics_cmp.ID = e_ji.ID
-		INNER JOIN user_stories ON user_stories.ID = e_il.SOURCE
 	WHERE e_ilt.LINKNAME = 'nexign_hierarchy_link' AND e_il.SOURCE IN (SELECT ID FROM user_stories) AND epics_cmp.component NOT IN ('QC', 'Documentation')),
 tasks AS (
-	SELECT t_ji.ID AS 'ID', epics.flagged, epics.component AS 'component'
+	SELECT t_ji.ID AS 'ID', epics.component AS 'component'
 	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS t_ji
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuetype] AS t_it ON t_it.ID = t_ji.issuetype
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuelink] AS t_il ON t_il.DESTINATION = t_ji.ID
@@ -35,7 +29,7 @@ tasks AS (
 		INNER JOIN epics ON epics.ID = t_il.SOURCE
 	WHERE t_it.pname != 'Bug' AND t_ilt.LINKNAME = 'Epic-Story Link' AND t_il.SOURCE IN (SELECT ID FROM epics)),
 subtasks AS (
-	SELECT st_ji.ID AS 'ID', tasks.flagged, tasks.component AS 'component'
+	SELECT st_ji.ID AS 'ID', tasks.component AS 'component'
 	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS st_ji
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuetype] AS st_it ON st_it.ID = st_ji.issuetype
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuelink] AS st_il ON st_il.DESTINATION = st_ji.ID
@@ -43,7 +37,7 @@ subtasks AS (
 		INNER JOIN tasks ON tasks.ID = st_il.SOURCE
 	WHERE st_it.pname != 'Sub-bug' AND st_ilt.LINKNAME = 'jira_subtask_link' AND st_il.SOURCE IN (SELECT ID FROM tasks))
 
-SELECT issues.flagged AS 'flagged', CONCAT_WS('-', prj.pkey, ji.issuenum) AS 'key', issues.component AS 'component', CONVERT(date, cg.CREATED) AS 'created', CONVERT(date, ji.RESOLUTIONDATE) AS 'resolutiondate',
+SELECT CONCAT_WS('-', prj.pkey, ji.issuenum) AS 'key', issues.component AS 'component', CONVERT(date, cg.CREATED) AS 'created', CONVERT(date, ji.RESOLUTIONDATE) AS 'resolutiondate',
 	SUM(CAST((CONVERT(decimal, CONVERT(nvarchar, ci.NEWVALUE))/28800) AS numeric(17,3)) - (CASE WHEN ci.OLDVALUE IS NULL THEN 0 ELSE CAST((CONVERT(decimal, CONVERT(nvarchar, ci.OLDVALUE))/28800) AS numeric(17,3)) END)) AS 'spent'
 FROM [srv-jira-prod-report].[dbo].[changegroup] AS cg
 	INNER JOIN [srv-jira-prod-report].[dbo].[changeitem] AS ci ON ci.groupid = cg.ID
@@ -51,5 +45,5 @@ FROM [srv-jira-prod-report].[dbo].[changegroup] AS cg
 	INNER JOIN [srv-jira-prod-report].[dbo].[project] AS prj ON prj.ID = ji.PROJECT
 	INNER JOIN (SELECT * FROM tasks UNION SELECT * FROM subtasks) AS issues ON issues.ID = ji.ID
 WHERE ji.ID IN (SELECT [ID] FROM tasks UNION SELECT [ID] FROM subtasks) AND ci.FIELD = 'timespent'
-GROUP BY issues.flagged, CONCAT_WS('-', prj.pkey, ji.issuenum),  issues.component, CONVERT(date, cg.CREATED), CONVERT(date, ji.RESOLUTIONDATE)
+GROUP BY CONCAT_WS('-', prj.pkey, ji.issuenum),  issues.component, CONVERT(date, cg.CREATED), CONVERT(date, ji.RESOLUTIONDATE)
 ORDER BY CONVERT(date, cg.CREATED)
