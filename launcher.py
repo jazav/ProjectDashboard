@@ -288,6 +288,7 @@ def main(argv):
                                          repository=name_space.repository.lower(),
                                          mssql_query_file=[mssql.lower().strip() for mssql in name_space.mssql.split(',')],
                                          plotly_auth=[name_space.plotly_user, name_space.plotly_key],
+                                         dashboard_type=[dt.upper().strip() for dt in name_space.dashboard_type.split(',')],
                                          citrix_token=json.loads(name_space.citrix_token.replace('\'', '"')),
                                          local_user=name_space.local_user)
 

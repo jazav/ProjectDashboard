@@ -194,8 +194,6 @@ def get_domain_bssbox(component):
         'Reference Data Management': 'PSC',
         'QC': 'QC',
         'System Architecture': 'System Architecture',
-        '': 'Empty',
-        None: 'Empty',
         'Custom Lifecycle': 'Custom',
         'NWM Configuration': 'Custom',
         'Prorate': 'Common',
@@ -205,7 +203,13 @@ def get_domain_bssbox(component):
         'FPM': 'Megafon',
         'GUS': 'Megafon',
         'OAPI': 'Megafon',
-        'Custom PSC': 'Custom'
+        'Custom PSC': 'Custom',
+        'CCMP': 'Megafon',
+        'LIS': 'Megafon',
+        'Custom CAM & Searching': 'Custom',
+        'Custom CCM': 'Custom',
+        '': 'Empty',
+        None: 'Empty'
     }[component]
 
 

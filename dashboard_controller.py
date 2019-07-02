@@ -24,6 +24,7 @@ from dashboards.sprint_burndown_dashboard import SprintBurndownDashboard  # By @
 from dashboards.domain_burndown_dashboard import DomainBurndownDashboard  # By @alanbryn
 from dashboards.yota_burdown_dashboard import YotaBurndownDashboard  # By @alanbryn
 from dashboards.ba_work_distribution_dashboard import BaWorkDistributionDashboard  # By @alanbryn
+from dashboards.yota_domain_burndown_dashboard import YotaDomainBurndownDashboard  # By @alanbryn
 from dashboards.issue_detail_dashboard import IssueDetailDashboard
 from dashboards.prepare_feature_data import *
 from data_controller import DataController
@@ -447,20 +448,22 @@ class DashboardController:
 
     # By @alanbryn
     @staticmethod
-    def dashboard_yota_burndown(auto_open, repository, mssql_query_file, plotly_auth, citrix_token, local_user):
+    def dashboard_yota_burndown(auto_open, repository, mssql_query_file, plotly_auth, dashboard_type, citrix_token,
+                                local_user):
         dc = DataController()
         data_spent = dc.get_issues_mssql(mssql_query_file=mssql_query_file[0])
         data_original = dc.get_issues_mssql(mssql_query_file=mssql_query_file[1])
 
-        dashboard = YotaBurndownDashboard()
-        dashboard.dashboard_name = 'Burndown for Yota'
-        dashboard.auto_open = auto_open
-        dashboard.repository = repository
-        dashboard.plotly_auth = plotly_auth
-        dashboard.citrix_token = citrix_token
-        dashboard.local_user = local_user
-        dashboard.multi_prepare(data_spent=data_spent, data_original=data_original)
-        dashboard.export_to_plot()
+        for dt in dashboard_type:
+            dashboard = YotaBurndownDashboard() if dt == 'TOTAL' else YotaDomainBurndownDashboard()
+            dashboard.dashboard_name = 'Burndown for Yota'
+            dashboard.auto_open = auto_open
+            dashboard.repository = repository
+            dashboard.plotly_auth = plotly_auth
+            dashboard.citrix_token = citrix_token
+            dashboard.local_user = local_user
+            dashboard.multi_prepare(data_spent=data_spent, data_original=data_original)
+            dashboard.export_to_plot()
 
     # By @alanbryn
     @staticmethod

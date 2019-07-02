@@ -8,11 +8,14 @@ from plotly import tools
 from adapters.citrix_sharefile_adapter import CitrixShareFile
 import shutil
 import time
+import json
 
 
-class DomainBurndownDashboard(AbstractDashboard):
+class YotaDomainBurndownDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth, dashboard_type, citrix_token, local_user = True, None, None, None, None, None
     all_spent, all_remain = {}, {}
+    start, end = datetime.date(2019, 2, 18), datetime.date(2020, 3, 1)
+    estimates = []
 
     def multi_prepare(self, data_spent, data_original):
         dmns = ['BA', 'System Architecture', 'Arch & SA', 'Billing', 'CES', 'Pays', 'CRM1', 'CRM2',
@@ -21,28 +24,40 @@ class DomainBurndownDashboard(AbstractDashboard):
         all_original, spent, original = {}, {}, {}
         for i in range(len(data_spent['key'])):
             data_spent['component'][i] = get_domain_bssbox(data_spent['component'][i])
-            if data_spent['component'][i] not in spent.keys():
-                spent[data_spent['component'][i]] = 0
-        for i in range(len(data_original['key'])):
-            data_original['component'][i] = get_domain_bssbox(data_original['component'][i])
-            if data_original['status'][i] not in ('Closed', 'Resolved'):
-                if data_original['component'][i] not in original.keys():
-                    original[data_original['component'][i]] = 0
-                original[data_original['component'][i]] += float(data_original['timeoriginalestimate'][i])
+            if data_spent['created'][i] < self.start:
+                if data_spent['component'][i] not in spent.keys():
+                    spent[data_spent['component'][i]] = 0
+                    self.all_spent[data_spent['component'][i]] = {}
+                spent[data_spent['component'][i]] += float(data_spent['spent'][i])
+                self.all_spent[data_spent['component'][i]][self.start] = spent[data_spent['component'][i]]
             else:
-                if data_original['component'][i] not in original.keys():
-                    original[data_original['component'][i]] = 0
-        for i in range(len(data_spent['key'])):
-            if data_spent['component'][i] not in self.all_spent.keys():
-                self.all_spent[data_spent['component'][i]] = {}
-            spent[data_spent['component'][i]] += float(data_spent['spent'][i])
-            self.all_spent[data_spent['component'][i]][data_spent['created'][i]] = spent[data_spent['component'][i]]
+                if data_spent['component'][i] not in spent.keys():
+                    spent[data_spent['component'][i]] = 0
+                    self.all_spent[data_spent['component'][i]] = {}
+                spent[data_spent['component'][i]] += float(data_spent['spent'][i])
+                self.all_spent[data_spent['component'][i]][data_spent['created'][i]] = spent[data_spent['component'][i]]
         for i in range(len(data_original['key'])):
-            if data_original['resolutiondate'][i] is not None:
-                if data_original['component'][i] not in all_original.keys():
-                    all_original[data_original['component'][i]] = {datetime.datetime.now().date(): original[data_original['component'][i]]}
-                original[data_original['component'][i]] += float(data_original['timeoriginalestimate'][i])
-                all_original[data_original['component'][i]][data_original['resolutiondate'][i]] = original[data_original['component'][i]]
+            if data_original['issue type'][i] == 'User Story (L3)':
+                d = json.loads(data_original['estimate'][i])
+                d = {key: float(val) for key, val in d.items()}
+                self.estimates.append(d)
+                for cmp, est in d.items():
+                    domain = get_domain_bssbox(cmp)
+                    if domain not in original.keys():
+                        original[domain] = 0
+                        all_original[domain] = {}
+                    original[domain] += est
+                    all_original[domain][self.start] = original[domain]
+            else:
+                if data_original['resolution date'][i] and data_original['component'][i]:
+                    try:
+                        original[data_original['component'][i]] -= [est[data_original['component'][i]] for est, key in
+                                                                    zip(self.estimates, data_original['key'])
+                                                                    if key == data_original['L3'][i]][0]
+                        all_original[data_original['component'][i]][data_original['resolution date'][i]] \
+                            = original[data_original['component'][i]]
+                    except KeyError:
+                        pass
         for dmn, spents in self.all_spent.items():
             if dmn not in all_original.keys():
                 all_original[dmn] = {dt: 0 for dt in spents.keys()}
@@ -66,17 +81,11 @@ class DomainBurndownDashboard(AbstractDashboard):
         for dmn in self.all_spent:
             self.all_spent[dmn] = {dt: self.all_spent[dmn][dt] for dt in sorted(self.all_spent[dmn].keys())}
         for dmn in self.all_spent.keys():
-            if dmn == 'BA':
-                print([all_original[dmn][dt] for dt in sorted(all_original[dmn].keys())])
-                print([round(sp, 3) for sp in self.all_spent[dmn].values()])
-                print([float(sum([sp for sp, rd, domain in zip(data_spent['spent'], data_spent['resolutiondate'], data_spent['component'])
-                                  if domain == dmn and rd is not None and rd < dt])) for dt in self.all_spent[dmn].keys()])
             self.all_remain[dmn] = {dt: all_original[dmn][dt] - self.all_spent[dmn][dt]
                                     + float(sum([sp for sp, rd, domain in zip(data_spent['spent'], data_spent['resolutiondate'], data_spent['component'])
                                             if domain == dmn and rd is not None and rd <= dt])) for dt in self.all_spent[dmn].keys()}
 
     def export_to_plotly(self):
-        end = datetime.date(2019, 7, 2)
         trace_dict = {dmn: [] for dmn in self.all_spent.keys()}
         for dmn in self.all_spent.keys():
             trace_dict[dmn].append(go.Scatter(
@@ -89,7 +98,7 @@ class DomainBurndownDashboard(AbstractDashboard):
                     color='rgb(31,119,180)',
                 ),
                 marker=dict(
-                    size=3,
+                    size=1,
                     color='rgb(31,119,180)',
                 ),
                 showlegend=True if dmn == list(self.all_spent.keys())[0] else False
@@ -104,14 +113,14 @@ class DomainBurndownDashboard(AbstractDashboard):
                     color='rgb(255,127,14)',
                 ),
                 marker=dict(
-                    size=3,
+                    size=1,
                     color='rgb(255,127,14)',
                 ),
                 showlegend=True if dmn == list(self.all_spent.keys())[0] else False
             ))
             try:
                 trace_dict[dmn].append(go.Scatter(
-                    x=[min(self.all_remain[dmn].keys()), end],
+                    x=[min(self.all_remain[dmn].keys()), self.end],
                     y=[max([math.fabs(rmn) for rmn in self.all_remain[dmn].values()]), 0],
                     name='',
                     mode='lines',
@@ -138,8 +147,7 @@ class DomainBurndownDashboard(AbstractDashboard):
                 showgrid=False
             )
             fig["layout"][yaxis].update(
-                showline=True,
-                # range=[0, max([math.fabs(rmn) for rmn in remains[dmn].values()]) + 10]
+                showline=True
             )
 
         title = '{} for domains'.format(self.dashboard_name)

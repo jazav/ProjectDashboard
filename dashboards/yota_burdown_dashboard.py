@@ -12,12 +12,14 @@ class YotaBurndownDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth, dashboard_type, citrix_token, local_user = True, None, None, None, None, None
     all_spent, all_remain = {}, {}
     start, end = datetime.date(2019, 2, 18), datetime.date(2020, 3, 1)
+    estimates = []
 
     def multi_prepare(self, data_spent, data_original):
         all_original, spent, original = {}, 0, 0
         for i in range(len(data_spent['key'])):
-            if data_spent['created'][i] < datetime.date(2019, 2, 18):
+            if data_spent['created'][i] < self.start:
                 spent += float(data_spent['spent'][i])
+                self.all_spent[self.start] = spent
             else:
                 spent += float(data_spent['spent'][i])
                 self.all_spent[data_spent['created'][i]] = spent
@@ -26,14 +28,14 @@ class YotaBurndownDashboard(AbstractDashboard):
                 d = json.loads(data_original['estimate'][i])
                 d = {key: float(val) for key, val in d.items()}
                 d['Total'] = sum(list(d.values()))
-                data_original['estimate'][i] = d
+                self.estimates.append(d)
                 original += float(d['Total']) if d.keys() else 0
                 all_original[self.start] = original
             else:
                 if data_original['resolution date'][i] and data_original['component'][i]:
                     try:
                         original -= [est[data_original['component'][i]]
-                                     for est, key in zip(data_original['estimate'], data_original['key'])
+                                     for est, key in zip(self.estimates, data_original['key'])
                                      if key == data_original['L3'][i]][0]
                         all_original[data_original['resolution date'][i]] = original
                     except KeyError:
