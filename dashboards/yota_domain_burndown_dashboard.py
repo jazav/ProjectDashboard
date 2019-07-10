@@ -14,7 +14,7 @@ import json
 class YotaDomainBurndownDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth, dashboard_type, citrix_token, local_user = True, None, None, None, None, None
     all_spent, all_remain = {}, {}
-    start, end = datetime.date(2019, 2, 18), datetime.date(2020, 3, 1)
+    start_date, end_date = None, None
     estimates = []
 
     def multi_prepare(self, data_spent, data_original):
@@ -24,12 +24,12 @@ class YotaDomainBurndownDashboard(AbstractDashboard):
         all_original, spent, original = {}, {}, {}
         for i in range(len(data_spent['key'])):
             data_spent['component'][i] = get_domain_bssbox(data_spent['component'][i])
-            if data_spent['created'][i] < self.start:
+            if data_spent['created'][i] < self.start_date:
                 if data_spent['component'][i] not in spent.keys():
                     spent[data_spent['component'][i]] = 0
                     self.all_spent[data_spent['component'][i]] = {}
                 spent[data_spent['component'][i]] += float(data_spent['spent'][i])
-                self.all_spent[data_spent['component'][i]][self.start] = spent[data_spent['component'][i]]
+                self.all_spent[data_spent['component'][i]][self.start_date] = spent[data_spent['component'][i]]
             else:
                 if data_spent['component'][i] not in spent.keys():
                     spent[data_spent['component'][i]] = 0
@@ -47,7 +47,7 @@ class YotaDomainBurndownDashboard(AbstractDashboard):
                         original[domain] = 0
                         all_original[domain] = {}
                     original[domain] += est
-                    all_original[domain][self.start] = original[domain]
+                    all_original[domain][self.start_date] = original[domain]
             else:
                 if data_original['resolution date'][i] and data_original['component'][i]:
                     try:
@@ -120,7 +120,7 @@ class YotaDomainBurndownDashboard(AbstractDashboard):
             ))
             try:
                 trace_dict[dmn].append(go.Scatter(
-                    x=[min(self.all_remain[dmn].keys()), self.end],
+                    x=[min(self.all_remain[dmn].keys()), self.end_date],
                     y=[max([math.fabs(rmn) for rmn in self.all_remain[dmn].values()]), 0],
                     name='',
                     mode='lines',
@@ -150,7 +150,7 @@ class YotaDomainBurndownDashboard(AbstractDashboard):
                 showline=True
             )
 
-        title = '{} for domains'.format(self.dashboard_name)
+        title = '{} by domains'.format(self.dashboard_name)
         # html_file = self.png_dir + "{0}.html".format(title)
         html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 

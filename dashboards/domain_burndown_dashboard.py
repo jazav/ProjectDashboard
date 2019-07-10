@@ -13,6 +13,7 @@ import time
 class DomainBurndownDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth, dashboard_type, citrix_token, local_user = True, None, None, None, None, None
     all_spent, all_remain = {}, {}
+    end = datetime.date(2019, 7, 2)
 
     def multi_prepare(self, data_spent, data_original):
         dmns = ['BA', 'System Architecture', 'Arch & SA', 'Billing', 'CES', 'Pays', 'CRM1', 'CRM2',
@@ -76,7 +77,6 @@ class DomainBurndownDashboard(AbstractDashboard):
                                             if domain == dmn and rd is not None and rd <= dt])) for dt in self.all_spent[dmn].keys()}
 
     def export_to_plotly(self):
-        end = datetime.date(2019, 7, 2)
         trace_dict = {dmn: [] for dmn in self.all_spent.keys()}
         for dmn in self.all_spent.keys():
             trace_dict[dmn].append(go.Scatter(
@@ -111,7 +111,7 @@ class DomainBurndownDashboard(AbstractDashboard):
             ))
             try:
                 trace_dict[dmn].append(go.Scatter(
-                    x=[min(self.all_remain[dmn].keys()), end],
+                    x=[min(self.all_remain[dmn].keys()), self.end],
                     y=[max([math.fabs(rmn) for rmn in self.all_remain[dmn].values()]), 0],
                     name='',
                     mode='lines',
@@ -142,7 +142,7 @@ class DomainBurndownDashboard(AbstractDashboard):
                 # range=[0, max([math.fabs(rmn) for rmn in remains[dmn].values()]) + 10]
             )
 
-        title = '{} for domains'.format(self.dashboard_name)
+        title = '{} by domains'.format(self.dashboard_name)
         # html_file = self.png_dir + "{0}.html".format(title)
         html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 

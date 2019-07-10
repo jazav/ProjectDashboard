@@ -11,15 +11,15 @@ import time
 class YotaBurndownDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth, dashboard_type, citrix_token, local_user = True, None, None, None, None, None
     all_spent, all_remain = {}, {}
-    start, end = datetime.date(2019, 2, 18), datetime.date(2020, 3, 1)
+    start_date, end_date = None, None
     estimates = []
 
     def multi_prepare(self, data_spent, data_original):
         all_original, spent, original = {}, 0, 0
         for i in range(len(data_spent['key'])):
-            if data_spent['created'][i] < self.start:
+            if data_spent['created'][i] < self.start_date:
                 spent += float(data_spent['spent'][i])
-                self.all_spent[self.start] = spent
+                self.all_spent[self.start_date] = spent
             else:
                 spent += float(data_spent['spent'][i])
                 self.all_spent[data_spent['created'][i]] = spent
@@ -30,7 +30,7 @@ class YotaBurndownDashboard(AbstractDashboard):
                 d['Total'] = sum(list(d.values()))
                 self.estimates.append(d)
                 original += float(d['Total']) if d.keys() else 0
-                all_original[self.start] = original
+                all_original[self.start_date] = original
             else:
                 if data_original['resolution date'][i] and data_original['component'][i]:
                     try:
@@ -51,8 +51,8 @@ class YotaBurndownDashboard(AbstractDashboard):
         if len(self.all_spent.keys()) == 0:
             raise ValueError('There is no issues to show')
 
-        xaxis = [self.start]
-        while xaxis[-1] != self.end:
+        xaxis = [self.start_date]
+        while xaxis[-1] != self.end_date:
             xaxis.append(xaxis[-1] + datetime.timedelta(days=1))
         data = [go.Scatter(
             x=list(self.all_spent.keys()),
@@ -91,7 +91,7 @@ class YotaBurndownDashboard(AbstractDashboard):
                 color='rgb(255,127,14)',
             )
         ), go.Scatter(
-            x=[self.start, self.end],
+            x=[self.start_date, self.end_date],
             y=[max(self.all_remain.values()), 0],
             xaxis='x1',
             yaxis='y1',
@@ -124,7 +124,7 @@ class YotaBurndownDashboard(AbstractDashboard):
                 ),
                 tickangle=45,
                 showline=True,
-                range=[self.start - datetime.timedelta(days=1), self.end + datetime.timedelta(days=1)],
+                range=[self.start_date - datetime.timedelta(days=1), self.end_date + datetime.timedelta(days=1)],
                 tickvals=xaxis,
                 ticktext=[xaxis[i] if not i % 5 else '' for i in range(len(xaxis))],
                 automargin=True

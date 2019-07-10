@@ -10,11 +10,12 @@ import time
 class SprintBurndownDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth, dashboard_type, citrix_token, local_user = True, None, None, None, None, None
     all_spent, all_remain = {}, {}
+    start, end = datetime.date(2019, 5, 21), datetime.date(2019, 7, 2)
 
     def multi_prepare(self, data_spent, data_original):
         all_original, spent, original = {}, 0, 0
         for i in range(len(data_spent['key'])):
-            if data_spent['created'][i] < datetime.date(2019, 5, 21):
+            if data_spent['created'][i] < self.start:
                 k = set()
                 for j in range(len(data_spent['key'])):
                     if data_spent['key'][j] == data_spent['key'][i]:
@@ -28,7 +29,7 @@ class SprintBurndownDashboard(AbstractDashboard):
                         k.add(data_original['component'][j])
                 original += float(data_original['timeoriginalestimate'][i]) / len(k)
         for i in range(len(data_spent['key'])):
-            if data_spent['created'][i] > datetime.date(2019, 5, 20):
+            if data_spent['created'][i] >= self.start:
                 k = set()
                 for j in range(len(data_spent['key'])):
                     if data_spent['key'][j] == data_spent['key'][i]:
@@ -54,7 +55,6 @@ class SprintBurndownDashboard(AbstractDashboard):
         if len(self.all_spent.keys()) == 0:
             raise ValueError('There is no issues to show')
 
-        start, end = datetime.date(2019, 5, 20), datetime.date(2019, 7, 2)
         data = [go.Scatter(
             x=list(self.all_spent.keys()),
             y=list(self.all_spent.values()),
@@ -92,7 +92,7 @@ class SprintBurndownDashboard(AbstractDashboard):
                 color='rgb(255,127,14)',
             )
         ), go.Scatter(
-            x=[start, end],
+            x=[self.start, self.end],
             y=[max(self.all_remain.values()), 0],
             xaxis='x1',
             yaxis='y1',
@@ -124,7 +124,7 @@ class SprintBurndownDashboard(AbstractDashboard):
                 ),
                 tickangle=45,
                 showline=True,
-                range=[start - datetime.timedelta(days=1), end + datetime.timedelta(days=1)]
+                range=[self.start - datetime.timedelta(days=1), self.end + datetime.timedelta(days=1)]
             ),
             yaxis1=dict(
                 anchor='x1',

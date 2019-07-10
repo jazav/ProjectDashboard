@@ -115,6 +115,15 @@ def get_command_namespace(argv):
 
     dashboard_parser.add_argument('-local_user', '-lu', action='store', help='Local user on current PC',
                                   required=False, default='')
+
+    dashboard_parser.add_argument('-start_date', '-sd', action='store', help='Any work start date',
+                                  required=False, default='')
+
+    dashboard_parser.add_argument('-end_date', '-ed', action='store', help='Any work end date',
+                                  required=False, default='')
+
+    dashboard_parser.add_argument('-dashboard_name', '-dn', action='store', help='Dashboard title',
+                                  required=False, default='')
     # ------------------------------------------------------------------------------------------------------------------
     
     for subparser in [init_parser, update_parser, issue_parser, dashboard_parser]:
@@ -290,7 +299,8 @@ def main(argv):
                                          plotly_auth=[name_space.plotly_user, name_space.plotly_key],
                                          dashboard_type=[dt.upper().strip() for dt in name_space.dashboard_type.split(',')],
                                          citrix_token=json.loads(name_space.citrix_token.replace('\'', '"')),
-                                         local_user=name_space.local_user)
+                                         local_user=name_space.local_user, dashboard_name=name_space.dashboard_name,
+                                         start_date=name_space.start_date, end_date=name_space.end_date)
 
         if name_space.name == "ba_work_distribution":
             dshc.dashboard_ba_work_distribution(auto_open=(name_space.auto_open.upper() == 'TRUE'),
