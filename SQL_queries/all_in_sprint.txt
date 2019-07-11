@@ -17,7 +17,7 @@ WITH user_stories AS (
 				SELECT be.ISSUE_ID, be.[VALUE] AS 'Estimate', cmp.cname AS 'Component'
 				FROM [srv-jira-prod-report].[dbo].[AO_983835_BE_ITEM] AS be
 					INNER JOIN [srv-jira-prod-report].[dbo].[component] AS cmp ON cmp.ID = be.COMPONENT_ID) AS bulks ON bulks.ISSUE_ID = us_ji.ID
-		WHERE us_prj.pname = 'BSSBOX' AND us_it.pname = 'User Story (L3)' AND us_cfv.STRINGVALUE = '7198' AND us_is.pname != 'Canceled') AS us
+		WHERE us_prj.pname = 'BSSBOX' AND us_it.pname = 'User Story (L3)' AND us_cfv.STRINGVALUE = '7199' AND us_is.pname != 'Canceled') AS us
 	GROUP BY us.ID, us.[Key], us.[Issue type], us.[Spent time], us.Component, us.[Status], us.Feature, us.[Feature name], us.FL, us.[Due date]),
 epics AS (
 	SELECT e_ji.ID AS 'ID', epics_cmp.Component AS 'Component', user_stories.[Key] AS 'Feature', user_stories.[Feature name] AS 'Feature name', user_stories.FL AS 'FL', CONVERT(varchar, FORMAT(CONVERT(date, e_ji.DUEDATE), 'dd.MM.yyyy')) AS 'Due date'

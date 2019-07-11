@@ -5,7 +5,7 @@ WITH user_stories AS (
 		INNER JOIN [srv-jira-prod-report].[dbo].[customfieldvalue] AS us_cfv ON us_cfv.ISSUE = us_ji.ID
 		INNER JOIN [srv-jira-prod-report].[dbo].[project] AS us_prj ON us_prj.ID = us_ji.PROJECT
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuestatus] AS us_is ON us_is.ID = us_ji.issuestatus
-	WHERE us_prj.pname = 'BSSBOX' AND us_it.pname = 'User Story (L3)' AND us_cfv.STRINGVALUE = '7198' AND us_is.pname != 'Canceled'),
+	WHERE us_prj.pname = 'BSSBOX' AND us_it.pname = 'User Story (L3)' AND us_cfv.STRINGVALUE = '7199' AND us_is.pname != 'Canceled'),
 epics AS (
 	SELECT e_ji.ID AS 'ID', (CASE WHEN epics_cmp.component IS NULL THEN '' ELSE epics_cmp.component END) AS 'component'
 	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS e_ji

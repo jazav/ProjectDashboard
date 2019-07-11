@@ -21,6 +21,7 @@ bulk_convert = {'Common': 'Common', 'Arch & SA': 'Arch & SA', 'Billing': 'Billin
 class FeatureInfoDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth, citrix_token, local_user = True, None, None, None, None
     feature_dict, spent_dict, info, wrong_estimates, due_dates, readiness_dict, threat_list = {}, {}, [], {}, {}, {}, []
+    end_date = datetime(2019, 8, 14)
 
     def prepare(self, data):
         for i in range(len(data['Key'])):
@@ -36,7 +37,7 @@ class FeatureInfoDashboard(AbstractDashboard):
                     self.due_dates[data['Key'][i]] = {domain: [] for domain in bulk_convert.values() if domain != 'Common'}
                     self.readiness_dict[data['Key'][i]] = {domain: None for domain in bulk_convert.values() if domain != 'Common'}
                     if data['Status'][i] not in ('Testing', 'Ready for Testing', 'Closed'):
-                        if datetime.now().date() > date(2019, 7, 2):
+                        if datetime.now().date() > self.end_date.date():
                             self.threat_list.append(data['Key'][i])
                 # d = json.loads(data['Estimate'][i]) if data['Estimate'][i] is not None else {}
                 # for domain in [key for key in d.keys() if not key.isdigit() and key != 'Total']:
@@ -111,7 +112,7 @@ class FeatureInfoDashboard(AbstractDashboard):
                         else:
                             due_color.append('rgb(0,0,0)')
                     else:
-                        if max(d[dmn]) > datetime(2019, 7, 2):
+                        if max(d[dmn]) > self.end_date:
                             due_color.append('rgb(230,0,0)')
                         elif max(d[dmn]) < datetime.now():
                             if readiness[ft][dmn] < 1:

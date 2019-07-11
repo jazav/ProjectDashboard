@@ -13,7 +13,7 @@ import time
 class DomainBurndownDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth, dashboard_type, citrix_token, local_user = True, None, None, None, None, None
     all_spent, all_remain = {}, {}
-    end = datetime.date(2019, 7, 2)
+    end = datetime.date(2019, 8, 14)
 
     def multi_prepare(self, data_spent, data_original):
         dmns = ['BA', 'System Architecture', 'Arch & SA', 'Billing', 'CES', 'Pays', 'CRM1', 'CRM2',
