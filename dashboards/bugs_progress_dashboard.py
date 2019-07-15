@@ -21,7 +21,7 @@ def color_for_status(status):
 class BugsProgressDashboard(AbstractDashboard):
     status_list = []
     auto_open, repository, plotly_auth, citrix_token, local_user = True, None, None, None, None
-    bugs_statuses = {'Open': 0, 'In Fix': 0, 'Resolved': 0, 'Closed': -684}
+    bugs_statuses = {'Open': 0, 'In Fix': 0, 'Resolved': 0, 'Closed': -794}
 
     def prepare(self, data):
         self.status_list = data.get_bugs_progress()
@@ -83,7 +83,7 @@ class BugsProgressDashboard(AbstractDashboard):
                 ),
                 marker=dict(
                     color=color_for_status(status),
-                    size=6
+                    size=3
                 ),
                 xaxis='x2',
                 yaxis='y2',
