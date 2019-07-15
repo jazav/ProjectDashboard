@@ -18,9 +18,9 @@ class YotaDomainBurndownDashboard(AbstractDashboard):
     estimates = []
 
     def multi_prepare(self, data_spent, data_original):
-        dmns = ['BA', 'System Architecture', 'Arch & SA', 'Billing', 'CES', 'Pays', 'CRM1', 'CRM2',
-                'Ordering & PRM', 'PSC', 'Performance Testing', 'DevOps']
-        self.all_spent = {dmn: {} for dmn in dmns}
+        # dmns = ['BA', 'System Architecture', 'Arch & SA', 'Billing', 'CES', 'Pays', 'CRM1', 'CRM2',
+        #         'Ordering & PRM', 'PSC', 'Performance Testing', 'DevOps']
+        # self.all_spent = {dmn: {} for dmn in dmns}
         all_original, spent, original = {}, {}, {}
         for i in range(len(data_spent['key'])):
             data_spent['component'][i] = get_domain_bssbox(data_spent['component'][i])
