@@ -154,8 +154,12 @@ class YotaDomainBurndownDashboard(AbstractDashboard):
         # html_file = self.png_dir + "{0}.html".format(title)
         html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 
-        fig["layout"].update(title='<b>{0} as of {1}</b>'.format(title, datetime.datetime.now().strftime("%d.%m.%y %H:%M"))
-                                   + (' <sup>in cloud</sup>' if self.repository == 'online' else ''), hovermode='closest')
+        fig["layout"].update(title='{0} as of {1}'.format(title, datetime.datetime.now().strftime("%d.%m.%y %H:%M"))
+                                   + (' <sup>in cloud</sup>' if self.repository == 'online' else ''), hovermode='closest',
+                             legend=dict(y=0.5))
+        for annotation in fig['layout']['annotations']:
+            annotation['font'] = dict(size=14)
+
         if self.repository == 'offline':
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
         elif self.repository == 'online':

@@ -212,13 +212,13 @@ def get_domain_bssbox(component):
 
 def domain_shortener(domain):
     return {
-        'Arch & SA': 'Arch & SA', 'Billing': 'Billing', 'Business Analysis': 'BA', 'Charge Events Storage': 'CES',
-        'Common': 'Common', 'CRM1 (Customer Relationship Management)': 'CRM1',
-        'CRM2 (Customer Relationship Management)': 'CRM2', 'Custom': 'Custom', 'Design': 'Design', 'DevOps': 'DevOps',
-        'DFE': 'DFE', 'Documentation': 'Doc', 'Infra': 'Infra', 'Network Monetization': 'NWM',
-        'Order Management & Partner Management': 'Ordering & PRM', 'Payment Management': 'Pays',
-        'Performance Testing': 'Performance Testing', 'Product Instances': 'Product Instances',
-        'Product Management': 'PSC', 'QC': 'QC', 'System Architecture': 'System Architecture'
+        'Quality Control': 'QC', 'Custom': 'Custom', 'Megafon': 'Megafon', 'DevOps': 'DevOps',
+        'Charge Events Storage': 'CES', 'Order Management & Partner Management': 'Ordering & PRM',
+        'Documentation': 'Doc', 'Infra': 'Infra', 'DFE': 'DFE', 'System Architecture': 'System Architecture',
+        'Billing': 'Billing', 'SRS & PI Analysis': 'Analysis', 'Common': 'Common', 'Payment Management': 'Pays',
+        'Network Monetization': 'NWM', 'Arch & SA': 'Arch & SA', 'Design': 'Design',
+        'Product Instances': 'Product Instances', 'Integration & Acceptance': 'Acceptance', 'Product Management': 'PSC',
+        'CRM': 'CRM', 'Performance Testing': 'Performance Testing'
     }[domain]
 
 

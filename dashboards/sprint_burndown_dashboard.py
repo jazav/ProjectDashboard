@@ -11,23 +11,36 @@ class SprintBurndownDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth, dashboard_type, citrix_token, local_user = True, None, None, None, None, None
     all_spent, all_remain = {}, {}
     start, end = datetime.date(2019, 7, 4), datetime.date(2019, 8, 14)
+    readiness = {'Spent': 0, 'Original estimate': 0}
 
     def multi_prepare(self, data_spent, data_original):
+        tsp, toe = 0, 0
         all_original, spent, original = {}, 0, 0
         for i in range(len(data_spent['key'])):
+            k = set()
+            for j in range(len(data_spent['key'])):
+                if data_spent['key'][j] == data_spent['key'][i]:
+                    k.add(data_spent['component'][j])
             if data_spent['created'][i] < self.start:
-                k = set()
-                for j in range(len(data_spent['key'])):
-                    if data_spent['key'][j] == data_spent['key'][i]:
-                        k.add(data_spent['component'][j])
                 spent += float(data_spent['spent'][i]) / len(k)
+            if not data_spent['resolutiondate'][i]:
+                self.readiness['Spent'] += float(data_spent['spent'][i]) / len(k)
+                if data_spent['component'][i] not in ('QC', 'Doc'):
+                    tsp += float(data_spent['spent'][i]) / len(k)
         for i in range(len(data_original['key'])):
+            k = set()
+            for j in range(len(data_original['key'])):
+                if data_original['key'][j] == data_original['key'][i]:
+                    k.add(data_original['component'][j])
             if data_original['status'][i] not in ('Closed', 'Resolved'):
-                k = set()
-                for j in range(len(data_original['key'])):
-                    if data_original['key'][j] == data_original['key'][i]:
-                        k.add(data_original['component'][j])
                 original += float(data_original['timeoriginalestimate'][i]) / len(k)
+            else:
+                self.readiness['Spent'] += float(data_original['timeoriginalestimate'][i]) / len(k)
+                if data_original['component'][i] not in ('QC', 'Doc'):
+                    tsp += float(data_original['timeoriginalestimate'][i]) / len(k)
+            self.readiness['Original estimate'] += float(data_original['timeoriginalestimate'][i]) / len(k)
+            if data_original['component'][i] not in ('QC', 'Doc'):
+                toe += float(data_original['timeoriginalestimate'][i]) / len(k)
         for i in range(len(data_spent['key'])):
             if data_spent['created'][i] >= self.start:
                 k = set()
@@ -50,6 +63,7 @@ class SprintBurndownDashboard(AbstractDashboard):
         self.all_remain = {dt: all_original[dt] - self.all_spent[dt] + float(sum(
             [sp for sp, rd in zip(data_spent['spent'], data_spent['resolutiondate']) if rd is not None and rd < dt]))
                            for dt in self.all_spent.keys()}
+        self.readiness['Total'] = round(tsp / toe * 100)
 
     def export_to_plotly(self):
         if len(self.all_spent.keys()) == 0:
@@ -138,11 +152,13 @@ class SprintBurndownDashboard(AbstractDashboard):
                 ),
                 range=[0, max(self.all_remain.values()) + 100]
             ),
-            title=title + (' <sup>in cloud</sup>' if self.repository == 'online' else ''),
+            title=title + '<br><b>Total: </b>{}. <b>Readiness: </b>{}%'.format(
+                ', '.join(['{} - {}'.format(key, round(val)) for key, val in self.readiness.items()]),
+                self.readiness['Total']),
             legend=dict(
                 orientation='h',
                 x=0.455,
-                y=1.05
+                y=1
             )
         )
 

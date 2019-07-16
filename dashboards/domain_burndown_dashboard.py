@@ -22,10 +22,14 @@ class DomainBurndownDashboard(AbstractDashboard):
         all_original, spent, original = {}, {}, {}
         for i in range(len(data_spent['key'])):
             data_spent['component'][i] = get_domain_bssbox(data_spent['component'][i])
+            if data_spent['component'][i] in ('Doc', 'QC'):
+                continue
             if data_spent['component'][i] not in spent.keys():
                 spent[data_spent['component'][i]] = 0
         for i in range(len(data_original['key'])):
             data_original['component'][i] = get_domain_bssbox(data_original['component'][i])
+            if data_spent['component'][i] in ('Doc', 'QC'):
+                continue
             if data_original['status'][i] not in ('Closed', 'Resolved'):
                 if data_original['component'][i] not in original.keys():
                     original[data_original['component'][i]] = 0
@@ -34,11 +38,15 @@ class DomainBurndownDashboard(AbstractDashboard):
                 if data_original['component'][i] not in original.keys():
                     original[data_original['component'][i]] = 0
         for i in range(len(data_spent['key'])):
+            if data_spent['component'][i] in ('Doc', 'QC'):
+                continue
             if data_spent['component'][i] not in self.all_spent.keys():
                 self.all_spent[data_spent['component'][i]] = {}
             spent[data_spent['component'][i]] += float(data_spent['spent'][i])
             self.all_spent[data_spent['component'][i]][data_spent['created'][i]] = spent[data_spent['component'][i]]
         for i in range(len(data_original['key'])):
+            if data_spent['component'][i] in ('Doc', 'QC'):
+                continue
             if data_original['resolutiondate'][i] is not None:
                 if data_original['component'][i] not in all_original.keys():
                     all_original[data_original['component'][i]] = {datetime.datetime.now().date(): original[data_original['component'][i]]}
@@ -146,8 +154,12 @@ class DomainBurndownDashboard(AbstractDashboard):
         # html_file = self.png_dir + "{0}.html".format(title)
         html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 
-        fig["layout"].update(title='<b>{0} as of {1}</b>'.format(title, datetime.datetime.now().strftime("%d.%m.%y %H:%M"))
-                                   + (' <sup>in cloud</sup>' if self.repository == 'online' else ''), hovermode='closest')
+        fig['layout'].update(title='{0} as of {1}'.format(title, datetime.datetime.now().strftime("%d.%m.%y %H:%M"))
+                                   + (' <sup>in cloud</sup>' if self.repository == 'online' else ''), hovermode='closest',
+                             legend=dict(y=0.5))
+        for annotation in fig['layout']['annotations']:
+            annotation['font'] = dict(size=14)
+
         if self.repository == 'offline':
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
         elif self.repository == 'online':

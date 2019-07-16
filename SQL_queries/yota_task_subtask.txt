@@ -29,7 +29,7 @@ epics AS (
 				INNER JOIN [srv-jira-prod-report].[dbo].[nodeassociation] AS ec_na ON ec_na.SOURCE_NODE_ID = ec_ji.ID
 				INNER JOIN [srv-jira-prod-report].[dbo].[component] AS ec_cmp ON ec_cmp.ID = ec_na.SINK_NODE_ID
 			WHERE ec_ilt.LINKNAME = 'nexign_hierarchy_link' AND ec_il.SOURCE IN (SELECT ID FROM user_stories) AND ec_na.ASSOCIATION_TYPE = 'IssueComponent') AS epics_cmp ON epics_cmp.ID = e_ji.ID
-	WHERE e_ilt.LINKNAME = 'nexign_hierarchy_link' AND e_il.SOURCE IN (SELECT ID FROM user_stories))
+	WHERE e_ilt.LINKNAME = 'nexign_hierarchy_link' AND e_il.SOURCE IN (SELECT ID FROM user_stories) AND e_is.pname != 'Canceled')
 
 SELECT id, [key], [issue type], [status], [resolution date], component, L3, CONCAT('{', STRING_AGG(estimate, ', '), '}') AS 'estimate' FROM user_stories GROUP BY id, [key], [issue type], [status], [resolution date], component, L3
 UNION ALL

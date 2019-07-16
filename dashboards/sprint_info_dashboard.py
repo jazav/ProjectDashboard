@@ -13,7 +13,7 @@ import requests
 
 
 def load_capacity():
-    url = 'https://stash.billing.ru/projects/RNDQC/repos/super-sprints-config/raw/sprint/ss10.json'
+    url = 'https://stash.billing.ru/projects/RNDQC/repos/super-sprints-config/raw/sprint/ss11.json'
     r = requests.get(url=url)
     return r.json()['capacity']
 

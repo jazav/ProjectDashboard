@@ -12,16 +12,20 @@ class YotaBurndownDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth, dashboard_type, citrix_token, local_user = True, None, None, None, None, None
     all_spent, all_remain = {}, {}
     start_date, end_date = None, None
-    estimates = []
+    estimates, readiness = [], {'Spent': 0, 'Bulk estimate': 0}
 
     def multi_prepare(self, data_spent, data_original):
         all_original, spent, original = {}, 0, 0
         for i in range(len(data_spent['key'])):
+            k = set()
+            for j in range(len(data_spent['key'])):
+                if data_spent['key'][j] == data_spent['key'][i]:
+                    k.add(data_spent['component'][j])
             if data_spent['created'][i] < self.start_date:
-                spent += float(data_spent['spent'][i])
+                spent += float(data_spent['spent'][i]) / len(k)
                 self.all_spent[self.start_date] = spent
             else:
-                spent += float(data_spent['spent'][i])
+                spent += float(data_spent['spent'][i]) / len(k)
                 self.all_spent[data_spent['created'][i]] = spent
         for i in range(len(data_original['key'])):
             if data_original['issue type'][i] == 'User Story (L3)':
@@ -30,13 +34,14 @@ class YotaBurndownDashboard(AbstractDashboard):
                 d['Total'] = sum(list(d.values()))
                 self.estimates.append(d)
                 original += float(d['Total']) if d.keys() else 0
-                all_original[self.start_date] = original
+                all_original[self.start_date], self.readiness['Bulk estimate'] = original, original
             else:
                 if data_original['resolution date'][i] and data_original['component'][i]:
                     try:
-                        original -= [est[data_original['component'][i]]
-                                     for est, key in zip(self.estimates, data_original['key'])
-                                     if key == data_original['L3'][i]][0]
+                        cmp_est = [est[data_original['component'][i]] for est, key
+                                   in zip(self.estimates, data_original['key']) if key == data_original['L3'][i]][0]
+                        original -= cmp_est
+                        self.readiness['Spent'] += cmp_est
                         all_original[data_original['resolution date'][i]] = original
                     except KeyError:
                         pass
@@ -143,11 +148,13 @@ class YotaBurndownDashboard(AbstractDashboard):
                 range=[0, max(self.all_remain.values()) + 1000],
                 automargin=True
             ),
-            title=title + (' <sup>in cloud</sup>' if self.repository == 'online' else ''),
+            title=title + '<br><b>Total: </b>{}. <b>Readiness: </b>{}%'.format(
+                ', '.join(['{} - {}'.format(key, round(val)) for key, val in self.readiness.items()]),
+                round(self.readiness['Spent'] / self.readiness['Bulk estimate'] * 100)),
             legend=dict(
                 orientation='h',
                 x=0.453,
-                y=1.05
+                y=1
             )
         )
 

@@ -1,21 +1,20 @@
 from dashboards.dashboard import AbstractDashboard
 import plotly
 import plotly.graph_objs as go
-from datetime import datetime, date
-from adapters.issue_utils import get_domain_bssbox, domain_shortener
+from datetime import datetime
+from adapters.issue_utils import get_domain_bssbox
 from adapters.citrix_sharefile_adapter import CitrixShareFile
 import shutil
 import time
 
 
-bulk_convert = {'Common': 'Common', 'Arch & SA': 'Arch & SA', 'Billing': 'Billing', 'Business Analysis': 'BA',
-                'Charge Events Storage': 'Billing', 'CRM1 (Customer Relationship Management)': 'CRM',
-                'CRM2 (Customer Relationship Management)': 'CRM', 'Design': 'Design', 'DevOps': 'DevOps',
-                'Documentation': 'Doc', 'Dunning and Collection': 'Billing', 'Infra': 'Infra',
-                'Network Monetization': 'NWM', 'Order Management & Partner Management': 'Ordering & PRM',
-                'Product Instances': 'Product Instances', 'Payment Management': 'Billing',
-                'Performance Testing': 'Performance Testing', 'Product Management': 'PSC', 'QC': 'QC',
-                'System Architecture': 'System Architecture'}
+bulk_convert = {'Quality Control': 'QC', 'Custom': 'Custom', 'Megafon': 'Megafon', 'DevOps': 'DevOps',
+                'Charge Events Storage': 'CES', 'Order Management & Partner Management': 'Ordering & PRM',
+                'Documentation': 'Doc', 'Infra': 'Infra', 'DFE': 'DFE', 'System Architecture': 'System Architecture',
+                'Billing': 'Billing', 'SRS & PI Analysis': 'Analysis', 'Common': 'Common', 'Payment Management': 'Pays',
+                'Network Monetization': 'NWM', 'Arch & SA': 'Arch & SA', 'Design': 'Design',
+                'Product Instances': 'Product Instances', 'Integration & Acceptance': 'Acceptance',
+                'Product Management': 'PSC', 'CRM': 'CRM', 'Performance Testing': 'Performance Testing'}
 
 
 class FeatureInfoDashboard(AbstractDashboard):

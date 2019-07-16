@@ -11,6 +11,7 @@ epics AS (
 	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS e_ji
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuelink] AS e_il ON e_il.DESTINATION = e_ji.ID
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuelinktype] AS e_ilt ON e_ilt.ID = e_il.LINKTYPE
+		INNER JOIN [srv-jira-prod-report].[dbo].[issuestatus] AS e_ist ON e_ist.ID = e_ji.issuestatus
 		LEFT JOIN (
 			SELECT ec_ji.ID AS 'ID', ec_cmp.cname AS 'component'
 			FROM [srv-jira-prod-report].[dbo].[jiraissue] AS ec_ji
@@ -19,7 +20,7 @@ epics AS (
 				INNER JOIN [srv-jira-prod-report].[dbo].[nodeassociation] AS ec_na ON ec_na.SOURCE_NODE_ID = ec_ji.ID
 				INNER JOIN [srv-jira-prod-report].[dbo].[component] AS ec_cmp ON ec_cmp.ID = ec_na.SINK_NODE_ID
 			WHERE ec_ilt.LINKNAME = 'nexign_hierarchy_link' AND ec_il.SOURCE IN (SELECT ID FROM user_stories) AND ec_na.ASSOCIATION_TYPE = 'IssueComponent') AS epics_cmp ON epics_cmp.ID = e_ji.ID
-	WHERE e_ilt.LINKNAME = 'nexign_hierarchy_link' AND e_il.SOURCE IN (SELECT ID FROM user_stories)),
+	WHERE e_ilt.LINKNAME = 'nexign_hierarchy_link' AND e_il.SOURCE IN (SELECT ID FROM user_stories) AND e_ist.pname != 'Canceled'),
 tasks AS (
 	SELECT t_ji.ID AS 'ID', epics.component AS 'component'
 	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS t_ji
@@ -41,5 +42,7 @@ SELECT CONCAT_WS('-', prj.pkey, ji.issuenum) AS 'key', issues.component AS 'comp
 FROM [srv-jira-prod-report].[dbo].[worklog] AS wl
 	INNER JOIN [srv-jira-prod-report].[dbo].[jiraissue] AS ji ON ji.ID = wl.issueid
 	INNER JOIN [srv-jira-prod-report].[dbo].[project] AS prj ON prj.ID = ji.PROJECT
+	INNER JOIN [srv-jira-prod-report].[dbo].[issuestatus] AS ist ON ist.ID = ji.issuestatus
 	INNER JOIN (SELECT * FROM tasks UNION SELECT * FROM subtasks) AS issues ON issues.ID = ji.ID
+WHERE ist.pname != 'Canceled'
 ORDER BY CONVERT(date, wl.STARTDATE)
