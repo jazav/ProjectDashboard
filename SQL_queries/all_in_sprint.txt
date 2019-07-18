@@ -24,6 +24,7 @@ epics AS (
 	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS e_ji
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuelink] AS e_il ON e_il.DESTINATION = e_ji.ID
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuelinktype] AS e_ilt ON e_ilt.ID = e_il.LINKTYPE
+		INNER JOIN [srv-jira-prod-report].[dbo].[issuestatus] AS e_ist ON e_ist.ID = e_ji.issuestatus
 		LEFT JOIN (
 			SELECT ec_ji.ID AS 'ID', ec_cmp.cname AS 'Component'
 			FROM [srv-jira-prod-report].[dbo].[jiraissue] AS ec_ji
@@ -33,7 +34,7 @@ epics AS (
 				INNER JOIN [srv-jira-prod-report].[dbo].[component] AS ec_cmp ON ec_cmp.ID = ec_na.SINK_NODE_ID
 			WHERE ec_ilt.LINKNAME = 'nexign_hierarchy_link' AND ec_il.SOURCE IN (SELECT ID FROM user_stories) AND ec_na.ASSOCIATION_TYPE = 'IssueComponent') AS epics_cmp ON epics_cmp.ID = e_ji.ID
 		INNER JOIN user_stories ON user_stories.ID = e_il.SOURCE
-	WHERE e_ilt.LINKNAME = 'nexign_hierarchy_link' AND e_il.SOURCE IN (SELECT ID FROM user_stories)),
+	WHERE e_ilt.LINKNAME = 'nexign_hierarchy_link' AND e_il.SOURCE IN (SELECT ID FROM user_stories) AND e_ist.pname != 'Canceled'),
 tasks AS (
 	SELECT t_ji.ID AS 'ID', CONCAT_WS('-', t_prj.pkey, t_ji.issuenum) AS 'Key', t_it.pname AS 'Issue type',
 		CAST((CASE WHEN t_ji.TIMEORIGINALESTIMATE IS NULL THEN 0 ELSE t_ji.TIMEORIGINALESTIMATE END) AS nvarchar(max)) AS 'Estimate',
@@ -49,7 +50,7 @@ tasks AS (
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuelinktype] AS t_ilt ON t_ilt.ID = t_il.LINKTYPE
 		INNER JOIN epics ON epics.ID = t_il.SOURCE
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuestatus] AS t_is ON t_is.ID = t_ji.issuestatus
-	WHERE t_it.pname != 'Bug' AND t_ilt.LINKNAME = 'Epic-Story Link' AND t_il.SOURCE IN (SELECT ID FROM epics))
+	WHERE t_it.pname != 'Bug' AND t_ilt.LINKNAME = 'Epic-Story Link' AND t_il.SOURCE IN (SELECT ID FROM epics) AND t_is.pname != 'Canceled')
 
 SELECT user_stories.ID, user_stories.[Key], user_stories.[Issue type], user_stories.Estimate, user_stories.[Spent time], user_stories.Component, user_stories.[Status], user_stories.Feature, user_stories.[Feature name], user_stories.FL,
 	(CASE WHEN user_stories.[Due date] IS NULL THEN (CASE WHEN dd.[Due date] IS NULL THEN 'not duedated' ELSE dd.[Due date] END) ELSE user_stories.[Due date] END) AS 'Due date', NULL AS 'Original estimate'
@@ -72,5 +73,5 @@ FROM [srv-jira-prod-report].[dbo].[jiraissue] AS st_ji
 	INNER JOIN [srv-jira-prod-report].[dbo].[issuelinktype] AS st_ilt ON st_ilt.ID = st_il.LINKTYPE
 	INNER JOIN tasks ON tasks.ID = st_il.SOURCE
 	INNER JOIN [srv-jira-prod-report].[dbo].[issuestatus] AS st_is ON st_is.ID = st_ji.issuestatus
-WHERE st_it.pname != 'Sub-bug' AND st_ilt.LINKNAME = 'jira_subtask_link' AND st_il.SOURCE IN (SELECT ID FROM tasks)
+WHERE st_it.pname != 'Sub-bug' AND st_ilt.LINKNAME = 'jira_subtask_link' AND st_il.SOURCE IN (SELECT ID FROM tasks) AND st_is.pname != 'Canceled'
 ORDER BY Feature, FL

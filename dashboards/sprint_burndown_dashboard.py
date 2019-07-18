@@ -10,60 +10,70 @@ import time
 class SprintBurndownDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth, dashboard_type, citrix_token, local_user = True, None, None, None, None, None
     all_spent, all_remain = {}, {}
+    pp_all_spent, pp_all_remain = {}, {}
     start, end = datetime.date(2019, 7, 4), datetime.date(2019, 8, 14)
-    readiness = {'Spent': 0, 'Original estimate': 0}
+    readiness, pp_readiness = {'spent': 0, 'original estimate': 0, 'features': 0},\
+                              {'spent': 0, 'original estimate': 0, 'features': 0}
 
     def multi_prepare(self, data_spent, data_original):
-        tsp, toe = 0, 0
         all_original, spent, original = {}, 0, 0
+        pp_all_original, pp_spent, pp_original = {}, 0, 0
         for i in range(len(data_spent['key'])):
             k = set()
             for j in range(len(data_spent['key'])):
                 if data_spent['key'][j] == data_spent['key'][i]:
                     k.add(data_spent['component'][j])
+            k = len(k)
             if data_spent['created'][i] < self.start:
-                spent += float(data_spent['spent'][i]) / len(k)
-            if not data_spent['resolutiondate'][i]:
-                self.readiness['Spent'] += float(data_spent['spent'][i]) / len(k)
-                if data_spent['component'][i] not in ('QC', 'Doc'):
-                    tsp += float(data_spent['spent'][i]) / len(k)
-        for i in range(len(data_original['key'])):
-            k = set()
-            for j in range(len(data_original['key'])):
-                if data_original['key'][j] == data_original['key'][i]:
-                    k.add(data_original['component'][j])
-            if data_original['status'][i] not in ('Closed', 'Resolved'):
-                original += float(data_original['timeoriginalestimate'][i]) / len(k)
+                spent += float(data_spent['spent'][i]) / k
+                if data_spent['pilot'][i]:
+                    pp_spent += float(data_spent['spent'][i]) / k
             else:
-                self.readiness['Spent'] += float(data_original['timeoriginalestimate'][i]) / len(k)
-                if data_original['component'][i] not in ('QC', 'Doc'):
-                    tsp += float(data_original['timeoriginalestimate'][i]) / len(k)
-            self.readiness['Original estimate'] += float(data_original['timeoriginalestimate'][i]) / len(k)
-            if data_original['component'][i] not in ('QC', 'Doc'):
-                toe += float(data_original['timeoriginalestimate'][i]) / len(k)
-        for i in range(len(data_spent['key'])):
-            if data_spent['created'][i] >= self.start:
-                k = set()
-                for j in range(len(data_spent['key'])):
-                    if data_spent['key'][j] == data_spent['key'][i]:
-                        k.add(data_spent['component'][j])
-                spent += float(data_spent['spent'][i]) / len(k)
+                spent += float(data_spent['spent'][i]) / k
                 self.all_spent[data_spent['created'][i]] = spent
+                if data_spent['pilot'][i]:
+                    pp_spent += float(data_spent['spent'][i]) / k
+                    self.pp_all_spent[data_spent['created'][i]] = pp_spent
+            if data_spent['status'][i] not in ('Closed', 'Resolved', 'Done'):
+                self.readiness['spent'] += float(data_spent['spent'][i]) / k
+                if data_spent['pilot'][i]:
+                    self.pp_readiness['spent'] += float(data_spent['spent'][i]) / k
+        original = sum([float(data_original['timeoriginalestimate'][i]) / data_original['key'].
+                       count(data_original['key'][i]) for i in range(len(data_original['key']))
+                        if data_original['issue type'][i] != 'User Story (L3)'])
+        self.readiness['original estimate'] = original
+        pp_original = sum([float(data_original['timeoriginalestimate'][i]) / data_original['key'].
+                          count(data_original['key'][i]) for i in range(len(data_original['key']))
+                           if data_original['issue type'][i] != 'User Story (L3)' and data_original['pilot'][i]])
+        self.pp_readiness['original estimate'] = pp_original
         for i in range(len(data_original['key'])):
-            if data_original['resolutiondate'][i] is not None:
-                k = set()
-                for j in range(len(data_original['key'])):
-                    if data_original['key'][j] == data_original['key'][i]:
-                        k.add(data_original['component'][j])
-                original += float(data_original['timeoriginalestimate'][i]) / len(k)
-                all_original[data_original['resolutiondate'][i]] = original
+            if data_original['issue type'][i] != 'User Story (L3)':
+                k = data_original['key'].count(data_original['key'][i])
+                if data_original['status'][i] in ('Closed', 'Resolved', 'Done') and data_original['resolutiondate'][i]:
+                    original -= float(data_original['timeoriginalestimate'][i]) / k
+                    all_original[data_original['resolutiondate'][i]] = original
+                    if data_original['pilot'][i]:
+                        pp_original -= float(data_original['timeoriginalestimate'][i]) / k
+                        pp_all_original[data_original['resolutiondate'][i]] = pp_original
+                    self.readiness['spent'] += float(data_original['timeoriginalestimate'][i]) / k
+                    if data_original['pilot']:
+                        self.pp_readiness['spent'] += float(data_original['timeoriginalestimate'][i]) / k
+            else:
+                self.readiness['features'] += 1
+                if data_original['pilot'][i]:
+                    self.pp_readiness['features'] += 1
         for dt in self.all_spent:
             if dt not in all_original.keys():
                 all_original[dt] = all_original[max([date for date in all_original.keys() if date < dt])]
+        for dt in self.pp_all_spent:
+            if dt not in pp_all_original.keys():
+                pp_all_original[dt] = pp_all_original[max([date for date in pp_all_original.keys() if date < dt])]
         self.all_remain = {dt: all_original[dt] - self.all_spent[dt] + float(sum(
             [sp for sp, rd in zip(data_spent['spent'], data_spent['resolutiondate']) if rd is not None and rd < dt]))
                            for dt in self.all_spent.keys()}
-        self.readiness['Total'] = round(tsp / toe * 100)
+        self.pp_all_remain = {dt: pp_all_original[dt] - self.pp_all_spent[dt] + float(sum(
+            [sp for sp, rd in zip(data_spent['spent'], data_spent['resolutiondate']) if rd is not None and rd < dt]))
+                          for dt in self.pp_all_spent.keys()}
 
     def export_to_plotly(self):
         if len(self.all_spent.keys()) == 0:
@@ -82,6 +92,7 @@ class SprintBurndownDashboard(AbstractDashboard):
             line=dict(
                 width=2,
                 color='rgb(31,119,180)',
+                dash='dash'
             ),
             marker=dict(
                 size=5,
@@ -99,11 +110,11 @@ class SprintBurndownDashboard(AbstractDashboard):
             mode='lines+markers+text',
             line=dict(
                 width=2,
-                color='rgb(255,127,14)',
+                color='rgb(31,119,180)',
             ),
             marker=dict(
                 size=5,
-                color='rgb(255,127,14)',
+                color='rgb(31,119,180)',
             )
         ), go.Scatter(
             x=[self.start, self.end],
@@ -113,9 +124,58 @@ class SprintBurndownDashboard(AbstractDashboard):
             name='',
             mode='lines',
             line=dict(
-                color='rgb(200,200,200)',
+                color='rgba(31,119,180,0.4)',
+                width=1,
+                dash='dot'),
+            showlegend=False
+        ), go.Scatter(
+            x=list(self.pp_all_spent.keys()),
+            y=list(self.pp_all_spent.values()),
+            xaxis='x1',
+            yaxis='y1',
+            name='Spent (pilot)',
+            text=[str(round(sp, 1)) for sp in self.pp_all_spent.values()],
+            textposition='top left',
+            textfont=dict(size=8),
+            mode='lines+markers+text',
+            line=dict(
                 width=2,
-                dash='dash'),
+                color='rgb(255,127,14)',
+                dash='dash'
+            ),
+            marker=dict(
+                size=5,
+                color='rgb(255,127,14)',
+            )
+        ), go.Scatter(
+            x=list(self.pp_all_remain.keys()),
+            y=list(self.pp_all_remain.values()),
+            xaxis='x1',
+            yaxis='y1',
+            name='Remain (pilot)',
+            text=[str(round(sp, 1)) for sp in self.pp_all_remain.values()],
+            textposition='top right',
+            textfont=dict(size=8),
+            mode='lines+markers+text',
+            line=dict(
+                width=2,
+                color='rgb(255,127,14)',
+            ),
+            marker=dict(
+                size=5,
+                color='rgb(255,127,14)',
+            )
+        ), go.Scatter(
+            x=[self.start, self.end],
+            y=[max(self.pp_all_remain.values()), 0],
+            xaxis='x1',
+            yaxis='y1',
+            name='',
+            mode='lines',
+            line=dict(
+                color='rgba(255,127,14,0.4)',
+                width=1,
+                dash='dot'),
             showlegend=False
         )]
 
@@ -152,13 +212,17 @@ class SprintBurndownDashboard(AbstractDashboard):
                 ),
                 range=[0, max(self.all_remain.values()) + 100]
             ),
-            title=title + '<br><b>Total: </b>{}. <b>Readiness: </b>{}%'.format(
-                ', '.join(['{} - {}'.format(key, round(val)) for key, val in self.readiness.items()]),
-                self.readiness['Total']),
+            title=title
+            + '<br><b>Total ({} features):</b> spent - {} md, original estimate - {} md. <b>Readiness:</b> {}%'
+            .format(*map(round, [self.readiness['features'], self.readiness['spent'],
+                                 self.readiness['original estimate'], self.readiness['spent']
+                                 / self.readiness['original estimate'] * 100]))
+            + '<br><b>Pilot priority ({} features):</b> spent - {} md, original estimate - {} md. <b>Readiness:</b> {}%'
+            .format(*map(round, [self.pp_readiness['features'], self.pp_readiness['spent'],
+                                 self.pp_readiness['original estimate'], self.pp_readiness['spent']
+                                 / self.pp_readiness['original estimate'] * 100])),
             legend=dict(
-                orientation='h',
-                x=0.455,
-                y=1
+                orientation='h'
             )
         )
 

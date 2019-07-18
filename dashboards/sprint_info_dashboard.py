@@ -39,26 +39,26 @@ class SprintInfoDashboard(AbstractDashboard):
         capacity_dict = {domain_shortener(cap[0]): cap[1] for cap in load_capacity()}
         for i in range(len(data['Key'])):
             if data['Issue type'][i] != 'User Story (L3)':
-                data['Component'][i] = get_domain_bssbox(data['Component'][i])
-                if data['Component'][i] not in self.est_dict.keys():
-                    self.est_dict[data['Component'][i]] = {'Capacity': capacity_dict.get(data['Component'][i], 0),
-                                                           'Bulk estimate': 0, 'Original estimate': 0, 'Spent time': 0}
-                    self.st_dict[data['Component'][i]] = {'Open': 0, 'Dev': 0, 'Done': 0}
-                self.est_dict[data['Component'][i]]['Original estimate'] += int(data['Estimate'][i]) / 28800
-                self.prj_est['Original estimate'] += int(data['Estimate'][i]) / 28800 / data['Key'].count(data['Key'][i])
-                self.est_dict[data['Component'][i]]['Spent time'] += int(data['Spent time'][i]) / 28800
-                self.prj_est['Spent time'] += int(data['Spent time'][i]) / 28800 / data['Key'].count(data['Key'][i])
-                self.st_dict[data['Component'][i]][data['Status'][i]] += 1
-                self.prj_st[data['Status'][i]] += 1 / data['Key'].count(data['Key'][i])
-                self.readiness[data['Status'][i]]['Spent'] += int(data['Spent time'][i]) / 28800 / data['Key'].count(data['Key'][i])\
+                k = data['Key'].count(data['Key'][i])
+                component = get_domain_bssbox(data['Component'][i])
+                if component not in self.est_dict.keys():
+                    self.est_dict[component] = {'Capacity': capacity_dict.get(component, 0), 'Bulk estimate': 0,
+                                                'Original estimate': 0, 'Spent time': 0}
+                    self.st_dict[component] = {'Open': 0, 'Dev': 0, 'Done': 0}
+                self.est_dict[component]['Original estimate'] += int(data['Estimate'][i]) / 28800
+                self.prj_est['Original estimate'] += int(data['Estimate'][i]) / 28800 / k
+                self.est_dict[component]['Spent time'] += int(data['Spent time'][i]) / 28800
+                self.prj_est['Spent time'] += int(data['Spent time'][i]) / 28800 / k
+                self.st_dict[component][data['Status'][i]] += 1
+                self.prj_st[data['Status'][i]] += 1 / k
+                self.readiness[data['Status'][i]]['Spent'] += int(data['Spent time'][i]) / 28800 / k\
                     if data['Status'][i] not in ('Closed', 'Resolved', 'Done')\
-                    else int(data['Estimate'][i]) / 28800 / data['Key'].count(data['Key'][i])
-                self.readiness[data['Status'][i]]['Original'] += int(data['Estimate'][i]) / 28800 / data['Key'].count(data['Key'][i])
-                if data['Component'][i] not in ('QC', 'Doc'):
-                    spent += int(data['Spent time'][i]) / 28800 / data['Key'].count(data['Key'][i])\
-                        if data['Status'][i] not in ('Closed', 'Resolved', 'Done')\
-                        else int(data['Estimate'][i]) / 28800 / data['Key'].count(data['Key'][i])
-                    original += int(data['Estimate'][i]) / 28800 / data['Key'].count(data['Key'][i])
+                    else int(data['Estimate'][i]) / 28800 / k
+                self.readiness[data['Status'][i]]['Original'] += int(data['Estimate'][i]) / 28800 / k
+                if component not in ('QC', 'Doc'):
+                    spent += int(data['Spent time'][i]) / 28800 / k if data['Status'][i] != 'Done'\
+                        else int(data['Estimate'][i]) / 28800 / k
+                    original += int(data['Estimate'][i]) / 28800 / k
             else:
                 d = json.loads(data['Estimate'][i])
                 for cmp in d.keys():
@@ -70,6 +70,7 @@ class SprintInfoDashboard(AbstractDashboard):
                     self.est_dict[domain]['Bulk estimate'] += float(d[cmp])
                     self.prj_est['Bulk estimate'] += float(d[cmp])
         self.readiness['Total'] = round(spent / original * 100)
+        print(spent, original, self.readiness['Total'])
 
     def export_to_plotly(self):
         if len(self.est_dict.keys()) == 0:
@@ -77,7 +78,6 @@ class SprintInfoDashboard(AbstractDashboard):
 
         data_est, data_st = [], []
         for est in self.est_dict[list(self.est_dict.keys())[0]].keys():
-            print(self.est_dict.items())
             data_est.append(go.Bar(
                 x=[key for key in self.est_dict.keys() if key != 'Common'],
                 y=[e[est] for key, e in self.est_dict.items() if key != 'Common'],
@@ -121,7 +121,7 @@ class SprintInfoDashboard(AbstractDashboard):
                     zip(base, [counts[st] for key, counts in list(self.st_dict.items()) if key != 'Common'])]
 
         est_title = '<i><b>Ratio of high level estimates, original estimates and spent time<br>Total: </b>{}. <b>Readiness: </b>{}%</i>'.\
-            format(', '.join(['{} - {}'.format(key, round(val)) for key, val in self.prj_est.items()]), self.readiness['Total'])
+            format(', '.join(['{} - {} md'.format(key, round(val)) for key, val in self.prj_est.items()]), self.readiness['Total'])
         st_title = '<i><b>Progress of development work<br>Total: </b>{}</i>'.\
             format(', '.join(['{} - {} ({} out of {} md)'.format(key, round(val), round(self.readiness[key]['Spent'], 1),
                                                                  round(self.readiness[key]['Original'], 1)) for key, val in self.prj_st.items()]))
