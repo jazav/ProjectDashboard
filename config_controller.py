@@ -106,6 +106,14 @@ class ConfigController:
 
         return options
 
+    def get_jira_url(self, jira):
+        options = self.read_jira_config()
+        if jira in options['servers']:
+            jira_url = options['servers'][jira]
+        else:
+            raise Exception('{0} not found in {1}'.format(jira, self.get_ini_path()))
+        return jira_url
+
     def read_cache_config(self):
 
         if self.config_controller is None:
@@ -195,6 +203,8 @@ class ConfigController:
         start = None
         if section in self.config_controller:
             start = self.getDateTimeFromISO8601String(self.config_controller[section][START])
+        else:
+            raise ValueError('Could not find section "{0}" in config'.format(section))
         return start
 
     def read_supersprint_length(self, supersprint):

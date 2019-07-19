@@ -8,7 +8,33 @@ import sqlite3
 import sys
 
 from adapters.dao_issue import DaoIssue
-from adapters.issue_utils import get_domain_by_project
+from adapters.issue_utils import get_domain_by_project, BULK_FIELD_MAPPER, component_to_store_field, get_domain, \
+    component_to_bulk_field
+
+PROJECT_END_DOMAIN = '''CASE
+                                            WHEN i.project = 'BSSARBA' THEN 'ARBA'
+                                            WHEN i.project ='BSSBFAM' THEN 'Billing'
+                                            WHEN i.project ='Billing' THEN 'Billing'
+                                            WHEN i.project ='BSSGUS' THEN 'Billing'
+                                            WHEN i.project ='BSSCRM' THEN 'CRM'
+                                            WHEN i.project ='BSSCAM' THEN 'CRM'
+                                            WHEN i.project ='BSSCCM'  THEN  'CRM'
+                                            WHEN i.project ='BSSCPM' THEN  'Ordering'
+                                            WHEN i.project ='BSSUFM' THEN  'Billing'
+                                            WHEN i.project ='BSSORDER' THEN  'Ordering'
+                                            WHEN i.project ='BSSCRMP' THEN  'DFE'
+                                            WHEN i.project ='BSSDAPI' THEN  'DFE'
+                                            WHEN i.project ='BSSSCP' THEN  'DFE'
+                                            WHEN i.project ='UIKIT' THEN  'DFE'
+                                            WHEN i.project ='RNDDOC' THEN  'Doc'
+                                            WHEN i.project ='BSSLIS' THEN  'Billing'
+                                            WHEN i.project ='BSSPRM' THEN  'PRM'
+                                            WHEN i.project ='BSSPSC' THEN  'Catalog'
+                                            WHEN i.project ='BSSPAY' THEN  'Billing'
+                                            WHEN i.project ='BSSBOX' THEN  'BSSBOX'
+                                            WHEN i.project ='NWMOCS' THEN  'NWM'
+                                            ELSE '!'||i.project
+                                            END domain'''
 
 __SqliteDaoIssue__ = None
 
@@ -60,16 +86,19 @@ class SqliteDaoIssue(DaoIssue):
         #     "aggregateprogress": 50.0,
         #     "priority": "Major"
         # }
-        self.cursor.execute('''CREATE TABLE issues
+        create_text = '''CREATE TABLE issues
                                (issue_key TEXT,id INTEGER, status TEXT, project TEXT,
                                 labels TEXT, epiclink TEXT, timeoriginalestimate REAL, timespent REAL,
                                resolution TEXT, issuetype TEXT, summary TEXT, fixversions TEXT, parent TEXT,
                                created TEXT, resolutiondate TEXT, components TEXT, priority TEXT, creator TEXT,
-                               assignee TEXT, duedate TEXT, key TEXT, updated TEXT, sprint TEXT)''')
-
+                               assignee TEXT, duedate TEXT, key TEXT, updated TEXT, sprint TEXT'''
+        for field_map_key in BULK_FIELD_MAPPER:
+            create_text = create_text + ", " + component_to_store_field(field_map_key) + ' REAL'
+        create_text = create_text + ')'
+        self.cursor.execute(create_text)
         self.connection.commit()
 
-    def insert_issues(self, issues):
+    def insert_issues(self, issues, upload_to_file):
         if len(issues) == 0:
             return
         handle = None
@@ -88,82 +117,73 @@ class SqliteDaoIssue(DaoIssue):
                                         labels, epiclink, timeoriginalestimate, timespent,
                                        resolution, issuetype, summary, fixversions, 
                                        parent, created, resolutiondate, components, priority, creator,
-                                       assignee, duedate, key, updated, sprint)'''
+                                       assignee, duedate, key, updated, sprint '''
+                bulk_values =""
+                for field_map_key in BULK_FIELD_MAPPER:
+                    val_key = component_to_store_field(field_map_key)
+                    if val_key in value:
+                        if value[val_key] != '?':
+                            bulk_values = bulk_values + ", "+value[val_key]
+                            sql_str = sql_str + "," + val_key
+                sql_str = sql_str + ')'
                 self.cursor.execute(sql_str + ''' VALUES (?,?,?,?,
                                                  ?,?,?,?,
                                                  ?,?,?,?,
                                                  ?,?,?,?,
                                                  ?,?,?,?,
-                                                 ?,?,?)''',
+                                                 ?,?,?''' + bulk_values + ')',
                                     (key, value["id"], value["status"], value["project"],
                                      ','+value["labels"]+',', value["epiclink"], value["timeoriginalestimate"], value["timespent"],
                                      value["resolution"],value["issuetype"],value["summary"],','+fixversions+',',
                                      value["parent"], value["created"], value["resolutiondate"], value["components"],
                                      value["priority"], value["creator"], value["assignee"], value["duedate"],
                                      value["key"], value["updated"], sprint))
-                if 1 == 0 : # for debug
+                if upload_to_file : # for debug
                     write_str=sql_str +'''VALUES ("{0}",{1},"{2}","{3}",
                                                  "{4}","{5}","{6}","{7}",
                                                  "{8}","{9}","{10}","{11}",
                                                  "{12}","{13}","{14}","{15}",
                                                  "{16}","{17}","{18}","{19}",
-                                                 "{20}","{21}","{22}");'''.format(key, value["id"], value[ "status"], value["project"],
+                                                 "{20}","{21}","{22}"'''.format(key, value["id"], value[ "status"], value["project"],
                                      ','+value["labels"]+',', value["epiclink"], value["timeoriginalestimate"], value["timespent"],
                                      value["resolution"],value["issuetype"],value["summary"].replace('"', "'"),','+fixversions+',',
                                      value["parent"], value["created"], value["resolutiondate"], value["components"],
                                      value["priority"], value["creator"], value["assignee"], value["duedate"],
-                                     value["key"], value["updated"], sprint)
+                                     value["key"], value["updated"], sprint) + bulk_values + ');'
                     #value["summary"].replace('"', "'")
                     if handle == None:
                         handle=open("sql_insert_issues.sql", "w")
                     handle.write(write_str)
             except:
                 logging.error("Unexpected error on key:", key, ' value:  ', value, ', error:', sys.exc_info()[0])
-        handle.close()
+        if handle != None:
+            handle.close()
         self.connection.commit()
 
-    def get_sum_by_projects(self, project_filter, label_filter,fixversions_filter, group_by, sprint_filter):  # must return arrays
+    def get_sum_by_projects(self, project_filter, label_filter,fixversions_filter, group_by, sprint_filter, components_filter):  # must return arrays
         open_list= []
         dev_list= []
         close_list= []
         name_list = []
         prj_list = []
         domain_list = []
-        sql_str = '''SELECT project,
+        key_list =  []
+        unplan_list = []
+        sql_str = ('''SELECT project,
                            summary,
                            SUM(CASE WHEN status IN ('Closed', 'Resolved') THEN timeoriginalestimate ELSE 0 END) close,
                            SUM(CASE WHEN status IN ('Open','New') THEN timeoriginalestimate ELSE 0 END) open,
-                           SUM(CASE WHEN status IN ('Open','New','Closed', 'Resolved') THEN 0 ELSE timeoriginalestimate END) dev,
-                           domain
+                           SUM(CASE WHEN status IN ('Open','New','Closed', 'Resolved','Unplanned') THEN 0 ELSE timeoriginalestimate END) dev,
+                           domain,
+                           key,
+                           SUM(CASE WHEN status IN ('Unplanned') THEN timeoriginalestimate ELSE 0 END) unplan
                       FROM (
                                SELECT i.project,
                                       e.summary,
+                                      e.key,
                                       i.status,
                                       i.timeoriginalestimate,
-                                          CASE
-                                            WHEN i.project = 'BSSARBA' THEN 'ARBA'
-                                            WHEN i.project ='BSSBFAM' THEN 'Billing'
-                                            WHEN i.project ='Billing' THEN 'Billing'
-                                            WHEN i.project ='BSSGUS' THEN 'Billing'
-                                            WHEN i.project ='BSSCRM' THEN 'CRM'
-                                            WHEN i.project ='BSSCAM' THEN 'CRM'
-                                            WHEN i.project ='BSSCCM'  THEN  'CRM'
-                                            WHEN i.project ='BSSCPM' THEN  'Ordering'
-                                            WHEN i.project ='BSSUFM' THEN  'Billing'
-                                            WHEN i.project ='BSSORDER' THEN  'Ordering'
-                                            WHEN i.project ='BSSCRMP' THEN  'DFE'
-                                            WHEN i.project ='BSSDAPI' THEN  'DFE'
-                                            WHEN i.project ='BSSSCP' THEN  'DFE'
-                                            WHEN i.project ='UIKIT' THEN  'DFE'
-                                            WHEN i.project ='RNDDOC' THEN  'Doc'
-                                            WHEN i.project ='BSSLIS' THEN  'Billing'
-                                            WHEN i.project ='BSSPRM' THEN  'PRM'
-                                            WHEN i.project ='BSSPSC' THEN  'Catalog'
-                                            WHEN i.project ='BSSPAY' THEN  'Billing'
-                                            WHEN i.project ='BSSBOX' THEN  'BSSBOX'
-                                            WHEN i.project ='NWMOCS' THEN  'NWM'
-                                            ELSE '!'||i.project
-                                            END domain
+                                          ''' + PROJECT_END_DOMAIN + '''
                                  FROM issues l3
                                       LEFT JOIN
                                       issues e ON l3.issue_key = e.parent
@@ -173,7 +193,7 @@ class SqliteDaoIssue(DaoIssue):
                                       issues st ON i.issue_key = st.parent
                                 WHERE e.issuetype = "Epic" AND
                                       i.labels NOT LIKE "%,off_ss7,%" AND 
-                                      st.parent IS NULL  '''
+                                      st.parent IS NULL  ''')
         if project_filter !='':
             sql_str = sql_str + ' AND  i.project = "'''+project_filter+'" '
         if label_filter !='':
@@ -182,36 +202,16 @@ class SqliteDaoIssue(DaoIssue):
                 sql_str = sql_str + ' AND e.fixversions LIKE "%,'+fixversions_filter+',%"  '
         if sprint_filter != '':
                 sql_str = sql_str + ' AND l3.sprint = "'''+sprint_filter+'" '
+        if components_filter != '':
+            sql_str = sql_str + ' AND e.components = "''' + components_filter + '" '
         # add subtasks query with estimates in tasks
-        sql_str = sql_str +''' UNION ALL
+        sql_str = sql_str + (''' UNION ALL
                                    SELECT i.project,
                                           e.summary,
+                                          e.key,
                                           i.status,
                                           i.timeoriginalestimate,
-                                          CASE
-                                            WHEN i.project = 'BSSARBA' THEN 'ARBA'
-                                            WHEN i.project ='BSSBFAM' THEN 'Billing'
-                                            WHEN i.project ='Billing' THEN 'Billing'
-                                            WHEN i.project ='BSSGUS' THEN 'Billing'
-                                            WHEN i.project ='BSSCRM' THEN 'CRM'
-                                            WHEN i.project ='BSSCAM' THEN 'CRM'
-                                            WHEN i.project ='BSSCCM'  THEN  'CRM'
-                                            WHEN i.project ='BSSCPM' THEN  'Ordering'
-                                            WHEN i.project ='BSSUFM' THEN  'Billing'
-                                            WHEN i.project ='BSSORDER' THEN  'Ordering'
-                                            WHEN i.project ='BSSCRMP' THEN  'DFE'
-                                            WHEN i.project ='BSSDAPI' THEN  'DFE'
-                                            WHEN i.project ='BSSSCP' THEN  'DFE'
-                                            WHEN i.project ='UIKIT' THEN  'DFE'
-                                            WHEN i.project ='RNDDOC' THEN  'Doc'
-                                            WHEN i.project ='BSSLIS' THEN  'Billing'
-                                            WHEN i.project ='BSSPRM' THEN  'PRM'
-                                            WHEN i.project ='BSSPSC' THEN  'Catalog'
-                                            WHEN i.project ='BSSPAY' THEN  'Billing'
-                                            WHEN i.project ='BSSBOX' THEN  'BSSBOX'
-                                            WHEN i.project ='NWMOCS' THEN  'NWM'
-                                            ELSE '!'||i.project
-                                            END domain
+                                          ''' + PROJECT_END_DOMAIN + '''
                                      FROM issues l3
                                           LEFT JOIN
                                           issues e ON l3.issue_key = e.parent
@@ -219,7 +219,7 @@ class SqliteDaoIssue(DaoIssue):
                                           issues i ON e.issue_key = i.epiclink
                                     WHERE e.issuetype = "Epic" AND 
                                           i.labels NOT LIKE "%,off_ss7,%" AND
-                                          0= (Select sum(st2.timeoriginalestimate) from issues st2 where i.issue_key = st2.parent) '''
+                                          0= (Select sum(st2.timeoriginalestimate) from issues st2 where i.issue_key = st2.parent) ''')
         if project_filter != '':
             sql_str = sql_str + ' AND  i.project = "''' + project_filter + '" '
         if label_filter != '':
@@ -228,36 +228,16 @@ class SqliteDaoIssue(DaoIssue):
              sql_str = sql_str + ' AND e.fixversions LIKE "%,' + fixversions_filter + ',%"  '
         if sprint_filter != '':
                 sql_str = sql_str + ' AND l3.sprint = "'''+sprint_filter+'" '
+        if components_filter != '':
+            sql_str = sql_str + ' AND e.components = "''' + components_filter + '" '
         # add subtasks query with estimates in Subtasks
-        sql_str = sql_str +''' UNION ALL
+        sql_str = sql_str + (''' UNION ALL
                                    SELECT i.project,
                                           e.summary,
+                                          e.key,
                                           st.status,
                                           st.timeoriginalestimate,
-                                          CASE
-                                            WHEN i.project = 'BSSARBA' THEN 'ARBA'
-                                            WHEN i.project ='BSSBFAM' THEN 'Billing'
-                                            WHEN i.project ='Billing' THEN 'Billing'
-                                            WHEN i.project ='BSSGUS' THEN 'Billing'
-                                            WHEN i.project ='BSSCRM' THEN 'CRM'
-                                            WHEN i.project ='BSSCAM' THEN 'CRM'
-                                            WHEN i.project ='BSSCCM'  THEN  'CRM'
-                                            WHEN i.project ='BSSCPM' THEN  'Ordering'
-                                            WHEN i.project ='BSSUFM' THEN  'Billing'
-                                            WHEN i.project ='BSSORDER' THEN  'Ordering'
-                                            WHEN i.project ='BSSCRMP' THEN  'DFE'
-                                            WHEN i.project ='BSSDAPI' THEN  'DFE'
-                                            WHEN i.project ='BSSSCP' THEN  'DFE'
-                                            WHEN i.project ='UIKIT' THEN  'DFE'
-                                            WHEN i.project ='RNDDOC' THEN  'Doc'
-                                            WHEN i.project ='BSSLIS' THEN  'Billing'
-                                            WHEN i.project ='BSSPRM' THEN  'PRM'
-                                            WHEN i.project ='BSSPSC' THEN  'Catalog'
-                                            WHEN i.project ='BSSPAY' THEN  'Billing'
-                                            WHEN i.project ='BSSBOX' THEN  'BSSBOX'
-                                            WHEN i.project ='NWMOCS' THEN  'NWM'
-                                            ELSE '!'||i.project
-                                            END domain
+                                          ''' + PROJECT_END_DOMAIN + '''
                                      FROM issues l3
                                           LEFT JOIN
                                           issues e ON l3.issue_key = e.parent
@@ -269,7 +249,7 @@ class SqliteDaoIssue(DaoIssue):
                                           st.parent IS NOT NULL  AND 
                                           i.labels NOT LIKE "%,off_ss7,%" AND
                                           st.labels NOT LIKE "%,off_ss7,%" AND 
-                                          0< (Select sum(st2.timeoriginalestimate) from issues st2 where i.issue_key = st2.parent)'''
+                                          0< (Select sum(st2.timeoriginalestimate) from issues st2 where i.issue_key = st2.parent)''')
         if project_filter != '':
             sql_str = sql_str + ' AND  i.project = "''' + project_filter + '" '
         if label_filter != '':
@@ -278,6 +258,26 @@ class SqliteDaoIssue(DaoIssue):
              sql_str = sql_str + ' AND e.fixversions LIKE "%,' + fixversions_filter + ',%"  '
         if sprint_filter != '':
             sql_str = sql_str + ' AND l3.sprint = "''' + sprint_filter + '" '
+        if components_filter != '':
+            sql_str = sql_str + ' AND e.components = "''' + components_filter + '" '
+        if components_filter != '':
+        # add L3 query without epics
+            sql_str = sql_str + ''' UNION ALL
+                                       SELECT "''' + project_filter + '''" project,
+                                              l3.summary,
+                                              l3.key,
+                                              "Unplanned" status,
+                                              l3.''' + "B_" + components_filter.replace(" ", "_").replace("&", "A") + ''' timeoriginalestimate,
+                                              "''' + get_domain(components_filter) + '''" domain
+                                        FROM issues l3
+                                        LEFT JOIN
+                                            issues e ON l3.issue_key = e.parent AND 
+                   e.issuetype = "Epic" AND e.components = "''' + components_filter + '" ' + ' WHERE e.issue_key IS NULL '
+            if sprint_filter != '':
+                    sql_str = sql_str + ' AND l3.sprint = "'''+sprint_filter+'" '
+            sql_str = sql_str + ' AND l3.' + component_to_bulk_field(components_filter) + '>0'
+
+
         sql_str = sql_str + ' ) GROUP BY ' + group_by + ' HAVING SUM(timeoriginalestimate) >= 0 '
 
         for row in self.cursor.execute(sql_str):
@@ -287,6 +287,8 @@ class SqliteDaoIssue(DaoIssue):
             open_list.append(round(row[3]))
             dev_list.append(round(row[4]) if row[4] is not None else 0)
             domain_list.append(row[5])
+            key_list.append(row[6])
+            unplan_list.append(row[7])
         if len(prj_list) == 0:
             prj_list.append("")
             name_list.append("")
@@ -294,7 +296,9 @@ class SqliteDaoIssue(DaoIssue):
             open_list.append(0)
             dev_list.append(0)
             domain_list.append("")
-        return open_list, dev_list, close_list, name_list, prj_list, domain_list
+            key_list.append("")
+            unplan_list.append(0)
+        return open_list, dev_list, close_list, name_list, prj_list, domain_list, key_list, unplan_list
 
     # By @alanbryn
     def get_bugs_duration(self, label_filter, priority_filter, creators_filter):
@@ -568,3 +572,42 @@ class SqliteDaoIssue(DaoIssue):
             status_list.append(row[0])
 
         return status_list
+
+    def get_bugs_count(self):
+        key_list = []
+        components_list = []
+        sql_str = '''SELECT key,
+                            components
+                     FROM issues
+                     WHERE issuetype = "Bug" AND 
+                           project = "BSSBOX" AND
+                           strftime('%Y-%m-%d', created) > strftime('%Y-%m-%d', '2019-01-01')'''
+
+        sql_str = sql_str + ' ORDER BY components'
+
+        for row in self.cursor.execute(sql_str):
+            key_list.append(row[0])
+            components_list.append(row[1])
+
+        return key_list, components_list
+
+    def get_timespent(self, project_filter):
+        timespent_list = []
+        project_list = []
+        sql_str = '''SELECT sum(timespent),
+                            project
+                     FROM issues i
+                     WHERE issuetype = "Bug" AND 
+                           project = "BSSBOX" AND
+                           status in ('Closed','Resolved') AND
+                           strftime('%Y-%m-%d', created) > strftime('%Y-%m-%d', '2018-11-01') AND
+                           strftime('%Y-%m-%d', created) < strftime('%Y-%m-%d', '2018-01-01')'''
+
+        if project_filter != '':
+            sql_str = sql_str + ' AND  i.project = "''' + project_filter + '" '
+        sql_str = sql_str + ' GROUP BY project '
+        for row in self.cursor.execute(sql_str):
+            timespent_list.append(row[0])
+            project_list.append(row[1])
+
+        return timespent_list, project_list

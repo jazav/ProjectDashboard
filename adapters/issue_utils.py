@@ -1,3 +1,4 @@
+import logging
 import math
 from datetime import datetime
 import numpy as np
@@ -260,6 +261,7 @@ AGGREGATEPROGRESS_FIELD = 'aggregateprogress'
 PROGRESS_FIELD = 'progress'
 FIXVERSIONS_FIELD = 'fixVersions'
 PARENT_LINK_FIELD = 'customfield_20727'
+BULK_FIELD = 'customfield_20728'
 
 DATETIME_WRITE_FORMAT = "{0:%Y-%m-%d %X.%f%z}"
 DATETIME_READ_FORMAT = "%Y-%m-%d %X.%f%z"
@@ -267,216 +269,154 @@ DATE_WRITE_FORMAT = '{0:%Y-%m-%d}'
 
 DATETIME_FORMAT = '%Y-%m-%dT%X.%f%z'
 DATE_FORMAT = '%Y-%m-%d'
+BULK_FIELD_MAPPER = {
+    "41715": "Partners Arch & SA",
+"42102": "PSC Configuration",
+"41645": "CRM Arch & SA",
+"40009": "Product Instances",
+"41404": "Performance Testing",
+"41711": "OM Architecture",
+"40306": "Customer Order",
+"41403": "QC",
+"41917": "Custom Components",
+"41814": "Ordering Arch & SA",
+"40030": "System Log",
+"40031": "Shared Libraries",
+"41602": "OM System Analysis",
+"42103": "NWM Configuration",
+"41230": "Planning",
+"40026": "Task Engine",
+"40029": "System Monitoring and Operation",
+"40001": "Digital API",
+"40000": "DFE",
+"40003": "Party Management",
+"40002": "Searching",
+"40005": "Case Management",
+"40004": "Interaction Management",
+"40007": "Process Engine",
+"40028": "Notification Engine",
+"40801": "Infra",
+"40008": "Order Capture",
+"40025": "Message Bus",
+"40024": "API Management",
+"40023": "Network Monetization",
+"40022": "Partner Billing",
+"40021": "Partner Management",
+"40020": "Logical Resource Inventory",
+"41405": "SSO",
+"41418": "Partner Processes",
+"41798": "Custom CSRP",
+"41799": "Custom DAPI",
+"41402": "DevOps",
+"40006": "Process Management",
+"40037": "Default Configuration",
+"41802": "Custom PI & Marketplace",
+"41803": "Custom Inventory",
+"41800": "Custom Processes",
+"41801": "Custom Ordering",
+"41712": "Billing Arch & SA",
+"41713": "Collection Arch & SA",
+"41804": "Custom OCS",
+"41805": "Custom Billing & Finances",
+"41808": "Custom Datamarts",
+"41809": "Custom Infrastructure",
+"42042": "Prorate",
+"40032": "Configuration Manager",
+"42044": "Lifecycle",
+"40019": "Payment Management",
+"40012": "Service Activation",
+"40027": "Security",
+"41714": "Pays Arch & SA",
+"41905": "Custom Party & Searching",
+"40038": "Documentation",
+"40013": "File Storage",
+"40010": "Ordering",
+"40011": "Marketplace",
+"40016": "Billing",
+"40017": "Dunning and Collection",
+"40014": "Product Catalog",
+"40015": "Reference Data Management",
+"42043": "Custom Lifecycle",
+"41806": "Custom Payments",
+"40018": "Charge Events Storage",
+"40033": "Adapter Libraries",
+"40034": "Business Analysis",
+"40035": "System Architecture",
+"40036": "Design",
+"41807": "Custom Documents"
+}
 
+COMPONENT_FIELD_MAPPER = {
+  "Logical Resource Inventory": "CRM1 (Customer Relationship Management)", 
+  "Billing": "Billing", 
+  "Ordering": "Order Management & Partner Management", 
+  "Interaction Management": "CRM1 (Customer Relationship Management)", 
+  "DevOps": "DevOps", 
+  "DFE": "DFE", 
+  "Custom Party & Searching": "Custom", 
+  "CRM Arch & SA": "Arch & SA", 
+  "Product Catalog": "Product Management", 
+  "Custom DAPI": "Custom", 
+  "Security": "Infra", 
+  "Customer Order": "Order Management & Partner Management", 
+  "Partner Processes": "Order Management & Partner Management", 
+  "File Storage": "Order Management & Partner Management", 
+  "Configuration Manager": "Common", 
+  "Ordering Arch & SA": "Arch & SA", 
+  "Partners Arch & SA": "Arch & SA", 
+  "Default Configuration": "Common", 
+  "Custom Payments": "Custom", 
+  "Custom Datamarts": "Custom", 
+  "System Log": "Infra", 
+  "Custom Processes": "Custom", 
+  "Infra": "Infra", 
+  "Network Monetization": "Network Monetization", 
+  "Custom OCS": "Custom", 
+  "Order Capture": "CRM2 (Customer Relationship Management)", 
+  "System Architecture": "System Architecture", 
+  "Party Management": "CRM1 (Customer Relationship Management)", 
+  "Custom Components": "Custom", 
+  "Custom Inventory": "Custom", 
+  "Custom Infrastructure": "Custom", 
+  "OM Architecture": "Arch & SA", 
+  "Business Analysis": "Business Analysis", 
+  "Process Management": "CRM2 (Customer Relationship Management)", 
+  "Service Activation": "Order Management & Partner Management", 
+  "Performance Testing": "Performance Testing", 
+  "Digital API": "CRM2 (Customer Relationship Management)", 
+  "Custom CSRP": "Custom", 
+  "Adapter Libraries": "Common", 
+  "Process Engine": "CRM2 (Customer Relationship Management)", 
+  "Custom Billing & Finances": "Custom", 
+  "Reference Data Management": "Product Management", 
+  "Product Instances": "Product Instances", 
+  "Documentation": "Documentation", 
+  "API Management": "Infra", 
+  "Custom Ordering": "Custom", 
+  "Partner Billing": "Order Management & Partner Management", 
+  "Custom PI & Marketplace": "Custom", 
+  "Custom Documents": "Custom", 
+  "Message Bus": "Infra", 
+  "Shared Libraries": "Common", 
+  "Partner Management": "Order Management & Partner Management", 
+  "Task Engine": "Infra", 
+  "Charge Events Storage": "Charge Events Storage", 
+  "Marketplace": "CRM1 (Customer Relationship Management)", 
+  "System Monitoring and Operation": "Infra", 
+  "OM System Analysis": "Arch & SA", 
+  "Collection Arch & SA": "Arch & SA", 
+  "Searching": "CRM1 (Customer Relationship Management)", 
+  "Case Management": "CRM2 (Customer Relationship Management)", 
+  "Notification Engine": "Infra", 
+  "Billing Arch & SA": "Arch & SA", 
+  "Pays Arch & SA": "Arch & SA", 
+  "QC": "QC", 
+  "Planning": "Common", 
+  "Design": "Design", 
+  "Payment Management": "Payment Management", 
+  "Dunning and Collection": "Billing"
+}
 
-# def add_fields(issue, issue_dict):
-#     if FIELDS_FIELD not in issue:
-#         return issue_dict
-#
-#     if CREATOR_FIELD in issue[FIELDS_FIELD]:
-#         creator = issue[FIELDS_FIELD][CREATOR_FIELD][NAME_FIELD]
-#     else:
-#         creator = ''
-#
-#     if ASSIGNEE_FIELD in issue[FIELDS_FIELD]:
-#         assignee = issue[FIELDS_FIELD][ASSIGNEE_FIELD][NAME_FIELD]
-#     else:
-#         assignee = ''
-#
-#     if REPORTER_FIELD in issue[FIELDS_FIELD]:
-#         reporter = issue[FIELDS_FIELD][REPORTER_FIELD][NAME_FIELD]
-#     else:
-#         reporter = ''
-#
-#     if RESOLUTIONDATE_FIELD in issue[FIELDS_FIELD]:
-#         resolutiondate = datetime.strptime(issue[FIELDS_FIELD][RESOLUTIONDATE_FIELD], DATETIME_FORMAT)
-#     else:
-#         resolutiondate = None
-#
-#     if RESOLUTION_FIELD in issue[FIELDS_FIELD]:
-#         resolution = issue[FIELDS_FIELD][RESOLUTION_FIELD][NAME_FIELD]
-#     else:
-#         resolution = ''
-#
-#     if DUEDATE_FIELD in issue[FIELDS_FIELD]:
-#
-#         duedate = datetime.strptime(issue[FIELDS_FIELD][DUEDATE_FIELD], DATE_FORMAT)
-#         # it's timezone unaware
-#
-#         duedate = pytz.utc.localize(duedate)
-#         # noew it's TZ aware
-#     else:
-#         duedate = None
-#
-#     if UPDATED_FIELD in issue[FIELDS_FIELD]:
-#         updated = datetime.strptime(issue[FIELDS_FIELD][UPDATED_FIELD], DATETIME_FORMAT)
-#     else:
-#         updated = None
-#
-#     if CREATED_FIELD in issue[FIELDS_FIELD]:
-#         created = datetime.strptime(issue[FIELDS_FIELD][CREATED_FIELD], DATETIME_FORMAT)
-#     else:
-#         created = None
-#
-#     if PROJECT_FIELD in issue[FIELDS_FIELD]:
-#         project = issue[FIELDS_FIELD][PROJECT_FIELD][KEY_FIELD]
-#     else:
-#         project = ''
-#
-#     if PARENT_FIELD in issue[FIELDS_FIELD]:
-#         parent = issue[FIELDS_FIELD][PARENT_FIELD][KEY_FIELD]
-#     else:
-#         parent = ''
-#
-#     if TYPE_FIELD in issue[FIELDS_FIELD]:
-#         issuetype = issue[FIELDS_FIELD][TYPE_FIELD][NAME_FIELD]
-#     else:
-#         issuetype = ''
-#
-#     if STATUS_FIELD in issue[FIELDS_FIELD]:
-#         status = issue[FIELDS_FIELD][STATUS_FIELD][NAME_FIELD]
-#     else:
-#         status = ''
-#
-#     if COMPONENTS_FIELD in issue[FIELDS_FIELD]:
-#         components = ''
-#         lenght = len(issue[FIELDS_FIELD][COMPONENTS_FIELD])
-#         for i in range(lenght):
-#             components = components + issue[FIELDS_FIELD][COMPONENTS_FIELD][i][NAME_FIELD]
-#             if i < lenght - 1:
-#                 components = components + ','
-#     else:
-#         components = ''
-#
-#     domains = get_domains(components)
-#
-#     if ISSUELINKS_FIELD in issue[FIELDS_FIELD]:
-#         outwards = ''
-#         inwards = ''
-#         lenght = len(issue[FIELDS_FIELD][ISSUELINKS_FIELD])
-#         for i in range(lenght):
-#             if 'outwardIssue' in issue[FIELDS_FIELD][ISSUELINKS_FIELD][i]:
-#                 if len(outwards) > 0:
-#                     outwards = outwards + ','
-#                 outwards = outwards + issue[FIELDS_FIELD][ISSUELINKS_FIELD][i]['outwardIssue'][KEY_FIELD]
-#             else:
-#                 if len(inwards) > 0:
-#                     inwards = inwards + ','
-#                 inwards = inwards + issue[FIELDS_FIELD][ISSUELINKS_FIELD][i]['inwardIssue'][KEY_FIELD]
-#     else:
-#         outwards = ''
-#         inwards = ''
-#
-#     if PRIORITY_FIELD in issue[FIELDS_FIELD]:
-#         priority = issue[FIELDS_FIELD][PRIORITY_FIELD][NAME_FIELD]
-#     else:
-#         priority = ''
-#
-#     if LABEL_FIELD in issue[FIELDS_FIELD]:
-#         labels = ','.join(issue[FIELDS_FIELD][LABEL_FIELD])
-#     else:
-#         labels = ''
-#
-#     if SUBTASKS_FIELD in issue[FIELDS_FIELD]:
-#         subtasks = ''
-#         lenght = len(issue[FIELDS_FIELD][SUBTASKS_FIELD])
-#         for i in range(lenght):
-#             subtasks = subtasks + issue[FIELDS_FIELD][SUBTASKS_FIELD][i][KEY_FIELD]
-#             if i < lenght - 1:
-#                 subtasks = subtasks + ','
-#     else:
-#         subtasks = ''
-#
-#     if TIMEORIGINALESTIMATE_FIELD in issue[FIELDS_FIELD]:
-#         timeoriginalestimate = float(issue[FIELDS_FIELD][TIMEORIGINALESTIMATE_FIELD] / 60 / 60 / 8)  # sec->man-days
-#     else:
-#         timeoriginalestimate = 0.00
-#
-#     if STORYPOINTS_FIELD in issue[FIELDS_FIELD]:
-#         storypoints = float(issue[FIELDS_FIELD][STORYPOINTS_FIELD])
-#     else:
-#         storypoints = 0.00
-#
-#     if EPICLINK_FIELD in issue[FIELDS_FIELD]:
-#         epiclink = issue[FIELDS_FIELD][EPICLINK_FIELD]
-#     else:
-#         epiclink = ''
-#
-#     if TIMEESTIMATE_FIELD in issue[FIELDS_FIELD]:
-#         timeestimate = issue[FIELDS_FIELD][TIMEESTIMATE_FIELD] / 60 / 60 / 8  # sec->man-days
-#     else:
-#         timeestimate = 0.00
-#
-#     if TIMESPENT_FIELD in issue[FIELDS_FIELD]:
-#         timespent = float(issue[FIELDS_FIELD][TIMESPENT_FIELD] / 60 / 60 / 8)  # sec->man-days
-#     else:
-#         timespent = 0.00
-#
-#     if AGGREGATETIMEESTIMATE_FIELD in issue[FIELDS_FIELD]:
-#         aggregatetimeestimate = float(
-#             issue[FIELDS_FIELD][AGGREGATETIMEESTIMATE_FIELD] / 60 / 60 / 8)  # sec->man-days
-#     else:
-#         aggregatetimeestimate = 0.00
-#
-#     if AGGREGATEPROGRESS_FIELD in issue[FIELDS_FIELD] and 'percent' in issue[FIELDS_FIELD][AGGREGATEPROGRESS_FIELD]:
-#         aggregateprogress = float(issue[FIELDS_FIELD][AGGREGATEPROGRESS_FIELD]['percent'])
-#     else:
-#         aggregateprogress = 0.00
-#
-#     if PROGRESS_FIELD in issue[FIELDS_FIELD] and 'percent' in issue[FIELDS_FIELD][PROGRESS_FIELD]:
-#         progress = float(issue[FIELDS_FIELD][PROGRESS_FIELD]['percent'])
-#     else:
-#         progress = 0.00
-#
-#     if AGGREGATETIMEORIGINALESTIMATE_FIELD in issue[FIELDS_FIELD]:
-#         aggregatetimeoriginalestimate = float(issue[FIELDS_FIELD][
-#                                                   AGGREGATETIMEORIGINALESTIMATE_FIELD] / 60 / 60 / 8)  # sec->man-days
-#     else:
-#         aggregatetimeoriginalestimate = 0.00
-#
-#     if SUMMARY_FIELD in issue[FIELDS_FIELD]:
-#         summary = issue[FIELDS_FIELD][SUMMARY_FIELD]
-#     else:
-#         summary = ''
-#
-#     if DESCRIPTION_FIELD in issue[FIELDS_FIELD]:
-#         description = issue[FIELDS_FIELD][DESCRIPTION_FIELD]
-#     else:
-#         description = ''
-#
-#     issue_dict = {
-#         TYPE_FIELD: issuetype,
-#         STATUS_FIELD: status,
-#         PROJECT_FIELD: project,
-#         COMPONENTS_FIELD: components,
-#         DOMAINS_FIELD: domains,
-#         'labels': labels,
-#         'epiclink': epiclink,
-#         PARENT_FIELD: parent,
-#         SUBTASKS_FIELD: subtasks,
-#         'outwards': outwards,
-#         'inwards': inwards,
-#         SUMMARY_FIELD: summary,
-#         DESCRIPTION_FIELD: description,
-#         RESOLUTION_FIELD: resolution,
-#         RESOLUTIONDATE_FIELD: resolutiondate,
-#         TIMEORIGINALESTIMATE_FIELD: timeoriginalestimate,
-#         TIMEESTIMATE_FIELD: timeestimate,
-#         TIMESPENT_FIELD: timespent,
-#         'storypoints': storypoints,
-#         CREATOR_FIELD: creator,
-#         ASSIGNEE_FIELD: assignee,
-#         REPORTER_FIELD: reporter,
-#         DUEDATE_FIELD: duedate,
-#         AGGREGATETIMEESTIMATE_FIELD: aggregatetimeestimate,
-#         AGGREGATETIMEORIGINALESTIMATE_FIELD: aggregatetimeoriginalestimate,
-#         UPDATED_FIELD: updated,
-#         CREATED_FIELD: created,
-#         PROGRESS_FIELD: progress,
-#         AGGREGATEPROGRESS_FIELD: aggregateprogress,
-#         PRIORITY_FIELD: priority}
-#
-#     return issue_dict
 
 def add_fields(fields, issue_dict):
     jira_type = 'default'
@@ -683,6 +623,11 @@ def add_fields(fields, issue_dict):
     else:
         parent_link = ''
 
+    if BULK_FIELD in fields:
+        bulk_dict = fields[BULK_FIELD]
+        for field_map_key in bulk_dict:
+           issue_dict[component_to_store_field(field_map_key)] = bulk_dict[field_map_key]
+
     issue_dict[TYPE_FIELD] = issuetype
     issue_dict[STATUS_FIELD] = status
     issue_dict[PROJECT_FIELD] = project
@@ -721,6 +666,15 @@ def add_fields(fields, issue_dict):
 
     return issue_dict
 
+
+def component_to_store_field(field_map_key):
+    return "B_" + BULK_FIELD_MAPPER[field_map_key].replace(" ", "_").replace("&", "A")
+
+
+def component_to_bulk_field(field_map_key):
+    return "B_" +COMPONENT_FIELD_MAPPER[field_map_key].replace(" ", "_").replace("&", "A")
+
+
 def add_render_fields(fields, issue_dict):
     # if FIXVERSIONS_FIELD in fields:
     #     fixVersions = fields[FIXVERSIONS_FIELD]
@@ -737,22 +691,25 @@ def issues_to_dict(issues):
         return issues_dict
 
     for issue in issues:
-        id = int(issue[ID_FIELD])
-        key = issue[KEY_FIELD]
+        try:
+            id = int(issue[ID_FIELD])
+            key = issue[KEY_FIELD]
 
-        issue_dict = {
-            KEY_FIELD: key,
-            ID_FIELD: id}
+            issue_dict = {
+                KEY_FIELD: key,
+                ID_FIELD: id}
 
-        if FIELDS_FIELD in issue:
-            issue_dict = add_fields(fields=issue[FIELDS_FIELD], issue_dict=issue_dict)
+            if FIELDS_FIELD in issue:
+                issue_dict = add_fields(fields=issue[FIELDS_FIELD], issue_dict=issue_dict)
 
-        if VERSIONED_REPR in issue:
-            issue_dict = add_fields(fields=issue[VERSIONED_REPR], issue_dict=issue_dict)
+            if VERSIONED_REPR in issue:
+                issue_dict = add_fields(fields=issue[VERSIONED_REPR], issue_dict=issue_dict)
 
-        if RENDERS_FIELD in issue:
-            issue_dict = add_render_fields(fields=issue[RENDERS_FIELD], issue_dict=issue_dict)
-        issues_dict[key] = issue_dict
+            if RENDERS_FIELD in issue:
+                issue_dict = add_render_fields(fields=issue[RENDERS_FIELD], issue_dict=issue_dict)
+            issues_dict[key] = issue_dict
+        except:
+           logging.error("Unexpected error on issue:", issue, ', error:', sys.exc_info()[0])
 
     return issues_dict
 

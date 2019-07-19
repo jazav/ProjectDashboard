@@ -68,6 +68,10 @@ def get_command_namespace(argv):
                                   help="sprint : Super Sprint 8",
                                   required=False, default="Super Sprint 8")
 
+    dashboard_parser.add_argument('-components', '-cmp', action="store",
+                                  help="components : Product Instances",
+                                  required=False, default="")
+
     dashboard_parser.add_argument('-auto_open', '-a', action="store",
                                   help="auto_open : True",
                                   required=False, default="True")
@@ -105,8 +109,8 @@ def get_command_namespace(argv):
 
     dashboard_parser.add_argument('-plotly_user', '-plu', action='store', help='Plot.ly authorisation username',
                                   required=False, default='')
-    dashboard_parser.add_argument('-plotly_key', '-plk', action='store', help='Plot.ly authorisation api key',
-                                  required=False, default='')
+    dashboard_parser.add_argument('-upload_to_file', '-uf', action='store', help='Download issues to sql file',
+                                  required=False, default='False')
     # ------------------------------------------------------------------------------------------------------------------
     
     for subparser in [init_parser, update_parser, issue_parser, dashboard_parser]:
@@ -134,14 +138,7 @@ def get_plan_fact(parameters):
     return plan, fact
 
 
-def get_jira_url(jira):
-    cc = cc_klass()
-    options = cc.read_jira_config()
-    if jira in options['servers']:
-        jira_url = options['servers'][jira]
-    else:
-        raise Exception('{0} not found in {1}'.format(jira, cc.get_ini_path()))
-    return jira_url
+
 
 
 def main(argv):
@@ -163,20 +160,20 @@ def main(argv):
         if name_space.command == "init":
             jiras = name_space.jira.split(',')
             for jira_name in jiras:
-                jira_url = get_jira_url(jira=jira_name)
+                jira_url = cc.get_jira_url(jira=jira_name)
                 dshc.initialize_cache(query=name_space.query, url=jira_url, jira_name=jira_name)
 
         if name_space.command == "update":
             # sample: 2018-08-31T14:25:21.748515
             jiras = name_space.jira.split(',')
             for jira_name in jiras:
-                jira_url = get_jira_url(jira=jira_name)
+                jira_url = cc.get_jira_url(jira=jira_name)
                 dshc.update(query=name_space.query, start=name_space.start, jira_url=jira_url, jira_name=jira_name)
 
         if name_space.command == "issue":
             jiras = name_space.jira.split(',')
             for jira_name in jiras:
-                jira_url = get_jira_url(jira=jira_name)
+                jira_url = cc.get_jira_url(jira=jira_name)
                 dshc.dashbord_issue_detail(key=name_space.key, field_mode=name_space.mode, export=name_space.export,
                                            jira_url=jira_url)
 
@@ -197,7 +194,9 @@ def main(argv):
                                                    auto_open=(name_space.auto_open.upper() == 'TRUE'),
                                                    dashboard_type=DashboardType[name_space.dashboard_type.upper()],
                                                    dashboard_format=DashboardFormat[name_space.dashboard_format.upper()],
-                                                   sprint=name_space.sprint)
+                                                   sprint=name_space.sprint,
+                                                   components=name_space.components,
+                                                   upload_to_file=(name_space.upload_to_file.upper() == 'TRUE'))
         
         # By @alanbryn -------------------------------------------------------------------------------------------------
         if name_space.name == "bugs_duration":
@@ -245,7 +244,9 @@ def main(argv):
                                        mssql_query_file=name_space.mssql.lower(),
                                        plotly_auth=[name_space.plotly_user, name_space.plotly_key])
         # --------------------------------------------------------------------------------------------------------------
-
+        if name_space.name == "bugs_density":
+            dshc.dashboard_bugs_density(auto_open=(name_space.auto_open.upper() == 'TRUE'),
+                                         plotly_auth=[name_space.plotly_user, name_space.plotly_key])
         if name_space.name == "hm":
             dshc.dashboard_heatmap()
 

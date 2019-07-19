@@ -6,6 +6,7 @@ import adapters.issue_utils as iu
 import config_controller
 from adapters.file_cache import FileCache
 from config_controller import *
+from dashboards.bugs_density_dashboard import BugsDensityDashboard
 from dashboards.feature_heatmap_dashboard import FeatureHeatmapDashboard
 from dashboards.feature_progress_dashboard import FeatureProgressDashboard
 from dashboards.feature_progress_domain_dashboard import FeatureProgressDomainDashboard, DashboardType
@@ -205,17 +206,19 @@ class DashboardController:
         for i in range(0, len(l), n):
             yield l[i:i + n]
 
-    def dashboard_feature_domain_progress(self, plan, fact, details, projects, fixversion, auto_open, dashboard_type, dashboard_format, sprint):
+    def dashboard_feature_domain_progress(self, plan, fact, details, projects, fixversion, auto_open, dashboard_type, dashboard_format, sprint, components, upload_to_file):
         if not (plan and fact):
             raise ValueError('both of plan and fact parameters are false')
 
         dc = DataController()
-        data_dao = dc.get_issue_sqllite(query=None, expand=None)
+        data_dao = dc.get_issue_sqllite(query=None, expand=None, upload_to_file = upload_to_file)
 
         project_list = projects#["BSSPAY", "BSSUFM", "BSSBFAM", "BSSLIS"]
         for project in project_list:
             dashboard = FeatureProgressDomainDashboard()
-            dashboard.dashboard_name = 'All features in ' + ((fixversion + ' ') if project == "" else project)  # str(i).zfill(1)
+            dashboard.dashboard_name = 'All features in ' + (fixversion  if project == "" else project) + \
+                                        (('('+components + ')') if components != "" else "") + \
+                                        ((' ' + sprint) if sprint != "" else "")
             dashboard.filter_list = [""]
             dashboard.items_on_chart = 40
             dashboard.min_item_tail = 6
@@ -229,6 +232,7 @@ class DashboardController:
             dashboard.dashboard_type = dashboard_type
             dashboard.dashboard_format = dashboard_format
             dashboard.sprint = sprint
+            dashboard.components = components
             dashboard.prepare(data=data_dao)
 
             #lopen_list, ldev_list, lclose_list, lname_list = data_dao.get_sum_by_projects(dashboard.project, "",
@@ -392,3 +396,19 @@ class DashboardController:
         dashboard.plotly_auth = plotly_auth
         dashboard.prepare(data=data)
         # dashboard.export_to_plot()
+
+    @staticmethod
+    def dashboard_bugs_density(auto_openplotly_auth):
+        if not (plan and fact):
+            raise ValueError('both of plan and fact parameters are false')
+
+        dc = DataController()
+        data_dao = dc.get_issue_sqllite(query=None, expand=None)
+        dashboard = BugsDensityDashboard()
+        dashboard.dashboard_name = 'Bugs Density '
+        dashboard.items_on_chart = 10
+        dashboard.min_item_tail = 5
+        dashboard.auto_open = auto_open
+        dashboard.plotly_auth = plotly_auth
+        dashboard.prepare(data=data_dao)
+        dashboard.export_to_plot()

@@ -22,6 +22,7 @@ PLAN_PREFIX = '<b>Plan</b>'
 FACT_PREFIX = '<b>Closed</b>'
 OPEN_PREFIX = '<b>Open</b>'
 DEV_PREFIX = '<b>Dev</b>'
+UNPLAN_PREFIX = '<b>Unplanned</b>'
 
 
 def stringDivider(strval, width, spaceReplacer):
@@ -43,26 +44,34 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
     open_list = []
     dev_list = []
     close_list = []
+    unplan_list = []
     name_list = []
     brnamelist = []
+    domain_list = []
+    key_list = []
+    prj_list = []
     auto_open = True
     fixversion = None
     project = None
     dashboard_type = DashboardType.PROJECT
     dashboard_format = DashboardFormat.HTML
     sprint = None
+    jira_url = ""
+    components = None
 
     def prepare(self, data):
         if self.fixversion is None:
             raise ValueError('fixversion is undefined')
-        self.open_list, self.dev_list, self.close_list, self.name_list, self.prj_list, self.domain_list = \
-            data.get_sum_by_projects(self.project, "", self.fixversion, 'domain' if self.dashboard_type == DashboardType.DOMAIN else 'summary, project', self.sprint)
+        self.open_list, self.dev_list, self.close_list, self.name_list, self.prj_list, self.domain_list, self.key_list, self.unplan_list = \
+            data.get_sum_by_projects(self.project, "", self.fixversion, 'domain' if self.dashboard_type == DashboardType.DOMAIN else 'summary, project, key', self.sprint, self.components)
 
     def get_name_list(self):
+
         if self.dashboard_type == DashboardType.PROJECT:
             return self.prj_list
         elif self.dashboard_type == DashboardType.FEATURE:
-            return self.brnamelist
+            return list(map(lambda el, link: '<a href = "{}/browse/{}">{}</a>'.format(self.jira_url,link, el),
+                            self.brnamelist, self.key_list))
         else:
             return self.domain_list
 
@@ -78,7 +87,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
         if len(self.name_list) == 0:
             return
         cc = cc_klass()
-
+        self.jira_url = cc.get_jira_url(jira="jira_1")
         self.brnamelist = []
         for vl in self.name_list:
             self.brnamelist.append(stringDivider(vl, int(cc.read_display_width()/10/len(self.name_list)), "<br>"))
@@ -133,11 +142,29 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
             insidetextfont=dict(family='Arial', size=12,
                       color='white')
         )
+        trace4 = go.Bar(
+            x=self.get_name_list(),
+            y=self.unplan_list,
+            text=self.unplan_list,
+            name=UNPLAN_PREFIX,
+            textposition='auto',
+            marker=dict(
+                color='red',
+                line=dict(
+                    color='black',
+                    width=1),
+            ),
+            insidetextfont=dict(family='Arial', size=12,
+                      color='white')
+        )
         traces.append(trace1)
         traces.append(trace2)
         traces.append(trace3)
+        traces.append(trace4)
         all_open = 0
         for value in self.open_list:
+            all_open += value
+        for value in self.unplan_list:
             all_open += value
         all_dev = 0
         for value in self.dev_list:
@@ -161,7 +188,8 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
         title = "{0} <br>{1} <br> Must be closed today ({4}) in {2}: {3:.2f}%".format(self.dashboard_name,  title_sum, self.fixversion, will_be_done, now_dt.strftime("%d.%m.%y %H:%M"))
         tools.make_subplots
 
-        file_name1 = self.dashboard_name + ' ' + ("" if (self.dashboard_type == DashboardType.DOMAIN or self.project != "") else (self.dashboard_type.name +" "))+plan_fact_str
+        file_name1 = self.dashboard_name + ' ' + ("" if (self.dashboard_type == DashboardType.DOMAIN or self.project != "") else (self.dashboard_type.name +" "))\
+                     + plan_fact_str + (('_'+self.components) if self.components != "" else "")
         file_name = self.png_dir + "{0}_{1}".format(file_name1, self.project)
         # file_name = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}_{1}".format(file_name1, self.project)
         layout = go.Layout(
