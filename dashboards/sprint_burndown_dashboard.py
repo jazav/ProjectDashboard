@@ -72,8 +72,8 @@ class SprintBurndownDashboard(AbstractDashboard):
             [sp for sp, rd in zip(data_spent['spent'], data_spent['resolutiondate']) if rd is not None and rd < dt]))
                            for dt in self.all_spent.keys()}
         self.pp_all_remain = {dt: pp_all_original[dt] - self.pp_all_spent[dt] + float(sum(
-            [sp for sp, rd in zip(data_spent['spent'], data_spent['resolutiondate']) if rd is not None and rd < dt]))
-                          for dt in self.pp_all_spent.keys()}
+            [sp for sp, rd, pp in zip(data_spent['spent'], data_spent['resolutiondate'], data_spent['pilot'])
+             if rd is not None and rd < dt and pp])) for dt in self.pp_all_spent.keys()}
 
     def export_to_plotly(self):
         if len(self.all_spent.keys()) == 0:

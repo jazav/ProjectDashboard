@@ -453,21 +453,19 @@ class DashboardController:
     # By @alanbryn
     @staticmethod
     def dashboard_yota_burndown(auto_open, repository, mssql_query_file, plotly_auth, dashboard_type, citrix_token,
-                                local_user, dashboard_name, start_date, end_date):
+                                local_user):
         dc = DataController()
         data_spent = dc.get_issues_mssql(mssql_query_file=mssql_query_file[0])
         data_original = dc.get_issues_mssql(mssql_query_file=mssql_query_file[1])
 
         for dt in dashboard_type:
             dashboard = YotaBurndownDashboard() if dt == 'TOTAL' else YotaDomainBurndownDashboard()
-            dashboard.dashboard_name = dashboard_name
+            dashboard.dashboard_name = 'Burndown for Yota'
             dashboard.auto_open = auto_open
             dashboard.repository = repository
             dashboard.plotly_auth = plotly_auth
             dashboard.citrix_token = citrix_token
             dashboard.local_user = local_user
-            dashboard.start_date = datetime.datetime.strptime(start_date, '%d.%m.%Y').date()
-            dashboard.end_date = datetime.datetime.strptime(end_date, '%d.%m.%Y').date()
             dashboard.multi_prepare(data_spent=data_spent, data_original=data_original)
             dashboard.export_to_plot()
 
