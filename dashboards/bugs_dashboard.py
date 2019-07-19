@@ -37,7 +37,7 @@ class BugsDashboard(AbstractDashboard):
                     self.created_list.append(self.created_list[i])
                     self.project_list.append(self.project_list[i])
         for i in range(len(self.key_list)):
-            if self.components_list[i] != [''] and get_domain(*self.components_list[i]) != 'Others':
+            if self.components_list[i] != [''] and get_domain(*self.components_list[i]) != 'Common':
                 self.components_list[i] = get_domain(*self.components_list[i])
             else:
                 self.components_list[i] = get_domain_by_project(self.project_list[i])

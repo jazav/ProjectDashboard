@@ -2,6 +2,9 @@ from dashboards.dashboard import AbstractDashboard
 import plotly
 import plotly.graph_objs as go
 from datetime import datetime, timedelta
+from adapters.citrix_sharefile_adapter import CitrixShareFile
+import shutil
+import time
 
 
 def split_on(lst):
@@ -49,7 +52,7 @@ def issue_color(issuetype, part):
 
 class ArbaIssuesDashboard(AbstractDashboard):
     name_list, assignee_list, created_list, duedate_list, key_list, issuetype_list = [], [], [], [], [], []
-    auto_open, assignees = True, None
+    auto_open, assignees, repository, citrix_token, local_user = True, None, None, None, None
     team_list = []
 
     def prepare(self, data):
@@ -190,7 +193,20 @@ class ArbaIssuesDashboard(AbstractDashboard):
         )
 
         fig = dict(data=data, layout=layout)
-        plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
+        if self.repository == 'offline':
+            plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
+        elif self.repository == 'citrix':
+            plotly.offline.plot(fig, image_filename=title, image='png', image_height=1080, image_width=1920)
+            plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
+            time.sleep(5)
+            shutil.move('C:/Users/{}/Downloads/{}.png'.format(self.local_user, title), './files/{}.png'.format(title))
+            citrix = CitrixShareFile(hostname=self.citrix_token['hostname'], client_id=self.citrix_token['client_id'],
+                                     client_secret=self.citrix_token['client_secret'],
+                                     username=self.citrix_token['username'], password=self.citrix_token['password'])
+            citrix.upload_file(folder_id='fofd8511-6564-44f3-94cb-338688544aac',
+                               local_path='./files/{}.png'.format(title))
+            citrix.upload_file(folder_id='fofd8511-6564-44f3-94cb-338688544aac',
+                               local_path=html_file)
 
     def export_to_plot(self):
         self.export_to_plotly()

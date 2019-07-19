@@ -1,28 +1,33 @@
 from dashboards.dashboard import AbstractDashboard
-from adapters.issue_utils import get_domain
+from adapters.issue_utils import get_domain_bssbox
 import datetime
-import numpy
+import textwrap
 import plotly
 import plotly.graph_objs as go
+from adapters.citrix_sharefile_adapter import CitrixShareFile
+import shutil
+import time
 
 
-def alert_action(days, priorities):
+def alert_action(keys, days, priorities, olds):
     color = [[]]
-    for day, priority in zip(days, priorities):
-        if priority == 'Blocker':
+    for key, day, priority in zip(keys, days, priorities):
+        if priority == 'Blocker' and key not in olds:
             if day > 0:
                 color[0].append('rgb(255,204,204)')
             elif day > 2:
                 color[0].append('rgb(255,102,102)')
             else:
                 color[0].append('rgb(255,255,255)')
-        elif priority == 'Critical':
+        elif priority == 'Critical' and key not in olds:
             if day > 1:
                 color[0].append('rgb(255,204,204)')
             elif day > 3:
                 color[0].append('rgb(255,102,102)')
             else:
                 color[0].append('rgb(255,255,255)')
+        else:
+            color[0].append('rgb(255,255,255)')
     return color
 
 
@@ -42,8 +47,8 @@ def deadline(fromdate, days):
 
 
 class BssboxBugsTrackingDashboard(AbstractDashboard):
-    auto_open, repository, plotly_auth = True, None, None
-    tracking_data, pivot_data, all_bugs, overdue_data, created_dict = {}, {}, {}, {}, []
+    auto_open, repository, plotly_auth, citrix_token, local_user = True, None, None, None, None
+    tracking_data, pivot_data, all_bugs, overdue_data, created_dict, old_list = {}, {}, {}, {}, [], []
     jql_all = 'https://jira.billing.ru/issues/?jql=key in ('
 
     def prepare(self, data):
@@ -51,18 +56,22 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
         self.all_bugs['BSSBox'] = {'On track': 0, 'Overdue': 0}
         preparing_data = {key: [] for key in data.keys()}
         for i in range(len(data['Key'])):
-            if get_domain(data['Domain'][i]) != 'Others':
+            if get_domain_bssbox(data['Domain'][i]) != 'Common':  # exclude specific components
                 for key in data.keys():
                     preparing_data[key].append(data[key][i])
         data = preparing_data
         created = [cr for cr, st in zip(data['Days in progress'], data['Status']) if st not in ('Closed', 'Resolved')]
         self.created_dict = created
         for i in range(len(data['Key'])):
-            data['Domain'][i] = get_domain(data['Domain'][i]) if data['Domain'][i] is not None else 'Empty'
+            data['Domain'][i] = get_domain_bssbox(data['Domain'][i])
+            if data['Days in progress'][i] < datetime.datetime(2019, 1, 28):
+                self.old_list.append(data['Key'][i])
             data['Days in progress'][i] =\
                 workdays(data['Days in progress'][i], datetime.datetime.now())\
                 if data['Status'][i] not in ('Closed', 'Resolved')\
                 else workdays(data['Days in progress'][i], data['Resolved'][i])
+            if data['Key'][i] == data['Key'][i-1] and data['Domain'][i] == data['Domain'][i-1]:
+                continue
             if data['Status'][i] not in ('Closed', 'Resolved'):
                 for key in self.tracking_data.keys():
                     self.tracking_data[key].append(data[key][i])
@@ -70,7 +79,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                 self.pivot_data[data['Domain'][i]] = {'On track': 0, 'Overdue': 0}
                 self.overdue_data[data['Domain'][i]] = 'https://jira.billing.ru/issues/?jql=key in ('
             if data['Priority'][i] == 'Blocker':
-                if data['Days in progress'][i] > 0:
+                if data['Days in progress'][i] > 0 and data['Key'][i] not in self.old_list:
                     self.pivot_data[data['Domain'][i]]['Overdue'] += 1
                     self.all_bugs['BSSBox']['Overdue'] += 1
                     self.overdue_data[data['Domain'][i]] += '{}, '.format(data['Key'][i])
@@ -79,7 +88,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                     self.pivot_data[data['Domain'][i]]['On track'] += 1
                     self.all_bugs['BSSBox']['On track'] += 1
             elif data['Priority'][i] == 'Critical':
-                if data['Days in progress'][i] > 1:
+                if data['Days in progress'][i] > 1 and data['Key'][i] not in self.old_list:
                     self.pivot_data[data['Domain'][i]]['Overdue'] += 1
                     self.all_bugs['BSSBox']['Overdue'] += 1
                     self.overdue_data[data['Domain'][i]] += '{}, '.format(data['Key'][i])
@@ -101,11 +110,11 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                         deadline(cr, 1) for cr, pr in zip(self.created_dict, self.tracking_data['Priority'])]]
         data = [go.Table(
             domain=dict(
-                x=[0, 0.72],
-                y=[0, 1]
+                x=[0, 1],
+                y=[0, 0.6]
             ),
-            columnorder=[1, 2, 3, 4, 5, 6, 7, 8],
-            columnwidth=[3, 11, 3, 2, 2, 2, 2, 2.5],
+            columnorder=[1, 2, 3, 4, 5, 6, 7, 8, 9],
+            columnwidth=[3, 10, 3, 2, 2, 2, 2, 2, 2.5],
             header=dict(
                 values=header_values,
                 fill=dict(color=['grey']),
@@ -116,15 +125,14 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
             cells=dict(
                 values=cells_values,
                 align=['center', 'left', 'center', 'center', 'center', 'center', 'center'],
-                fill=dict(color=alert_action(days=self.tracking_data['Days in progress'],
-                                             priorities=self.tracking_data['Priority'])),
+                fill=dict(color=alert_action(keys=self.tracking_data['Key'], days=self.tracking_data['Days in progress'],
+                                             priorities=self.tracking_data['Priority'], olds=self.old_list)),
                 height=25,
                 line=dict(width=2)
             )
         ), go.Bar(
-            orientation='h',
-            y=list(self.pivot_data.keys()),
-            x=[value['On track'] for value in self.pivot_data.values()],
+            x=list(self.pivot_data.keys()),
+            y=[value['On track'] for value in self.pivot_data.values()],
             xaxis='x1',
             yaxis='y1',
             name='On track',
@@ -140,16 +148,15 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                 )
             )
         ), go.Bar(
-            orientation='h',
-            y=list(self.pivot_data.keys()),
-            x=[value['Overdue'] for value in self.pivot_data.values()],
+            x=list(self.pivot_data.keys()),
+            y=[value['Overdue'] for value in self.pivot_data.values()],
             xaxis='x1',
             yaxis='y1',
             name='Overdue',
             showlegend=False,
             text=list(map(lambda el, link: '<a href = "{}">Overdue: <b>{}</b> </a>'.format(link, el),
                           [value['Overdue'] for value in self.pivot_data.values()], self.overdue_data.values())),
-            textposition='inside',
+            textposition='outside',
             marker=dict(
                 color='rgb(255,204,204)',
                 line=dict(
@@ -158,9 +165,8 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                 )
             )
         ), go.Bar(
-            orientation='h',
-            y=list(self.all_bugs.keys()),
-            x=[value['On track'] for value in self.all_bugs.values()],
+            x=list(self.all_bugs.keys()),
+            y=[value['On track'] for value in self.all_bugs.values()],
             xaxis='x2',
             yaxis='y2',
             name='On track',
@@ -176,16 +182,15 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                 )
             )
         ), go.Bar(
-            orientation='h',
-            y=list(self.all_bugs.keys()),
-            x=[value['Overdue'] for value in self.all_bugs.values()],
+            x=list(self.all_bugs.keys()),
+            y=[value['Overdue'] for value in self.all_bugs.values()],
             xaxis='x2',
             yaxis='y2',
             name='Overdue',
             showlegend=False,
             text=list(map(lambda el: '<a href = "{}">Overdue: <b>{}</b> </a>'.format(self.jql_all, el),
                           [value['Overdue'] for value in self.all_bugs.values()])),
-            textposition='inside',
+            textposition='outside',
             marker=dict(
                 color='rgb(255,204,204)',
                 line=dict(
@@ -199,7 +204,10 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
         html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 
         axis = dict()
+        max_dmn = max([sum(pd.values()) for pd in self.pivot_data.values()])
+        max_all = max([sum(pd.values()) for pd in self.all_bugs.values()])
         layout = go.Layout(
+            hovermode='closest',
             title='<b>{} ({})</b>'.format(title, datetime.datetime.now().strftime("%d.%m.%y %H:%M"))
                   + ('<sup> in cloud</sup>' if self.repository == 'online' else '')
                   + '<br><i>SLA: Blockers - 1 day, Criticals - 2 days</i>',
@@ -208,10 +216,10 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                 type='rect',
                 xref='paper',
                 yref='paper',
-                x0=0.73,
-                y0=0.15,
-                x1=1,
-                y1=0.95,
+                x0=0,
+                y0=0.62,
+                x1=0.88,
+                y1=1,
                 line=dict(
                     color='rgb(0,0,0)',
                     width=1
@@ -220,33 +228,22 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                 type='rect',
                 xref='paper',
                 yref='paper',
-                x0=0.73,
-                y0=0,
+                x0=0.89,
+                y0=0.62,
                 x1=1,
-                y1=0.13,
+                y1=1,
                 line=dict(
                     color='rgb(0,0,0)',
                     width=1
                 )
             )],
-            xaxis1=dict(axis, **dict(domain=[0.77, 0.99], anchor='y1')),
-            yaxis1=dict(axis, **dict(domain=[0.18, 0.94], anchor='x1', ticksuffix='  ')),
-            xaxis2=dict(axis, **dict(domain=[0.77, 0.99], anchor='y2')),
-            yaxis2=dict(axis, **dict(domain=[0.03, 0.12], anchor='x2', ticksuffix='  ')),
-            barmode='stack',
-            annotations=[dict(
-                xref='paper',
-                yref='paper',
-                x=0.95,
-                y=1.015,
-                text='<b><i>Statistics by all bugs<br>created from 28.01.19 until {}</i></b>'.
-                    format(datetime.datetime.now().strftime('%d.%m.%y')),
-                showarrow=False,
-                font=dict(
-                    family='Oswald, sans-serif',
-                    size=16
-                )
-            )]
+            xaxis1=dict(axis, **dict(showline=True, domain=[0.02, 0.86], anchor='y1')),
+            yaxis1=dict(axis, **dict(showline=True, domain=[0.65, 0.97], anchor='x1',
+                                     ticks='outside', ticklen=5, tickcolor='rgba(0,0,0,0)'), range=[0, max_dmn+50]),
+            xaxis2=dict(axis, **dict(showline=True, domain=[0.91, 0.98], anchor='y2')),
+            yaxis2=dict(axis, **dict(showline=True, domain=[0.65, 0.97], anchor='x2',
+                                     ticks='outside', ticklen=5, tickcolor='rgba(0,0,0,0)'), range=[0, max_all+50]),
+            barmode='stack'
         )
 
         fig = go.Figure(data=data, layout=layout)
@@ -255,6 +252,18 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
         elif self.repository == 'online':
             plotly.tools.set_credentials_file(username=self.plotly_auth[0], api_key=self.plotly_auth[1])
             plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
+        elif self.repository == 'citrix':
+            plotly.offline.plot(fig, image_filename=title, image='png', image_height=1080, image_width=1920)
+            plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
+            time.sleep(5)
+            shutil.move('C:/Users/{}/Downloads/{}.png'.format(self.local_user, title), './files/{}.png'.format(title))
+            citrix = CitrixShareFile(hostname=self.citrix_token['hostname'], client_id=self.citrix_token['client_id'],
+                                     client_secret=self.citrix_token['client_secret'],
+                                     username=self.citrix_token['username'], password=self.citrix_token['password'])
+            citrix.upload_file(folder_id='fofd8511-6564-44f3-94cb-338688544aac',
+                               local_path='./files/{}.png'.format(title))
+            citrix.upload_file(folder_id='fofd8511-6564-44f3-94cb-338688544aac',
+                               local_path=html_file)
 
     def export_to_plot(self):
         self.export_to_plotly()

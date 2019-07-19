@@ -6,10 +6,8 @@ import config_controller
 from adapters.jira_adapter import HISTORY_EXPAND
 from adapters.file_cache import DAY_AGE_READ_FORMAT
 from datetime import datetime
-import os
-import pyodbc
-
 from adapters.sqlite_dao_issue import get_sqlite_dao
+from adapters.mssql_adapter import MssqlAdapter
 
 
 class DataController:
@@ -18,6 +16,7 @@ class DataController:
     _cacheable = None
     _cache_adapter = None
     _jira_adapter = None
+    _mssql_adapter = None
 
     def __init__(self, cacheable=True):
         self._cacheable = cacheable
@@ -27,6 +26,12 @@ class DataController:
         if self._jira_adapter is None:
             self._jira_adapter = JiraAdapter()
         return self._jira_adapter
+
+    def _get_mssql_adapter(self):
+        """Lazy mssql initialization"""
+        if self._mssql_adapter is None:
+            self._mssql_adapter = MssqlAdapter()
+        return self._mssql_adapter
 
     def _get_cache_adapter(self):
         """Lazy cache initialization"""
@@ -141,24 +146,7 @@ class DataController:
         dao_issue.insert_issues(issue_dict, upload_to_file)
         return dao_issue
 
-    # By @alanbryn
-    @staticmethod
-    def get_issues_mssql(mssql_query_file):
-        mssql_database = pyodbc.connect("Driver={ODBC Driver 17 for SQL Server};"
-                                        "Server=SRV-SQL-MIRROR\\JIRAREPORT;"
-                                        "Database=srv-jira-prod-report;"
-                                        "uid=uid;pwd=pwd")
-
-        path = os.path.abspath('./SQL_queries/{}.txt'.format(mssql_query_file))
-        with open(path, 'r') as query:
-            sql_str = query.read()
-            cursor = mssql_database.cursor()
-            cursor.execute(sql_str)
-
-        data = {}
-        for column in cursor.description:
-            data[column[0]] = []
-        for row in cursor:
-            for el, key in zip(row, data.keys()):
-                data[key].append(el)
+    def get_issues_mssql(self, mssql_query_file):
+        mssql = self._get_mssql_adapter()
+        data = mssql.get_issues_mssql(mssql_query_file=mssql_query_file)
         return data

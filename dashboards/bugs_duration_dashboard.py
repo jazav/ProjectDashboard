@@ -7,11 +7,15 @@ from dashboards.dashboard import AbstractDashboard
 from adapters.issue_utils import get_domain, get_domain_by_project
 import numpy
 import statistics
+from adapters.citrix_sharefile_adapter import CitrixShareFile
+import shutil
+import time
 
 
 class BugsDurationDashboard(AbstractDashboard):
     project_list, name_list, created_list, resolutiondate_list, components_list = [], [], [], [], []
-    auto_open, labels, priority, creators, repository, plotly_auth = True, None, None, None, None, None
+    auto_open, labels, priority, creators, repository, plotly_auth, citrix_token, local_user\
+        = True, None, None, None, None, None, None, None
     days_dict, average_list, median_list, max_list, count_list = {}, [], [], [], []
 
     def prepare(self, data):
@@ -235,6 +239,18 @@ class BugsDurationDashboard(AbstractDashboard):
         elif self.repository == 'online':
             plotly.tools.set_credentials_file(username=self.plotly_auth[0], api_key=self.plotly_auth[1])
             plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
+        elif self.repository == 'citrix':
+            plotly.offline.plot(fig, image_filename=title, image='png', image_height=1080, image_width=1920)
+            plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
+            time.sleep(5)
+            shutil.move('C:/Users/{}/Downloads/{}.png'.format(self.local_user, title), './files/{}.png'.format(title))
+            citrix = CitrixShareFile(hostname=self.citrix_token['hostname'], client_id=self.citrix_token['client_id'],
+                                     client_secret=self.citrix_token['client_secret'],
+                                     username=self.citrix_token['username'], password=self.citrix_token['password'])
+            citrix.upload_file(folder_id='fofd8511-6564-44f3-94cb-338688544aac',
+                               local_path='./files/{}.png'.format(title))
+            citrix.upload_file(folder_id='fofd8511-6564-44f3-94cb-338688544aac',
+                               local_path=html_file)
 
     def export_to_plot(self):
         self.export_to_plotly()
