@@ -140,7 +140,7 @@ class DataController:
         issues = jira.create_issue(issues)
         return issues
 
-    def get_issue_sqllite(self, query, expand, upload_to_file):
+    def get_issue_sqllite(self, query, expand, upload_to_file=False):
         issue_dict = self.get_issue_dict(query=query, expand=expand, url='', jira_name='')
         dao_issue = get_sqlite_dao()
         dao_issue.insert_issues(issue_dict, upload_to_file)
