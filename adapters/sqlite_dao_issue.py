@@ -152,7 +152,7 @@ class SqliteDaoIssue(DaoIssue):
                                      value["key"], value["updated"], sprint) + bulk_values + ');'
                     #value["summary"].replace('"', "'")
                     if handle == None:
-                        handle=open("sql_insert_issues.sql", "w")
+                        handle=open("sql_insert_issues.sql", "w", encoding="utf-8")
                     handle.write(write_str)
             except:
                 logging.error("Unexpected error on key:", key, ' value:  ', value, ', error:', sys.exc_info()[0])
