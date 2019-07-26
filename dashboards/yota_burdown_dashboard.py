@@ -11,11 +11,14 @@ import time
 class YotaBurndownDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth, dashboard_type, citrix_token, local_user = True, None, None, None, None, None
     all_spent, all_remain = {}, {}
-    start_date, end_date = None, None
-    estimates, readiness = [], {'Spent': 0, 'Bulk estimate': 0}
+    pp_all_spent, pp_all_remain = {}, {}
+    start_date, end_date, pp_end_date = datetime.date(2019, 2, 18), datetime.date(2020, 3, 1), datetime.date(2019, 11, 1)
+    estimates, readiness, pp_readiness = [], {'spent': 0, 'bulk estimate': 0, 'features': 0},\
+        {'spent': 0, 'bulk estimate': 0, 'features': 0}
 
     def multi_prepare(self, data_spent, data_original):
         all_original, spent, original = {}, 0, 0
+        pp_all_original, pp_spent, pp_original = {}, 0, 0
         for i in range(len(data_spent['key'])):
             k = set()
             for j in range(len(data_spent['key'])):
@@ -24,9 +27,19 @@ class YotaBurndownDashboard(AbstractDashboard):
             if data_spent['created'][i] < self.start_date:
                 spent += float(data_spent['spent'][i]) / len(k)
                 self.all_spent[self.start_date] = spent
+                if data_spent['pilot'][i]:
+                    pp_spent += float(data_spent['spent'][i]) / len(k)
+                    self.pp_all_spent[self.start_date] = pp_spent
             else:
                 spent += float(data_spent['spent'][i]) / len(k)
                 self.all_spent[data_spent['created'][i]] = spent
+                if data_spent['pilot'][i]:
+                    pp_spent += float(data_spent['spent'][i]) / len(k)
+                    self.pp_all_spent[data_spent['created'][i]] = pp_spent
+            if data_spent['status'][i] in ('Closed', 'Resolved', 'Done'):
+                self.readiness['spent'] += float(data_spent['spent'][i]) / len(k)
+                if data_spent['pilot'][i]:
+                    self.pp_readiness['spent'] += float(data_spent['spent'][i]) / len(k)
         for i in range(len(data_original['key'])):
             if data_original['issue type'][i] == 'User Story (L3)':
                 d = json.loads(data_original['estimate'][i])
@@ -34,23 +47,39 @@ class YotaBurndownDashboard(AbstractDashboard):
                 d['Total'] = sum(list(d.values()))
                 self.estimates.append(d)
                 original += float(d['Total']) if d.keys() else 0
-                all_original[self.start_date], self.readiness['Bulk estimate'] = original, original
+                all_original[self.start_date], self.readiness['bulk estimate'] = original, original
+                self.readiness['features'] += 1
+                if data_original['pilot'][i]:
+                    pp_original += float(d['Total']) if d.keys() else 0
+                    pp_all_original[self.start_date], self.pp_readiness['bulk estimate'] = pp_original, pp_original
+                    self.pp_readiness['features'] += 1
             else:
-                if data_original['resolution date'][i] and data_original['component'][i]:
+                if data_original['status'] == 'Closed' and data_original['resolution date'][i]\
+                        and data_original['component'][i]:
                     try:
                         cmp_est = [est[data_original['component'][i]] for est, key
                                    in zip(self.estimates, data_original['key']) if key == data_original['L3'][i]][0]
                         original -= cmp_est
                         self.readiness['Spent'] += cmp_est
                         all_original[data_original['resolution date'][i]] = original
+                        if data_original['pilot'][i]:
+                            pp_original -= cmp_est
+                            self.pp_readiness['Spent'] += cmp_est
+                            pp_all_original[data_original['resolution date'][i]] = pp_original
                     except KeyError:
                         pass
         for dt in self.all_spent.keys():
             if dt not in all_original.keys():
                 all_original[dt] = all_original[max([date for date in all_original.keys() if date < dt])]
+        for dt in self.pp_all_spent.keys():
+            if dt not in pp_all_original.keys():
+                pp_all_original[dt] = pp_all_original[max([date for date in pp_all_original.keys() if date < dt])]
         self.all_remain = {dt: all_original[dt] - self.all_spent[dt] + float(sum(
             [sp for sp, rd in zip(data_spent['spent'], data_spent['resolutiondate']) if rd is not None and rd < dt]))
                            for dt in self.all_spent.keys()}
+        self.pp_all_remain = {dt: pp_all_original[dt] - self.pp_all_spent[dt] + float(sum(
+            [sp for sp, rd, pp in zip(data_spent['spent'], data_spent['resolutiondate'], data_spent['pilot'])
+             if rd is not None and rd < dt and pp])) for dt in self.pp_all_spent.keys()}
 
     def export_to_plotly(self):
         if len(self.all_spent.keys()) == 0:
@@ -72,6 +101,7 @@ class YotaBurndownDashboard(AbstractDashboard):
             line=dict(
                 width=2,
                 color='rgb(31,119,180)',
+                dash='dash'
             ),
             marker=dict(
                 size=1,
@@ -89,11 +119,11 @@ class YotaBurndownDashboard(AbstractDashboard):
             mode='lines+markers+text',
             line=dict(
                 width=2,
-                color='rgb(255,127,14)',
+                color='rgb(31,119,180)',
             ),
             marker=dict(
                 size=1,
-                color='rgb(255,127,14)',
+                color='rgb(31,119,180)',
             )
         ), go.Scatter(
             x=[self.start_date, self.end_date],
@@ -103,9 +133,58 @@ class YotaBurndownDashboard(AbstractDashboard):
             name='',
             mode='lines',
             line=dict(
-                color='rgb(200,200,200)',
+                color='rgba(31,119,180,0.4)',
                 width=2,
-                dash='dash'),
+                dash='dot'),
+            showlegend=False
+        ), go.Scatter(
+            x=list(self.pp_all_spent.keys()),
+            y=list(self.pp_all_spent.values()),
+            xaxis='x1',
+            yaxis='y1',
+            name='Spent (pilot)',
+            text=[str(round(sp, 1)) if not i % 10 else '' for i, sp in enumerate(self.pp_all_spent.values())],
+            textposition='top left',
+            textfont=dict(size=8),
+            mode='lines+markers+text',
+            line=dict(
+                width=2,
+                color='rgb(255,127,14)',
+                dash='dash'
+            ),
+            marker=dict(
+                size=1,
+                color='rgb(255,127,14)',
+            )
+        ), go.Scatter(
+            x=list(self.pp_all_remain.keys()),
+            y=list(self.pp_all_remain.values()),
+            xaxis='x1',
+            yaxis='y1',
+            name='Remain (pilot)',
+            text=[str(round(sp, 1)) if not i % 10 else '' for i, sp in enumerate(self.pp_all_remain.values())],
+            textposition='top right',
+            textfont=dict(size=8),
+            mode='lines+markers+text',
+            line=dict(
+                width=2,
+                color='rgb(255,127,14)',
+            ),
+            marker=dict(
+                size=1,
+                color='rgb(255,127,14)',
+            )
+        ), go.Scatter(
+            x=[self.start_date, self.pp_end_date],
+            y=[max(self.pp_all_remain.values()), 0],
+            xaxis='x1',
+            yaxis='y1',
+            name='',
+            mode='lines',
+            line=dict(
+                color='rgba(255,127,14,0.4)',
+                width=2,
+                dash='dot'),
             showlegend=False
         )]
 
@@ -131,7 +210,7 @@ class YotaBurndownDashboard(AbstractDashboard):
                 showline=True,
                 range=[self.start_date - datetime.timedelta(days=1), self.end_date + datetime.timedelta(days=1)],
                 tickvals=xaxis,
-                ticktext=[xaxis[i] if not i % 5 else '' for i in range(len(xaxis))],
+                ticktext=[xaxis[i].strftime('%d.%m.%y') if not i % 5 else '' for i in range(len(xaxis))],
                 automargin=True
             ),
             yaxis1=dict(
@@ -148,13 +227,17 @@ class YotaBurndownDashboard(AbstractDashboard):
                 range=[0, max(self.all_remain.values()) + 1000],
                 automargin=True
             ),
-            title=title + '<br><b>Total: </b>{}. <b>Readiness: </b>{}%'.format(
-                ', '.join(['{} - {}'.format(key, round(val)) for key, val in self.readiness.items()]),
-                round(self.readiness['Spent'] / self.readiness['Bulk estimate'] * 100)),
+            title=title
+            + '<br><b>Total ({} features):</b> spent - {} md, bulk estimate - {} md. <b>Readiness:</b> {}%'
+            .format(*map(round, [self.readiness['features'], self.readiness['spent'],
+                                 self.readiness['bulk estimate'], self.readiness['spent']
+                                 / self.readiness['bulk estimate'] * 100]))
+            + '<br><b>Pilot priority ({} features):</b> spent - {} md, bulk estimate - {} md. <b>Readiness:</b> {}%'
+            .format(*map(round, [self.pp_readiness['features'], self.pp_readiness['spent'],
+                                 self.pp_readiness['bulk estimate'], self.pp_readiness['spent']
+                                 / self.pp_readiness['bulk estimate'] * 100])),
             legend=dict(
-                orientation='h',
-                x=0.453,
-                y=1
+                orientation='h'
             )
         )
 

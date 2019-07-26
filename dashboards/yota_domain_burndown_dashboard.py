@@ -14,7 +14,7 @@ import json
 class YotaDomainBurndownDashboard(AbstractDashboard):
     auto_open, repository, plotly_auth, dashboard_type, citrix_token, local_user = True, None, None, None, None, None
     all_spent, all_remain = {}, {}
-    start_date, end_date = None, None
+    start_date, end_date = datetime.date(2019, 2, 18), datetime.date(2020, 3, 1)
     estimates = []
 
     def multi_prepare(self, data_spent, data_original):
