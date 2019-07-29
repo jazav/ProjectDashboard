@@ -169,6 +169,14 @@ class SqliteDaoIssue(DaoIssue):
         domain_list = []
         key_list =  []
         unplan_list = []
+        components_condition = '';
+        for component in components_filter.split(','):
+            if components_condition == '':
+                components_condition = '("' + component + '"'
+            else:
+                components_condition = components_condition+ ',"' + component+ '"'
+        if components_condition != '':
+            components_condition = components_condition + ')'
         sql_str = ('''SELECT project,
                            summary,
                            SUM(CASE WHEN status IN ('Closed', 'Resolved') THEN timeoriginalestimate ELSE 0 END) close,
@@ -203,7 +211,7 @@ class SqliteDaoIssue(DaoIssue):
         if sprint_filter != '':
                 sql_str = sql_str + ' AND l3.sprint = "'''+sprint_filter+'" '
         if components_filter != '':
-            sql_str = sql_str + ' AND e.components = "''' + components_filter + '" '
+            sql_str = sql_str + ' AND e.components in ' + components_condition
         # add subtasks query with estimates in tasks
         sql_str = sql_str + (''' UNION ALL
                                    SELECT i.project,
@@ -229,7 +237,7 @@ class SqliteDaoIssue(DaoIssue):
         if sprint_filter != '':
                 sql_str = sql_str + ' AND l3.sprint = "'''+sprint_filter+'" '
         if components_filter != '':
-            sql_str = sql_str + ' AND e.components = "''' + components_filter + '" '
+            sql_str = sql_str + ' AND e.components in ' + components_condition
         # add subtasks query with estimates in Subtasks
         sql_str = sql_str + (''' UNION ALL
                                    SELECT i.project,
@@ -259,24 +267,30 @@ class SqliteDaoIssue(DaoIssue):
         if sprint_filter != '':
             sql_str = sql_str + ' AND l3.sprint = "''' + sprint_filter + '" '
         if components_filter != '':
-            sql_str = sql_str + ' AND e.components = "''' + components_filter + '" '
+            sql_str = sql_str + ' AND e.components in ' + components_condition
         if components_filter != '':
         # add L3 query without epics
+            components_bulk_condition = ''
+            for component in components_filter.split(','):
+                if components_bulk_condition == '':
+                    components_bulk_condition = '(  l3.' + component_to_bulk_field(component)
+                else:
+                    components_bulk_condition = components_bulk_condition + ' + l3.' + component_to_bulk_field(component)
+            components_bulk_condition = components_bulk_condition + ')'
             sql_str = sql_str + ''' UNION ALL
-                                       SELECT "''' + project_filter + '''" project,
-                                              l3.summary,
-                                              l3.key,
-                                              "Unplanned" status,
-                                              l3.''' + "B_" + components_filter.replace(" ", "_").replace("&", "A") + ''' timeoriginalestimate,
-                                              "''' + get_domain(components_filter) + '''" domain
-                                        FROM issues l3
-                                        LEFT JOIN
-                                            issues e ON l3.issue_key = e.parent AND 
-                   e.issuetype = "Epic" AND e.components = "''' + components_filter + '" ' + ' WHERE e.issue_key IS NULL '
+                                           SELECT "''' + project_filter + '''" project,
+                                                  l3.summary,
+                                                  l3.key,
+                                                  "Unplanned" status,
+                                                  ''' + components_bulk_condition + ''' timeoriginalestimate,
+                                                  "''' + get_domain(components_filter) + '''" domain
+                                            FROM issues l3
+                                            LEFT JOIN
+                                                issues e ON l3.issue_key = e.parent AND 
+                       e.issuetype = "Epic" AND e.components in ''' + components_condition + ' WHERE e.issue_key IS NULL '
             if sprint_filter != '':
-                    sql_str = sql_str + ' AND l3.sprint = "'''+sprint_filter+'" '
-            sql_str = sql_str + ' AND l3.' + component_to_bulk_field(components_filter) + '>0'
-
+                sql_str = sql_str + ' AND l3.sprint = "'''+sprint_filter+'" '
+            sql_str = sql_str + ' AND ' + components_bulk_condition +'>0 '
 
         sql_str = sql_str + ' ) GROUP BY ' + group_by + ' HAVING SUM(timeoriginalestimate) >= 0 '
 
