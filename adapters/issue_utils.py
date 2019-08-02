@@ -216,7 +216,7 @@ def get_domain_bssbox(component):
 def domain_shortener(domain):
     return {
         'Quality Control': 'QC', 'Custom': 'Custom', 'Megafon': 'Megafon', 'DevOps': 'DevOps',
-        'Charge Events Storage': 'CES', 'Order Management & Partner Management': 'Ordering & PRM',
+        'Charge Events Storage': 'CES', 'Ordering': 'Ordering & PRM',
         'Documentation': 'Doc', 'Infra': 'Infra', 'DFE': 'DFE', 'System Architecture': 'System Architecture',
         'Billing': 'Billing', 'SRS & PI Analysis': 'Analysis', 'Common': 'Common', 'Payment Management': 'Pays',
         'Network Monetization': 'NWM', 'Arch & SA': 'Arch & SA', 'Design': 'Design',
@@ -470,13 +470,15 @@ BULK_FIELD_MAPPER = {
 "40034": "Business Analysis",
 "40035": "System Architecture",
 "40036": "Design",
-"41807": "Custom Documents"
+"41807": "Custom Documents",
+"42349": "QC Design",
+"41403": "QC Testing"
 }
 
 COMPONENT_FIELD_MAPPER = {
   "Logical Resource Inventory": "CRM1 (Customer Relationship Management)", 
   "Billing": "Billing", 
-  "Ordering": "Order Management & Partner Management", 
+  "Ordering": "Ordering", 
   "Interaction Management": "CRM1 (Customer Relationship Management)", 
   "DevOps": "DevOps", 
   "DFE": "DFE", 
@@ -485,9 +487,9 @@ COMPONENT_FIELD_MAPPER = {
   "Product Catalog": "Product Management", 
   "Custom DAPI": "Custom", 
   "Security": "Infra", 
-  "Customer Order": "Order Management & Partner Management", 
-  "Partner Processes": "Order Management & Partner Management", 
-  "File Storage": "Order Management & Partner Management", 
+  "Customer Order": "Ordering", 
+  "Partner Processes": "Ordering", 
+  "File Storage": "Ordering", 
   "Configuration Manager": "Common", 
   "Ordering Arch & SA": "Arch & SA", 
   "Partners Arch & SA": "Arch & SA", 
@@ -499,7 +501,7 @@ COMPONENT_FIELD_MAPPER = {
   "Infra": "Infra", 
   "Network Monetization": "Network Monetization", 
   "Custom OCS": "Custom", 
-  "Order Capture": "CRM2 (Customer Relationship Management)", 
+  "Order Capture": "Order Capture",
   "System Architecture": "System Architecture", 
   "Party Management": "CRM1 (Customer Relationship Management)", 
   "Custom Components": "Custom", 
@@ -508,24 +510,24 @@ COMPONENT_FIELD_MAPPER = {
   "OM Architecture": "Arch & SA", 
   "Business Analysis": "Business Analysis", 
   "Process Management": "CRM2 (Customer Relationship Management)", 
-  "Service Activation": "Order Management & Partner Management", 
+  "Service Activation": "Ordering", 
   "Performance Testing": "Performance Testing", 
-  "Digital API": "CRM2 (Customer Relationship Management)", 
+  "Digital API": "Digital API",
   "Custom CSRP": "Custom", 
   "Adapter Libraries": "Common", 
-  "Process Engine": "CRM2 (Customer Relationship Management)", 
+  "Process Engine": "Process Engine",
   "Custom Billing & Finances": "Custom", 
   "Reference Data Management": "Product Management", 
   "Product Instances": "Product Instances", 
   "Documentation": "Documentation", 
   "API Management": "Infra", 
   "Custom Ordering": "Custom", 
-  "Partner Billing": "Order Management & Partner Management", 
+  "Partner Billing": "Ordering", 
   "Custom PI & Marketplace": "Custom", 
   "Custom Documents": "Custom", 
   "Message Bus": "Infra", 
   "Shared Libraries": "Common", 
-  "Partner Management": "Order Management & Partner Management", 
+  "Partner Management": "Ordering", 
   "Task Engine": "Infra", 
   "Charge Events Storage": "Charge Events Storage", 
   "Marketplace": "CRM1 (Customer Relationship Management)", 
@@ -795,12 +797,17 @@ def add_fields(fields, issue_dict):
 
 
 def component_to_store_field(field_map_key):
-    return "B_" + BULK_FIELD_MAPPER[field_map_key].replace(" ", "_").replace("&", "A")
+    if field_map_key in BULK_FIELD_MAPPER:
+        return "B_" + BULK_FIELD_MAPPER[field_map_key].replace(" ", "_").replace("&", "A")
+    else:
+        return "B_" + field_map_key
 
 
 def component_to_bulk_field(field_map_key):
-    return "B_" +COMPONENT_FIELD_MAPPER[field_map_key].replace(" ", "_").replace("&", "A")
-
+    if field_map_key in COMPONENT_FIELD_MAPPER:
+        return "B_" +COMPONENT_FIELD_MAPPER[field_map_key].replace(" ", "_").replace("&", "A")
+    else:
+        return "B_" + field_map_key
 
 def add_render_fields(fields, issue_dict):
     # if FIXVERSIONS_FIELD in fields:
