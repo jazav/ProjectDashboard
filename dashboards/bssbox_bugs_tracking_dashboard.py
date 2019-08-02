@@ -106,8 +106,9 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
         header_values = [['<b>{}</b>'.format(head)] for head in self.tracking_data.keys()] + [['<b>Deadline</b>']]
         cells_values = [value if key != 'Key' else
                         list(map(lambda el:'<a href="https://jira.billing.ru/browse/{0}">{0}</a>'.format(el), value))
-                        for key, value in self.tracking_data.items()] + [[deadline(cr, 2) if pr == 'Critical' else
-                        deadline(cr, 1) for cr, pr in zip(self.created_dict, self.tracking_data['Priority'])]]
+                        for key, value in self.tracking_data.items()]\
+            + [[deadline(cr, 2) if pr == 'Critical' else deadline(cr, 1) for cr, pr
+                in zip(self.created_dict, self.tracking_data['Priority'])]]
         data = [go.Table(
             domain=dict(
                 x=[0, 1],
@@ -249,9 +250,9 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
         fig = go.Figure(data=data, layout=layout)
         if self.repository == 'offline':
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
-        elif self.repository == 'online':
-            plotly.tools.set_credentials_file(username=self.plotly_auth[0], api_key=self.plotly_auth[1])
-            plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
+        # elif self.repository == 'online':
+        #     plotly.tools.set_credentials_file(username=self.plotly_auth[0], api_key=self.plotly_auth[1])
+        #     plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
         elif self.repository == 'citrix':
             plotly.offline.plot(fig, image_filename=title, image='png', image_height=1080, image_width=1920)
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)

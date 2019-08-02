@@ -4,7 +4,7 @@ import plotly.graph_objs as go
 import datetime
 from adapters.issue_utils import get_domain_bssbox
 import math
-from plotly import tools
+from plotly import subplots
 from adapters.citrix_sharefile_adapter import CitrixShareFile
 import shutil
 import time
@@ -127,7 +127,7 @@ class DomainBurndownDashboard(AbstractDashboard):
             except ValueError:
                 pass
         cols = math.ceil(len(self.all_spent.keys()) / 2)
-        fig = tools.make_subplots(rows=2, cols=cols, subplot_titles=list(self.all_spent.keys()))
+        fig = subplots.make_subplots(rows=2, cols=cols, subplot_titles=list(self.all_spent.keys()))
         for traces, i, dmn in zip(trace_dict.values(), range(len(trace_dict.keys())), trace_dict.keys()):
             row, col = int(i // cols + 1), int(i % cols + 1)
             for trace in traces:
@@ -157,9 +157,9 @@ class DomainBurndownDashboard(AbstractDashboard):
 
         if self.repository == 'offline':
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
-        elif self.repository == 'online':
-            plotly.tools.set_credentials_file(username=self.plotly_auth[0], api_key=self.plotly_auth[1])
-            plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
+        # elif self.repository == 'online':
+        #     plotly.tools.set_credentials_file(username=self.plotly_auth[0], api_key=self.plotly_auth[1])
+        #     plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
         elif self.repository == 'citrix':
             plotly.offline.plot(fig, image_filename=title, image='png', image_height=1080, image_width=1920)
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)

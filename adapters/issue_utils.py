@@ -207,6 +207,8 @@ def get_domain_bssbox(component):
         'System Monitoring and Operation': 'Infra',
         'Task Engine': 'Infra',
         '': 'Empty',
+        'EPM, HEX, HAS': 'Megafon',
+        'Integration': 'Integration',
         None: 'Empty'
     }[component]
 
