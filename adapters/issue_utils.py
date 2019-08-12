@@ -166,7 +166,6 @@ def get_domain_bssbox(component):
         'File Storage': 'Ordering & PRM',
         'FPM': 'Megafon',
         'GUS': 'Megafon',
-        'Infra': 'Infra',
         'Interaction Management': 'CRM',
         'Lifecycle': 'Common',
         'LIS': 'Megafon',
@@ -209,6 +208,8 @@ def get_domain_bssbox(component):
         '': 'Empty',
         'EPM, HEX, HAS': 'Megafon',
         'Integration': 'Integration',
+        'Custom Activation': 'Custom',
+        'Infrastructure': 'Infra',
         None: 'Empty'
     }[component]
 
