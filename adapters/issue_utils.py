@@ -210,6 +210,7 @@ def get_domain_bssbox(component):
         'Integration': 'Integration',
         'Custom Activation': 'Custom',
         'Infrastructure': 'Infra',
+        'Infra': 'Infra',
         None: 'Empty'
     }[component]
 
@@ -217,7 +218,7 @@ def get_domain_bssbox(component):
 def domain_shortener(domain):
     return {
         'Quality Control': 'QC', 'Custom': 'Custom', 'Megafon': 'Megafon', 'DevOps': 'DevOps',
-        'Charge Events Storage': 'CES', 'Ordering': 'Ordering & PRM',
+        'Charge Events Storage': 'CES', 'Order Management & Partner Management': 'Ordering & PRM',
         'Documentation': 'Doc', 'Infra': 'Infra', 'DFE': 'DFE', 'System Architecture': 'System Architecture',
         'Billing': 'Billing', 'SRS & PI Analysis': 'Analysis', 'Common': 'Common', 'Payment Management': 'Pays',
         'Network Monetization': 'NWM', 'Arch & SA': 'Arch & SA', 'Design': 'Design',
