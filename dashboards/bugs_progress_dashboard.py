@@ -95,72 +95,34 @@ class BugsProgressDashboard(AbstractDashboard):
 
         layout = go.Layout(
             hovermode='closest',
+            plot_bgcolor='white',
             xaxis1=dict(
                 domain=[0, 1],
                 type='date',
                 dtick=86400000,
                 title='Date',
-                titlefont=dict(
-                    size=12,
-                    color='black'
-                ),
-                # title=dict(
-                #     text='Date',
-                #     font=dict(
-                #         size=12,
-                #         color='black'
-                #     )
-                # ),
-                tickfont=dict(
-                    size=16,
-                    color='black'
-                ),
-                anchor='y1'
+                anchor='y1',
+                linecolor='black',
+                gridcolor='rgb(232,232,232)'
             ),
             yaxis1=dict(
                 domain=[0.57, 1],
                 anchor='x1',
                 showline=True,
                 title='Number of bugs',
-                titlefont=dict(
-                    size=12,
-                    color='black'
-                ),
-                # title=dict(
-                #     text='Number of bugs',
-                #     font=dict(
-                #         size=12,
-                #         color='black'
-                #     )
-                # ),
-                tickfont=dict(
-                    size=16,
-                    color='black'
-                )
+                linecolor='black',
+                gridcolor='rgb(232,232,232)'
             ),
             xaxis2=dict(
                 domain=[0, 1],
                 type='date',
                 dtick=86400000,
                 title='Date',
-                titlefont=dict(
-                    size=12,
-                    color='black'
-                ),
-                # title=dict(
-                #     text='Date',
-                #     font=dict(
-                #         size=12,
-                #         color='black'
-                #     )
-                # ),
-                tickfont=dict(
-                    size=16,
-                    color='black'
-                ),
                 anchor='y2',
                 # range=[dates[0], dates[-1]]
-                autorange=True
+                autorange=True,
+                linecolor='black',
+                gridcolor='rgb(232,232,232)'
             ),
             yaxis2=dict(
                 range=[0, int(max(bugs_statuses_progress['Open'])) + 50],
@@ -168,30 +130,17 @@ class BugsProgressDashboard(AbstractDashboard):
                 anchor='x2',
                 showline=True,
                 title='Number of bugs',
-                titlefont=dict(
-                    size=12,
-                    color='black'
-                ),
-                # title=dict(
-                #     text='Number of bugs',
-                #     font=dict(
-                #         size=12,
-                #         color='black'
-                #     )
-                # ),
-                tickfont=dict(
-                    size=16,
-                    color='black'
-                )
+                linecolor='black',
+                gridcolor='rgb(232,232,232)'
             ),
             legend=dict(
-                y=0.5,
-                font=dict(
-                    size=16
-                )
+                y=0.5
             ),
             barmode='stack',
-            title=title + (' <sup>in cloud</sup>' if self.repository == 'online' else '')
+            title=dict(
+                text=title,
+                x=0.5
+            )
         )
 
         fig = go.Figure(data=data, layout=layout)

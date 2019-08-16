@@ -34,7 +34,7 @@ class BaWorkDistributionDashboard(AbstractDashboard):
             text=[round(val, 2) for val in list(self.sprint_distribution.values())],
             textposition='inside',
             marker=dict(
-                color='rgba(29,137,49,0.3)',
+                color='rgba(29,137,49,0.4)',
                 line=dict(
                     color='rgb(29,137,49)',
                     width=2
@@ -47,10 +47,15 @@ class BaWorkDistributionDashboard(AbstractDashboard):
 
         layout = go.Layout(
             hovermode='closest',
-            title='<b>{} as of {}</b>'.format(title, datetime.datetime.now().strftime("%d.%m.%y %H:%M")),
+            plot_bgcolor='white',
+            title=dict(
+                text='<b>{} as of {}</b>'.format(title, datetime.datetime.now().strftime("%d.%m.%y %H:%M")),
+                x=0.5
+            ),
             xaxis=dict(title='Sprints', automargin=True, tickvals=list(self.sprint_distribution.keys()),
-                       ticktext=[tick if len(tick) < 16 else '<br>'.join(textwrap.wrap(tick, 17)) for tick in list(self.sprint_distribution.keys())]),
-            yaxis=dict(title='Man-days')
+                       linecolor='black', showgrid=False, ticktext=[tick if len(tick) < 16 else '<br>'
+                       .join(textwrap.wrap(tick, 17)) for tick in list(self.sprint_distribution.keys())]),
+            yaxis=dict(title='Man-days', linecolor='black', gridcolor='rgb(232,232,232)')
         )
 
         fig = go.Figure(data=data, layout=layout)

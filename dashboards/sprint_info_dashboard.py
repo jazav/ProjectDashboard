@@ -4,7 +4,7 @@ import json
 import plotly
 import plotly.graph_objs as go
 import datetime
-from plotly import tools
+from plotly import subplots
 from adapters.citrix_sharefile_adapter import CitrixShareFile
 import shutil
 import time
@@ -91,7 +91,8 @@ class SprintInfoDashboard(AbstractDashboard):
                 marker=dict(
                     color=color_for_est(est),
                     line=dict(
-                        width=1
+                        width=1,
+                        color='black'
                     )
                 )
             ))
@@ -113,7 +114,8 @@ class SprintInfoDashboard(AbstractDashboard):
                 marker=dict(
                     color=color_for_status(st),
                     line=dict(
-                        width=1
+                        width=1,
+                        color='black'
                     )
                 )
             ))
@@ -125,7 +127,7 @@ class SprintInfoDashboard(AbstractDashboard):
         st_title = '<i><b>Progress of development work<br>Total: </b>{}</i>'.\
             format(', '.join(['{} - {} ({} out of {} md)'.format(key, round(val), round(self.readiness[key]['Spent'], 1),
                                                                  round(self.readiness[key]['Original'], 1)) for key, val in self.prj_st.items()]))
-        fig = tools.make_subplots(rows=2, cols=1, vertical_spacing=0.12, subplot_titles=(est_title, st_title))
+        fig = subplots.make_subplots(rows=2, cols=1, vertical_spacing=0.12, subplot_titles=(est_title, st_title))
         for trace_est in data_est:
             fig.append_trace(trace_est, 1, 1)
         for trace_st in data_st:
@@ -135,18 +137,23 @@ class SprintInfoDashboard(AbstractDashboard):
         # html_file = self.png_dir + "{0}.html".format(title)
         html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 
-        fig['layout'].update(title='<b>{0} as of {1}</b>'.format(self.dashboard_name, datetime.datetime.now().strftime("%d.%m.%y %H:%M"))
-                                   + (' <sup>in cloud</sup>' if self.repository == 'online' else ''), legend=dict(y=0.5), hovermode='closest')
+        fig['layout'].update(legend=dict(y=0.5), hovermode='closest', plot_bgcolor='white')
+        fig['layout']['title'].update(x=0.5, text='<b>{0} as of {1}</b>'
+                                      .format(self.dashboard_name, datetime.datetime.now().strftime("%d.%m.%y %H:%M")))
         fig['layout']['xaxis1'].update(anchor='y1', showgrid=True, tickfont=dict(size=9),
+                                       linecolor='black', gridcolor='rgb(232,232,232)',
                                        tickvals=[key for key in self.est_dict.keys() if key != 'Common'],
                                        ticktext=[key if len(key) < 8 else '<br>'.join(textwrap.wrap(key, 12))
                                                  for key in self.est_dict.keys() if key != 'Common'])
-        fig['layout']['yaxis1'].update(anchor='x1', showline=True, title='Man-days')
+        fig['layout']['yaxis1'].update(anchor='x1', showline=True, title='Man-days',
+                                       linecolor='black', gridcolor='rgb(232,232,232)')
         fig['layout']['xaxis2'].update(anchor='y2', showgrid=True, tickfont=dict(size=9),
+                                       linecolor='black', gridcolor='rgb(232,232,232)',
                                        tickvals=[key for key in self.st_dict.keys() if key != 'Common'],
                                        ticktext=[key if len(key) < 8 else '<br>'.join(textwrap.wrap(key, 12))
                                                  for key in self.st_dict.keys() if key != 'Common'])
-        fig['layout']['yaxis2'].update(anchor='x2', showline=True, title='Count of tasks and sub-tasks')
+        fig['layout']['yaxis2'].update(anchor='x2', showline=True, title='Count of tasks and sub-tasks',
+                                       linecolor='black', gridcolor='rgb(232,232,232)',)
 
         for annotation in fig['layout']['annotations']:
             annotation['font'] = dict(size=14)

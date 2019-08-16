@@ -127,7 +127,8 @@ class FeatureInfoDashboard(AbstractDashboard):
                     name=dmn,
                     showlegend=False,
                     # text=[dmn]*len(estimates.keys()),
-                    text=[dmn + ': {}'.format(max(d[dmn]).strftime('%d.%m')) if len(d[dmn]) > 0 else dmn + ': empty' for d in dd.values()],
+                    text=[dmn + ': {}'.format(max(d[dmn]).strftime('%d.%m'))
+                          if len(d[dmn]) > 0 else dmn + ': empty' for d in dd.values()],
                     textposition='inside',
                     insidetextfont=dict(
                         color=due_color
@@ -165,22 +166,34 @@ class FeatureInfoDashboard(AbstractDashboard):
             # html_file = self.png_dir + "{0}.html".format(title)
             html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 
-            for el in ['<a href="https://jira.billing.ru/browse/{0}">{0}</a>{1}'.format(key, inf) for key, inf in zip(list(estimates.keys()), info)]:
+            for el in ['<a href="https://jira.billing.ru/browse/{0}">{0}</a>{1}'
+                       .format(key, inf) for key, inf in zip(list(estimates.keys()), info)]:
                 print(el)
 
             layout = dict(
-                title='<b>{0} as of {1}</b>'.format(title, datetime.now().strftime("%d.%m.%y %H:%M"))
-                      + (' <sup>in cloud</sup>' if self.repository == 'online' else ''),
+                title=dict(
+                    text='<b>{0} as of {1}</b>'.format(title, datetime.now().strftime("%d.%m.%y %H:%M"))
+                         + (' <sup>in cloud</sup>' if self.repository == 'online' else ''),
+                    x=0.5
+                ),
                 yaxis=dict(
                     automargin=True,
                     tickvals=list(estimates.keys()),
-                    ticktext=['<a href="https://jira.billing.ru/browse/{0}">{0}</a>{1}'.format(key, inf) for key, inf in zip(list(estimates.keys()), info)],
+                    ticktext=['<a href="https://jira.billing.ru/browse/{0}">{0}</a>{1}'
+                              .format(key, inf) for key, inf in zip(list(estimates.keys()), info)],
                     ticks='outside',
                     ticklen=10,
                     tickcolor='rgba(0,0,0,0)',
-                    tickfont=dict(size=10)
+                    tickfont=dict(size=10),
+                    linecolor='black',
+                    gridcolor='rgb(232,232,232)'
                 ),
-                hovermode='closest'
+                xaxis=dict(
+                    linecolor='black',
+                    gridcolor='rgb(232,232,232)'
+                ),
+                hovermode='closest',
+                plot_bgcolor='white'
             )
 
             fig = go.Figure(data=data, layout=layout)

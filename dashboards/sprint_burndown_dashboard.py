@@ -56,7 +56,7 @@ class SprintBurndownDashboard(AbstractDashboard):
                         pp_original -= float(data_original['timeoriginalestimate'][i]) / k
                         pp_all_original[data_original['resolutiondate'][i]] = pp_original
                     self.readiness['spent'] += float(data_original['timeoriginalestimate'][i]) / k
-                    if data_original['pilot']:
+                    if data_original['pilot'][i]:
                         self.pp_readiness['spent'] += float(data_original['timeoriginalestimate'][i]) / k
             else:
                 self.readiness['features'] += 1
@@ -185,7 +185,10 @@ class SprintBurndownDashboard(AbstractDashboard):
 
         layout = go.Layout(
             hovermode='closest',
+            plot_bgcolor='white',
             xaxis1=dict(
+                linecolor='black',
+                gridcolor='rgb(232,232,232)',
                 anchor='y1',
                 type='date',
                 dtick=86400000,
@@ -201,6 +204,8 @@ class SprintBurndownDashboard(AbstractDashboard):
                 range=[self.start - datetime.timedelta(days=1), self.end + datetime.timedelta(days=1)]
             ),
             yaxis1=dict(
+                linecolor='black',
+                gridcolor='rgb(232,232,232)',
                 anchor='x1',
                 showline=True,
                 title='Man-days',
@@ -212,15 +217,18 @@ class SprintBurndownDashboard(AbstractDashboard):
                 ),
                 range=[0, max(self.all_remain.values()) + 100]
             ),
-            title=title
-            + '<br><b>Total ({} features):</b> spent - {} md, original estimate - {} md. <b>Readiness:</b> {}%'
-            .format(*map(round, [self.readiness['features'], self.readiness['spent'],
-                                 self.readiness['original estimate'], self.readiness['spent']
-                                 / self.readiness['original estimate'] * 100]))
-            + '<br><b>Pilot priority ({} features):</b> spent - {} md, original estimate - {} md. <b>Readiness:</b> {}%'
-            .format(*map(round, [self.pp_readiness['features'], self.pp_readiness['spent'],
-                                 self.pp_readiness['original estimate'], self.pp_readiness['spent']
-                                 / self.pp_readiness['original estimate'] * 100])),
+            title=dict(
+                text=title
+                + '<br><b>Total ({} features):</b> spent - {} md, original estimate - {} md. <b>Readiness:</b> {}%'
+                .format(*map(round, [self.readiness['features'], self.readiness['spent'],
+                                     self.readiness['original estimate'], self.readiness['spent']
+                                     / self.readiness['original estimate'] * 100]))
+                + '<br><b>Pilot priority ({} features):</b> spent - {} md, original estimate - {} md. <b>Readiness:</b> {}%'
+                .format(*map(round, [self.pp_readiness['features'], self.pp_readiness['spent'],
+                                     self.pp_readiness['original estimate'], self.pp_readiness['spent']
+                                     / self.pp_readiness['original estimate'] * 100])),
+                x=0.5
+            ),
             legend=dict(
                 orientation='h'
             )

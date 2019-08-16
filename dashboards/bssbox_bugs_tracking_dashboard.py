@@ -120,7 +120,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                 values=header_values,
                 fill=dict(color=['grey']),
                 font=dict(color='white'),
-                line=dict(width=2),
+                line=dict(width=1, color='grey'),
                 align='center'
             ),
             cells=dict(
@@ -129,7 +129,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                 fill=dict(color=alert_action(keys=self.tracking_data['Key'], days=self.tracking_data['Days in progress'],
                                              priorities=self.tracking_data['Priority'], olds=self.old_list)),
                 height=25,
-                line=dict(width=2)
+                line=dict(width=1, color='grey')
             )
         ), go.Bar(
             x=list(self.pivot_data.keys()),
@@ -209,9 +209,13 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
         max_all = max([sum(pd.values()) for pd in self.all_bugs.values()])
         layout = go.Layout(
             hovermode='closest',
-            title='<b>{} ({})</b>'.format(title, datetime.datetime.now().strftime("%d.%m.%y %H:%M"))
-                  + ('<sup> in cloud</sup>' if self.repository == 'online' else '')
-                  + '<br><i>SLA: Blockers - 1 day, Criticals - 2 days</i>',
+            plot_bgcolor='white',
+            title=dict(
+                text='<b>{} ({})</b>'.format(title, datetime.datetime.now().strftime("%d.%m.%y %H:%M"))
+                      + ('<sup> in cloud</sup>' if self.repository == 'online' else '')
+                      + '<br><i>SLA: Blockers - 1 day, Criticals - 2 days</i>',
+                x=0.5
+            ),
             font=dict(family='Oswald, sans-serif', size=12),
             shapes=[dict(
                 type='rect',
@@ -223,7 +227,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                 y1=1,
                 line=dict(
                     color='rgb(0,0,0)',
-                    width=1
+                    width=0.5
                 )
             ), dict(
                 type='rect',
@@ -235,14 +239,14 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                 y1=1,
                 line=dict(
                     color='rgb(0,0,0)',
-                    width=1
+                    width=0.5
                 )
             )],
-            xaxis1=dict(axis, **dict(showline=True, domain=[0.02, 0.86], anchor='y1')),
-            yaxis1=dict(axis, **dict(showline=True, domain=[0.65, 0.97], anchor='x1',
+            xaxis1=dict(axis, **dict(showline=True, domain=[0.02, 0.86], anchor='y1', linecolor='black', showgrid=False)),
+            yaxis1=dict(axis, **dict(showline=True, domain=[0.65, 0.97], anchor='x1', gridcolor='rgb(232,232,232)',
                                      ticks='outside', ticklen=5, tickcolor='rgba(0,0,0,0)'), range=[0, max_dmn+50]),
-            xaxis2=dict(axis, **dict(showline=True, domain=[0.91, 0.98], anchor='y2')),
-            yaxis2=dict(axis, **dict(showline=True, domain=[0.65, 0.97], anchor='x2',
+            xaxis2=dict(axis, **dict(showline=True, domain=[0.91, 0.98], anchor='y2', linecolor='black', showgrid=False)),
+            yaxis2=dict(axis, **dict(showline=True, domain=[0.65, 0.97], anchor='x2', gridcolor='rgb(232,232,232)',
                                      ticks='outside', ticklen=5, tickcolor='rgba(0,0,0,0)'), range=[0, max_all+50]),
             barmode='stack'
         )

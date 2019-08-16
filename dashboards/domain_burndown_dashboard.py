@@ -134,13 +134,15 @@ class DomainBurndownDashboard(AbstractDashboard):
                 fig.append_trace(trace, row, col)
             xaxis, yaxis = 'xaxis{}'.format(i + 1), 'yaxis{}'.format(i + 1)
             fig["layout"][xaxis].update(
+                linecolor='black',
                 type='date',
                 dtick=86400000,
-                showline=False,
+                showline=True,
                 showticklabels=False,
                 showgrid=False
             )
             fig["layout"][yaxis].update(
+                linecolor='black',
                 showline=True,
                 # range=[0, max([math.fabs(rmn) for rmn in remains[dmn].values()]) + 10]
             )
@@ -149,9 +151,9 @@ class DomainBurndownDashboard(AbstractDashboard):
         # html_file = self.png_dir + "{0}.html".format(title)
         html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 
-        fig['layout'].update(title='{0} as of {1}'.format(title, datetime.datetime.now().strftime("%d.%m.%y %H:%M"))
-                                   + (' <sup>in cloud</sup>' if self.repository == 'online' else ''), hovermode='closest',
-                             legend=dict(y=0.5))
+        fig['layout']['title'].update(text='{0} as of {1}'
+                                      .format(title, datetime.datetime.now().strftime("%d.%m.%y %H:%M")), x=0.5)
+        fig['layout'].update(hovermode='closest', legend=dict(orientation='h'), plot_bgcolor='white')
         for annotation in fig['layout']['annotations']:
             annotation['font'] = dict(size=14)
 

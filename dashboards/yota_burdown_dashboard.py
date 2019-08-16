@@ -194,6 +194,7 @@ class YotaBurndownDashboard(AbstractDashboard):
 
         layout = go.Layout(
             hovermode='closest',
+            plot_bgcolor='white',
             xaxis1=dict(
                 domain=[0, 1],
                 anchor='y1',
@@ -211,7 +212,9 @@ class YotaBurndownDashboard(AbstractDashboard):
                 range=[self.start_date - datetime.timedelta(days=1), self.end_date + datetime.timedelta(days=1)],
                 tickvals=xaxis,
                 ticktext=[xaxis[i].strftime('%d.%m.%y') if not i % 5 else '' for i in range(len(xaxis))],
-                automargin=True
+                automargin=True,
+                linecolor='black',
+                gridcolor='rgb(232,232,232)'
             ),
             yaxis1=dict(
                 domain=[0, 1],
@@ -225,17 +228,22 @@ class YotaBurndownDashboard(AbstractDashboard):
                     size=16
                 ),
                 range=[0, max(self.all_remain.values()) + 1000],
-                automargin=True
+                automargin=True,
+                linecolor='black',
+                gridcolor='rgb(232,232,232)'
             ),
-            title=title
-            + '<br><b>Total ({} features):</b> spent - {} md, bulk estimate - {} md. <b>Readiness:</b> {}%'
-            .format(*map(round, [self.readiness['features'], self.readiness['spent'],
-                                 self.readiness['bulk estimate'], self.readiness['spent']
-                                 / self.readiness['bulk estimate'] * 100]))
-            + '<br><b>Pilot priority ({} features):</b> spent - {} md, bulk estimate - {} md. <b>Readiness:</b> {}%'
-            .format(*map(round, [self.pp_readiness['features'], self.pp_readiness['spent'],
-                                 self.pp_readiness['bulk estimate'], self.pp_readiness['spent']
-                                 / self.pp_readiness['bulk estimate'] * 100])),
+            title=dict(
+                text=title
+                + '<br><b>Total ({} features):</b> spent - {} md, bulk estimate - {} md. <b>Readiness:</b> {}%'
+                .format(*map(round, [self.readiness['features'], self.readiness['spent'],
+                                     self.readiness['bulk estimate'], self.readiness['spent']
+                                     / self.readiness['bulk estimate'] * 100]))
+                + '<br><b>Pilot priority ({} features):</b> spent - {} md, bulk estimate - {} md. <b>Readiness:</b> {}%'
+                .format(*map(round, [self.pp_readiness['features'], self.pp_readiness['spent'],
+                                     self.pp_readiness['bulk estimate'], self.pp_readiness['spent']
+                                     / self.pp_readiness['bulk estimate'] * 100])),
+                x=0.5
+            ),
             legend=dict(
                 orientation='h'
             )
