@@ -122,22 +122,30 @@ class AllBugsDashboard(AbstractDashboard):
 
         layout = dict(
             hovermode='closest',
-            title='<b>{0} as of {1}</b>'.format(self.dashboard_name, datetime.now().strftime("%d.%m.%y %H:%M"))
-                  + (' <sup>in cloud</sup>' if self.repository == 'online' else ''),
+            plot_bgcolor='white',
+            title=dict(
+                text='<b>{0} as of {1}</b>'.format(self.dashboard_name, datetime.now().strftime("%d.%m.%y %H:%M"))
+                     + (' <sup>in cloud</sup>' if self.repository == 'online' else ''),
+                x=0.5
+            ),
             barmode='stack',
             xaxis1=dict(domain=[0.065, 0.555], anchor='y1', ticks='outside', ticklen=4, tickcolor='rgba(0,0,0,0)',
-                        automargin=True, tickangle=-90, showgrid=True,
+                        automargin=True, tickangle=-90, showgrid=False, linecolor='black',
                         tickvals=[dmn for dmn in self.bssbox_dict if dmn != 'BSSBox'],
                         ticktext=[dmn if len(dmn) < 8 else '<br>'.join(textwrap.wrap(dmn, 9))
                                   for dmn in self.bssbox_dict if dmn != 'BSSBox']),
-            yaxis1=dict(domain=[0, 1], anchor='x1', ticks='outside', ticklen=8, tickcolor='rgba(0,0,0,0)'),
-            xaxis2=dict(domain=[0, 0.035], anchor='y2', tickangle=-90, showgrid=True),
-            yaxis2=dict(domain=[0, 1], anchor='x2', ticks='outside', ticklen=8, tickcolor='rgba(0,0,0,0)'),
+            yaxis1=dict(domain=[0, 1], anchor='x1', ticks='outside', ticklen=8,
+                        tickcolor='rgba(0,0,0,0)', gridcolor='rgb(232,232,232)'),
+            xaxis2=dict(domain=[0, 0.035], anchor='y2', tickangle=-90, showgrid=False, linecolor='black',),
+            yaxis2=dict(domain=[0, 1], anchor='x2', ticks='outside', ticklen=8,
+                        tickcolor='rgba(0,0,0,0)', gridcolor='rgb(232,232,232)'),
             xaxis3=dict(domain=[0.585, 0.935], anchor='y3', ticks='outside', ticklen=4, tickcolor='rgba(0,0,0,0)',
-                        automargin=True, tickangle=-90, showgrid=True),
-            yaxis3=dict(domain=[0, 1], anchor='x3', ticks='outside', ticklen=8, tickcolor='rgba(0,0,0,0)'),
-            xaxis4=dict(domain=[0.965, 1], anchor='y4', tickangle=-90, showgrid=True),
-            yaxis4=dict(domain=[0, 1], anchor='x4', ticks='outside', ticklen=8, tickcolor='rgba(0,0,0,0)'),
+                        automargin=True, tickangle=-90, showgrid=False, linecolor='black',),
+            yaxis3=dict(domain=[0, 1], anchor='x3', ticks='outside', ticklen=8,
+                        tickcolor='rgba(0,0,0,0)', gridcolor='rgb(232,232,232)'),
+            xaxis4=dict(domain=[0.965, 1], anchor='y4', tickangle=-90, showgrid=False, linecolor='black'),
+            yaxis4=dict(domain=[0, 1], anchor='x4', ticks='outside', ticklen=8,
+                        tickcolor='rgba(0,0,0,0)', gridcolor='rgb(232,232,232)'),
             legend=dict(x=0.39, y=1.04, orientation='h')
         )
 
