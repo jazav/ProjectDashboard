@@ -228,7 +228,7 @@ class SprintBurndownDashboard(AbstractDashboard):
                 .format(*map(round, [self.pp_readiness['features'], self.pp_readiness['spent'],
                                      self.pp_readiness['original estimate'], self.pp_readiness['spent']
                                      / self.pp_readiness['original estimate'] * 100
-                                     if self.readiness['spent'] <= self.readiness['original estimate'] else 100])),
+                                     if self.pp_readiness['spent'] <= self.pp_readiness['original estimate'] else 100])),
                 x=0.5
             ),
             legend=dict(

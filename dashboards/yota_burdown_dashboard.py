@@ -243,7 +243,7 @@ class YotaBurndownDashboard(AbstractDashboard):
                 .format(*map(round, [self.pp_readiness['features'], self.pp_readiness['spent'],
                                      self.pp_readiness['bulk estimate'], self.pp_readiness['spent']
                                      / self.pp_readiness['bulk estimate'] * 100
-                                     if self.readiness['spent'] <= self.readiness['bulk estimate'] else 100])),
+                                     if self.pp_readiness['spent'] <= self.pp_readiness['bulk estimate'] else 100])),
                 x=0.5
             ),
             legend=dict(
