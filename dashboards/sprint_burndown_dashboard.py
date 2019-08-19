@@ -222,11 +222,13 @@ class SprintBurndownDashboard(AbstractDashboard):
                 + '<br><b>Total ({} features):</b> spent - {} md, original estimate - {} md. <b>Readiness:</b> {}%'
                 .format(*map(round, [self.readiness['features'], self.readiness['spent'],
                                      self.readiness['original estimate'], self.readiness['spent']
-                                     / self.readiness['original estimate'] * 100]))
+                                     / self.readiness['original estimate'] * 100
+                                     if self.readiness['spent'] <= self.readiness['original estimate'] else 100]))
                 + '<br><b>Pilot priority ({} features):</b> spent - {} md, original estimate - {} md. <b>Readiness:</b> {}%'
                 .format(*map(round, [self.pp_readiness['features'], self.pp_readiness['spent'],
                                      self.pp_readiness['original estimate'], self.pp_readiness['spent']
-                                     / self.pp_readiness['original estimate'] * 100])),
+                                     / self.pp_readiness['original estimate'] * 100
+                                     if self.readiness['spent'] <= self.readiness['original estimate'] else 100])),
                 x=0.5
             ),
             legend=dict(

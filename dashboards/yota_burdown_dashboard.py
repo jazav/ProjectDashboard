@@ -237,11 +237,13 @@ class YotaBurndownDashboard(AbstractDashboard):
                 + '<br><b>Total ({} features):</b> spent - {} md, bulk estimate - {} md. <b>Readiness:</b> {}%'
                 .format(*map(round, [self.readiness['features'], self.readiness['spent'],
                                      self.readiness['bulk estimate'], self.readiness['spent']
-                                     / self.readiness['bulk estimate'] * 100]))
+                                     / self.readiness['bulk estimate'] * 100
+                                     if self.readiness['spent'] <= self.readiness['bulk estimate'] else 100]))
                 + '<br><b>Pilot priority ({} features):</b> spent - {} md, bulk estimate - {} md. <b>Readiness:</b> {}%'
                 .format(*map(round, [self.pp_readiness['features'], self.pp_readiness['spent'],
                                      self.pp_readiness['bulk estimate'], self.pp_readiness['spent']
-                                     / self.pp_readiness['bulk estimate'] * 100])),
+                                     / self.pp_readiness['bulk estimate'] * 100
+                                     if self.readiness['spent'] <= self.readiness['bulk estimate'] else 100])),
                 x=0.5
             ),
             legend=dict(
