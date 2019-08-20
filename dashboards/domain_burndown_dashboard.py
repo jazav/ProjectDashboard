@@ -16,68 +16,62 @@ class DomainBurndownDashboard(AbstractDashboard):
     end = datetime.date(2019, 8, 14)
 
     def multi_prepare(self, data_spent, data_original):
-        # dmns = ['BA', 'System Architecture', 'Arch & SA', 'Billing', 'CES', 'Pays', 'CRM1', 'CRM2',
-        #         'Ordering & PRM', 'PSC', 'Performance Testing', 'DevOps']
-        # self.all_spent = {dmn: {} for dmn in dmns}
         all_original, spent, original = {}, {}, {}
-        spent_domains, original_domains = [], []
         for i in range(len(data_spent['key'])):
-            spent_domains.append(get_domain_bssbox(data_spent['component'][i]))
-            if spent_domains[i] not in spent.keys():
-                spent[spent_domains[i]] = 0
-        for i in range(len(data_original['key'])):
-            original_domains.append(get_domain_bssbox(data_original['component'][i]))
-            if data_original['issue type'][i] != 'User Story (L3)':
-                if data_original['status'][i] not in ('Closed', 'Resolved'):
-                    if original_domains[i] not in original.keys():
-                        original[original_domains[i]] = 0
-                    original[original_domains[i]] += float(data_original['timeoriginalestimate'][i])
-                else:
-                    if original_domains[i] not in original.keys():
-                        original[original_domains[i]] = 0
-        for i in range(len(data_spent['key'])):
-            if spent_domains[i] not in self.all_spent.keys():
-                self.all_spent[spent_domains[i]] = {}
-            spent[spent_domains[i]] += float(data_spent['spent'][i])
-            self.all_spent[spent_domains[i]][data_spent['created'][i]] = spent[spent_domains[i]]
+            k = set()
+            for j in range(len(data_spent['key'])):
+                if data_spent['key'][j] == data_spent['key'][i]:
+                    k.add(data_spent['component'][j])
+            k = len(k)
+            domain = get_domain_bssbox(data_spent['component'][i])
+            if domain not in spent.keys():
+                spent[domain], self.all_spent[domain] = 0, {}
+            spent[domain] += float(data_spent['spent'][i]) / k
+            self.all_spent[domain][data_spent['created'][i]] = spent[domain]
         for i in range(len(data_original['key'])):
             if data_original['issue type'][i] != 'User Story (L3)':
-                if data_original['resolutiondate'][i] is not None:
-                    if original_domains[i] not in all_original.keys():
-                        all_original[original_domains[i]] = {datetime.datetime.now().date(): original[original_domains[i]]}
-                    original[original_domains[i]] += float(data_original['timeoriginalestimate'][i])
-                    all_original[original_domains[i]][data_original['resolutiondate'][i]] = original[original_domains[i]]
+                domain = get_domain_bssbox(data_original['component'][i])
+                k = data_original['key'].count(data_original['key'][i])
+                if domain not in original.keys():
+                    original[domain] = sum([float(data_original['timeoriginalestimate'][j]) / k
+                                            for j in range(len(data_original['key']))
+                                            if data_original['issue type'][j] != 'User Story (L3)'
+                                            and get_domain_bssbox(data_original['component'][j]) == domain])
+                    all_original[domain] = {data_original['created'][i]: original[domain]}
+                if data_original['status'][i] in ('Closed', 'Resolved', 'Done') and data_original['resolutiondate'][i]:
+                    original[domain] -= float(data_original['timeoriginalestimate'][i]) / k
+                    all_original[domain][data_original['resolutiondate'][i]] = original[domain]
+
+        for dt, oe in all_original['Empty'].items():
+            print(dt, oe)
         for dmn, spents in self.all_spent.items():
-            if dmn not in all_original.keys():
-                all_original[dmn] = {dt: 0 for dt in spents.keys()}
-            for dt in spents.keys():
-                if dt not in all_original[dmn].keys():
+            for date in spents.keys():
+                if date not in all_original[dmn].keys():
                     try:
-                        all_original[dmn][dt] = all_original[dmn][max([date for date in all_original[dmn].keys() if date < dt])]
+                        all_original[dmn][date] = all_original[dmn][max([dt for dt in all_original[dmn].keys() if dt < date])]
                     except ValueError:
-                        all_original[dmn][dt] = all_original[dmn][list(all_original[dmn].keys())[-1]]
+                        all_original[dmn][date] = max(all_original[dmn].values())
         for dmn in all_original:
             all_original[dmn] = {dt: all_original[dmn][dt] for dt in sorted(all_original[dmn].keys())}
-        for dmn, origs in all_original.items():
-            if dmn not in self.all_spent:
-                self.all_spent[dmn] = {dt: 0 for dt in origs.keys()}
-            for dt in origs.keys():
-                if dt not in self.all_spent[dmn].keys():
-                    try:
-                        self.all_spent[dmn][dt] = self.all_spent[dmn][max([date for date in self.all_spent[dmn].keys() if date < dt])]
-                    except ValueError:
-                        self.all_spent[dmn][dt] = self.all_spent[dmn][list(self.all_spent[dmn].keys())[0]]
-        for dmn in self.all_spent:
-            self.all_spent[dmn] = {dt: self.all_spent[dmn][dt] for dt in sorted(self.all_spent[dmn].keys())}
-        for dmn in self.all_spent.keys():
-            if dmn == 'Analysis':
-                print([all_original[dmn][dt] for dt in sorted(all_original[dmn].keys())])
-                print([round(sp, 3) for sp in self.all_spent[dmn].values()])
-                print([float(sum([sp for sp, rd, domain in zip(data_spent['spent'], data_spent['resolutiondate'], spent_domains)
-                                  if domain == dmn and rd is not None and rd < dt])) for dt in self.all_spent[dmn].keys()])
-            self.all_remain[dmn] = {dt: all_original[dmn][dt] - self.all_spent[dmn][dt]
-                                    + float(sum([sp for sp, rd, domain in zip(data_spent['spent'], data_spent['resolutiondate'], spent_domains)
-                                            if domain == dmn and rd is not None and rd <= dt])) for dt in self.all_spent[dmn].keys()}
+        print()
+        for dt, oe in all_original['Empty'].items():
+            print(dt, oe)
+
+        for domain in self.all_spent.keys():
+            self.all_remain[domain] = {}
+            for dt in self.all_spent[domain].keys():
+                sp = 0
+                for i in range(len(data_spent['key'])):
+                    if domain == get_domain_bssbox(data_spent['component'][i]):
+                        k = set()
+                        for j in range(len(data_spent['key'])):
+                            if data_spent['key'][j] == data_spent['key'][i]:
+                                k.add(data_spent['component'][j])
+                        k = len(k)
+                        if data_spent['status'][i] in ('Closed', 'Resolved', 'Done') \
+                                and data_spent['resolutiondate'][i] and data_spent['resolutiondate'][i] <= dt:
+                            sp += float(data_spent['spent'][i]) / k
+                self.all_remain[domain][dt] = all_original[domain][dt] - (self.all_spent[domain][dt] - sp)
 
     def export_to_plotly(self):
         trace_dict = {dmn: [] for dmn in self.all_spent.keys()}

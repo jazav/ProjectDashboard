@@ -34,10 +34,9 @@ class SprintBurndownDashboard(AbstractDashboard):
                 if data_spent['pilot'][i]:
                     pp_spent += float(data_spent['spent'][i]) / k
                     self.pp_all_spent[data_spent['created'][i]] = pp_spent
-            if data_spent['status'][i] not in ('Closed', 'Resolved', 'Done'):
-                self.readiness['spent'] += float(data_spent['spent'][i]) / k
-                if data_spent['pilot'][i]:
-                    self.pp_readiness['spent'] += float(data_spent['spent'][i]) / k
+            self.readiness['spent'] += float(data_spent['spent'][i]) / k
+            if data_spent['pilot'][i]:
+                self.pp_readiness['spent'] += float(data_spent['spent'][i]) / k
         original = sum([float(data_original['timeoriginalestimate'][i]) / data_original['key'].
                        count(data_original['key'][i]) for i in range(len(data_original['key']))
                         if data_original['issue type'][i] != 'User Story (L3)'])
@@ -55,9 +54,6 @@ class SprintBurndownDashboard(AbstractDashboard):
                     if data_original['pilot'][i]:
                         pp_original -= float(data_original['timeoriginalestimate'][i]) / k
                         pp_all_original[data_original['resolutiondate'][i]] = pp_original
-                    self.readiness['spent'] += float(data_original['timeoriginalestimate'][i]) / k
-                    if data_original['pilot'][i]:
-                        self.pp_readiness['spent'] += float(data_original['timeoriginalestimate'][i]) / k
             else:
                 self.readiness['features'] += 1
                 if data_original['pilot'][i]:

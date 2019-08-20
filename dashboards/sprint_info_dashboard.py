@@ -45,20 +45,19 @@ class SprintInfoDashboard(AbstractDashboard):
                     self.est_dict[component] = {'Capacity': capacity_dict.get(component, 0), 'Bulk estimate': 0,
                                                 'Original estimate': 0, 'Spent time': 0}
                     self.st_dict[component] = {'Open': 0, 'Dev': 0, 'Done': 0}
-                self.est_dict[component]['Original estimate'] += int(data['Estimate'][i]) / 28800
-                self.prj_est['Original estimate'] += int(data['Estimate'][i]) / 28800 / k
-                self.est_dict[component]['Spent time'] += int(data['Spent time'][i]) / 28800
-                self.prj_est['Spent time'] += int(data['Spent time'][i]) / 28800 / k
+                self.est_dict[component]['Original estimate'] += float(data['Estimate'][i]) / 28800
+                self.prj_est['Original estimate'] += float(data['Estimate'][i]) / 28800 / k
+                self.est_dict[component]['Spent time'] += float(data['Spent time'][i]) / 28800
+                self.prj_est['Spent time'] += float(data['Spent time'][i]) / 28800 / k
                 self.st_dict[component][data['Status'][i]] += 1
                 self.prj_st[data['Status'][i]] += 1 / k
-                self.readiness[data['Status'][i]]['Spent'] += int(data['Spent time'][i]) / 28800 / k\
-                    if data['Status'][i] not in ('Closed', 'Resolved', 'Done')\
-                    else int(data['Estimate'][i]) / 28800 / k
-                self.readiness[data['Status'][i]]['Original'] += int(data['Estimate'][i]) / 28800 / k
+                self.readiness[data['Status'][i]]['Spent'] += float(data['Spent time'][i]) / 28800 / k
+                self.readiness[data['Status'][i]]['Original'] += float(data['Estimate'][i]) / 28800 / k
                 if component not in ('QC', 'Doc'):
-                    spent += int(data['Spent time'][i]) / 28800 / k if data['Status'][i] != 'Done'\
-                        else int(data['Estimate'][i]) / 28800 / k
-                    original += int(data['Estimate'][i]) / 28800 / k
+                    spent += float(data['Spent time'][i]) / 28800 / k
+                    original += float(data['Spent time'][i]) / 28800 / k \
+                        if float(data['Spent time'][i]) > float(data['Estimate'][i]) or data['Status'][i] == 'Done' \
+                        else float(data['Estimate'][i]) / 28800 / k
             else:
                 d = json.loads(data['Estimate'][i])
                 for cmp in d.keys():
@@ -69,7 +68,7 @@ class SprintInfoDashboard(AbstractDashboard):
                         self.st_dict[domain] = {'Open': 0, 'Dev': 0, 'Done': 0}
                     self.est_dict[domain]['Bulk estimate'] += float(d[cmp])
                     self.prj_est['Bulk estimate'] += float(d[cmp])
-        self.readiness['Total'] = round(spent / original * 100)
+        self.readiness['Total'] = round(spent / original * 100) if spent <= original else 100
         print(spent, original, self.readiness['Total'])
 
     def export_to_plotly(self):
@@ -123,10 +122,10 @@ class SprintInfoDashboard(AbstractDashboard):
                     zip(base, [counts[st] for key, counts in list(self.st_dict.items()) if key != 'Common'])]
 
         est_title = '<i><b>Ratio of high level estimates, original estimates and spent time<br>Total: </b>{}. <b>Readiness: </b>{}%</i>'.\
-            format(', '.join(['{} - {} md'.format(key, round(val)) for key, val in self.prj_est.items()]), self.readiness['Total'])
+            format(', '.join(['{} - {} md'.format(est, round(val)) for est, val in self.prj_est.items()]), self.readiness['Total'])
         st_title = '<i><b>Progress of development work<br>Total: </b>{}</i>'.\
-            format(', '.join(['{} - {} ({} out of {} md)'.format(key, round(val), round(self.readiness[key]['Spent'], 1),
-                                                                 round(self.readiness[key]['Original'], 1)) for key, val in self.prj_st.items()]))
+            format(', '.join(['{} - {} ({} out of {} md)'.format(status, round(count), round(self.readiness[status]['Spent'], 1),
+                                                                 round(self.readiness[status]['Original'], 1)) for status, count in self.prj_st.items()]))
         fig = subplots.make_subplots(rows=2, cols=1, vertical_spacing=0.12, subplot_titles=(est_title, st_title))
         for trace_est in data_est:
             fig.append_trace(trace_est, 1, 1)

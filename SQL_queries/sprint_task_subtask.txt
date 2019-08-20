@@ -46,14 +46,18 @@ subtasks AS (
 		INNER JOIN tasks ON tasks.ID = st_il.SOURCE
 	WHERE st_it.pname != 'Sub-bug' AND st_ilt.LINKNAME = 'jira_subtask_link' AND st_il.SOURCE IN (SELECT ID FROM tasks))
 
-SELECT user_stories.pilot AS 'pilot', user_stories.[issue type] AS 'issue type', user_stories.[key] AS 'key', NULL AS 'component', NULL AS 'status', NULL AS 'timeoriginalestimate', NULL AS 'resolutiondate'
+SELECT user_stories.pilot AS 'pilot', user_stories.[issue type] AS 'issue type', user_stories.[key] AS 'key', NULL AS 'component', NULL AS 'status', NULL AS 'resolutiondate', NULL AS 'created', NULL AS 'timeoriginalestimate'
 FROM user_stories
 UNION
-SELECT issues.pilot AS 'pilot', issues.[issue type] AS 'issue type', CONCAT_WS('-', prj.pkey, ji.issuenum) AS 'key', issues.component AS 'component', ist.pname AS 'status',
-	(CASE WHEN ji.TIMEORIGINALESTIMATE IS NULL THEN 0 ELSE CAST((CONVERT(decimal, CONVERT(nvarchar, ji.TIMEORIGINALESTIMATE))/28800) AS numeric(17,3)) END) AS 'timeoriginalestimate', CONVERT(date, ji.RESOLUTIONDATE) AS 'resolutiondate'
-FROM [srv-jira-prod-report].[dbo].[jiraissue] AS ji
-	INNER JOIN [srv-jira-prod-report].[dbo].[issuestatus] AS ist ON ist.ID = ji.issuestatus
-	INNER JOIN [srv-jira-prod-report].[dbo].[project] AS prj ON prj.ID = ji.PROJECT
-	INNER JOIN (SELECT * FROM tasks UNION SELECT * FROM subtasks) AS issues ON issues.ID = ji.ID
-WHERE ist.pname != 'Canceled'
+SELECT tst.pilot, tst.[issue type], tst.[key], tst.component, tst.[status], tst.resolutiondate, tst.created,
+	(CASE WHEN tst.timespent > tst.timeoriginalestimate OR tst.[status] IN ('Closed', 'Resolved', 'Done') THEN tst.timespent ELSE tst.timeoriginalestimate END) AS 'timeoriginalestimate'
+FROM (
+	SELECT issues.pilot AS 'pilot', issues.[issue type] AS 'issue type', CONCAT_WS('-', prj.pkey, ji.issuenum) AS 'key', issues.component AS 'component', ist.pname AS 'status', CONVERT(date, ji.RESOLUTIONDATE) AS 'resolutiondate',
+		(CASE WHEN ji.TIMEORIGINALESTIMATE IS NULL THEN 0 ELSE CAST((CONVERT(decimal, CONVERT(nvarchar, ji.TIMEORIGINALESTIMATE))/28800) AS numeric(17,3)) END) AS 'timeoriginalestimate',
+		(CASE WHEN ji.TIMESPENT IS NULL THEN 0 ELSE CAST((CONVERT(decimal, CONVERT(nvarchar, ji.TIMESPENT))/28800) AS numeric(17,3)) END) AS 'timespent',  CONVERT(date, ji.CREATED) AS 'created'
+	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS ji
+		INNER JOIN [srv-jira-prod-report].[dbo].[issuestatus] AS ist ON ist.ID = ji.issuestatus
+		INNER JOIN [srv-jira-prod-report].[dbo].[project] AS prj ON prj.ID = ji.PROJECT
+		INNER JOIN (SELECT * FROM tasks UNION SELECT * FROM subtasks) AS issues ON issues.ID = ji.ID
+	WHERE ist.pname != 'Canceled') AS tst
 ORDER BY [resolutiondate]
