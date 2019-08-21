@@ -291,7 +291,7 @@ def main(argv):
             dshc.dashboard_sprint_overview(auto_open=(name_space.auto_open.upper() == 'TRUE'),
                                            repository=name_space.repository.lower(), local_user=name_space.local_user,
                                            citrix_token=json.loads(name_space.citrix_token.replace('\'', '"')),
-                                           user=name_space.user, password=name_space.password)
+                                           user=name_space.user, password=name_space.password, sprint=name_space.sprint)
         # --------------------------------------------------------------------------------------------------------------
         # if name_space.name == "bugs_density":
         #     dshc.dashboard_bugs_density(auto_open=(name_space.auto_open.upper() == 'TRUE'),

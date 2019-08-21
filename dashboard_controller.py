@@ -1,6 +1,11 @@
+import logging
+from os import path
 from threading import Timer
+import datetime
 import adapters.issue_utils as iu
+import config_controller
 from adapters.file_cache import FileCache
+from config_controller import *
 from dashboards.bugs_density_dashboard import BugsDensityDashboard
 from dashboards.feature_heatmap_dashboard import FeatureHeatmapDashboard
 from dashboards.feature_progress_dashboard import FeatureProgressDashboard
@@ -470,16 +475,16 @@ class DashboardController:
 
     # By @alanbryn
     @staticmethod
-    def dashboard_sprint_overview(auto_open, repository, citrix_token, local_user, user, password):
+    def dashboard_sprint_overview(auto_open, repository, citrix_token, local_user, user, password, sprint):
         dashboard = SprintOverviewDashboard()
-        dashboard.dashboard_name = ''
+        dashboard.dashboard_name = '{} overview'.format(sprint)
         dashboard.auto_open = auto_open
         dashboard.repository = repository
         dashboard.citrix_token = citrix_token
         dashboard.local_user = local_user
         dashboard.user = user
         dashboard.password = password
-        dashboard.prepare_data()
+        dashboard.sprint = sprint
         dashboard.export_to_plot()
 
     # @staticmethod
