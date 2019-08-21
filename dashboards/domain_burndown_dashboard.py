@@ -11,23 +11,26 @@ import time
 
 
 class DomainBurndownDashboard(AbstractDashboard):
-    auto_open, repository, plotly_auth, dashboard_type, citrix_token, local_user = True, None, None, None, None, None
+    auto_open, repository, dashboard_type, citrix_token, local_user = True, None, None, None, None
     all_spent, all_remain = {}, {}
-    end = datetime.date(2019, 8, 14)
+    end_date = datetime.date(2019, 8, 14)
 
     def multi_prepare(self, data_spent, data_original):
-        all_original, spent, original = {}, {}, {}
+        all_original, spent, original, kk = {}, {}, {}, []
+
         for i in range(len(data_spent['key'])):
             k = set()
             for j in range(len(data_spent['key'])):
                 if data_spent['key'][j] == data_spent['key'][i]:
                     k.add(data_spent['component'][j])
             k = len(k)
+            kk.append(k)
             domain = get_domain_bssbox(data_spent['component'][i])
             if domain not in spent.keys():
                 spent[domain], self.all_spent[domain] = 0, {}
             spent[domain] += float(data_spent['spent'][i]) / k
             self.all_spent[domain][data_spent['created'][i]] = spent[domain]
+
         for i in range(len(data_original['key'])):
             if data_original['issue type'][i] != 'User Story (L3)':
                 domain = get_domain_bssbox(data_original['component'][i])
@@ -42,35 +45,27 @@ class DomainBurndownDashboard(AbstractDashboard):
                     original[domain] -= float(data_original['timeoriginalestimate'][i]) / k
                     all_original[domain][data_original['resolutiondate'][i]] = original[domain]
 
-        for dt, oe in all_original['Empty'].items():
-            print(dt, oe)
+        for dmn in all_original:
+            all_original[dmn] = {dt: all_original[dmn][dt] for dt in sorted(all_original[dmn].keys())}
         for dmn, spents in self.all_spent.items():
             for date in spents.keys():
                 if date not in all_original[dmn].keys():
                     try:
-                        all_original[dmn][date] = all_original[dmn][max([dt for dt in all_original[dmn].keys() if dt < date])]
+                        all_original[dmn][date] = all_original[dmn][max([
+                            dt for dt in all_original[dmn].keys() if dt < date])]
                     except ValueError:
-                        all_original[dmn][date] = max(all_original[dmn].values())
-        for dmn in all_original:
-            all_original[dmn] = {dt: all_original[dmn][dt] for dt in sorted(all_original[dmn].keys())}
-        print()
-        for dt, oe in all_original['Empty'].items():
-            print(dt, oe)
+                        all_original[dmn][date] = all_original[dmn][list(all_original[dmn].keys())[0]]
 
         for domain in self.all_spent.keys():
             self.all_remain[domain] = {}
             for dt in self.all_spent[domain].keys():
                 sp = 0
-                for i in range(len(data_spent['key'])):
-                    if domain == get_domain_bssbox(data_spent['component'][i]):
-                        k = set()
-                        for j in range(len(data_spent['key'])):
-                            if data_spent['key'][j] == data_spent['key'][i]:
-                                k.add(data_spent['component'][j])
-                        k = len(k)
-                        if data_spent['status'][i] in ('Closed', 'Resolved', 'Done') \
-                                and data_spent['resolutiondate'][i] and data_spent['resolutiondate'][i] <= dt:
-                            sp += float(data_spent['spent'][i]) / k
+                for i, k in zip(range(len(data_spent['key'])), kk):
+                    if domain == get_domain_bssbox(data_spent['component'][i]) \
+                            and data_spent['status'][i] in ('Closed', 'Resolved', 'Done') \
+                            and data_spent['resolutiondate'][i] \
+                            and data_spent['resolutiondate'][i] <= dt:
+                        sp += float(data_spent['spent'][i]) / k
                 self.all_remain[domain][dt] = all_original[domain][dt] - (self.all_spent[domain][dt] - sp)
 
     def export_to_plotly(self):
@@ -108,7 +103,7 @@ class DomainBurndownDashboard(AbstractDashboard):
             ))
             try:
                 trace_dict[dmn].append(go.Scatter(
-                    x=[min(self.all_remain[dmn].keys()), self.end],
+                    x=[min(self.all_remain[dmn].keys()), self.end_date],
                     y=[max([math.fabs(rmn) for rmn in self.all_remain[dmn].values()]), 0],
                     name='',
                     mode='lines',
@@ -153,9 +148,6 @@ class DomainBurndownDashboard(AbstractDashboard):
 
         if self.repository == 'offline':
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
-        # elif self.repository == 'online':
-        #     plotly.tools.set_credentials_file(username=self.plotly_auth[0], api_key=self.plotly_auth[1])
-        #     plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
         elif self.repository == 'citrix':
             plotly.offline.plot(fig, image_filename=title, image='png', image_height=1080, image_width=1920)
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)

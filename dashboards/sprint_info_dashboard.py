@@ -28,15 +28,17 @@ def color_for_est(est):
 
 
 class SprintInfoDashboard(AbstractDashboard):
-    auto_open, repository, plotly_auth, citrix_token, local_user = True, None, None, None, None
+    auto_open, repository, citrix_token, local_user = True, None, None, None
     est_dict, st_dict = {}, {}
-    prj_est, prj_st = {'Bulk estimate': 0, 'Original estimate': 0, 'Spent time': 0}, {'Open': 0, 'Dev': 0, 'Done': 0}
+    prj_est, prj_st = {'Capacity': 0, 'Bulk estimate': 0, 'Original estimate': 0,
+                       'Spent time': 0}, {'Open': 0, 'Dev': 0, 'Done': 0}
     readiness = {'Open': {'Spent': 0, 'Original': 0}, 'Dev': {'Spent': 0, 'Original': 0},
                  'Done': {'Spent': 0, 'Original': 0}, 'Total': 0}
 
     def prepare(self, data):
         spent, original = 0, 0
         capacity_dict = {domain_shortener(cap[0]): cap[1] for cap in load_capacity()}
+        self.prj_est['Capacity'] = sum(capacity_dict.values())
         for i in range(len(data['Key'])):
             if data['Issue type'][i] != 'User Story (L3)':
                 k = data['Key'].count(data['Key'][i])
@@ -159,9 +161,6 @@ class SprintInfoDashboard(AbstractDashboard):
 
         if self.repository == 'offline':
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
-        # elif self.repository == 'online':
-        #     plotly.tools.set_credentials_file(username=self.plotly_auth[0], api_key=self.plotly_auth[1])
-        #     plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
         elif self.repository == 'citrix':
             plotly.offline.plot(fig, image_filename=title, image='png', image_height=1080, image_width=1920)
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)

@@ -18,7 +18,7 @@ bulk_convert = {'Quality Control': 'QC', 'Custom': 'Custom', 'Megafon': 'Megafon
 
 
 class FeatureInfoDashboard(AbstractDashboard):
-    auto_open, repository, plotly_auth, citrix_token, local_user = True, None, None, None, None
+    auto_open, repository, citrix_token, local_user = True, None, None, None
     feature_dict, spent_dict, info, wrong_estimates, due_dates, readiness_dict, threat_list = {}, {}, [], {}, {}, {}, []
     end_date = datetime(2019, 8, 14)
 
@@ -199,9 +199,6 @@ class FeatureInfoDashboard(AbstractDashboard):
             fig = go.Figure(data=data, layout=layout)
             if self.repository == 'offline':
                 plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
-            # elif self.repository == 'online':
-            #     plotly.tools.set_credentials_file(username=self.plotly_auth[0], api_key=self.plotly_auth[1])
-            #     plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
             elif self.repository == 'citrix':
                 plotly.offline.plot(fig, image_filename=title, image='png', image_height=1080, image_width=1920)
                 plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)

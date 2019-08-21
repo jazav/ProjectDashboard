@@ -19,7 +19,7 @@ def color_for_status(status):
 
 
 class AllBugsDashboard(AbstractDashboard):
-    auto_open, repository, plotly_auth, citrix_token, local_user = True, None, None, None, None
+    auto_open, repository, citrix_token, local_user = True, None, None, None
     bssbox_dict, domain_dict = {'BSSBox': {'open': 0, 'in fix': 0, 'resolved': 0, 'closed': 0}},\
                                {'Total': {'open': 0, 'in fix': 0, 'resolved': 0, 'closed': 0}}
 
@@ -152,9 +152,6 @@ class AllBugsDashboard(AbstractDashboard):
         fig = go.Figure(data=data, layout=layout)
         if self.repository == 'offline':
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
-        # elif self.repository == 'online':
-        #     plotly.tools.set_credentials_file(username=self.plotly_auth[0], api_key=self.plotly_auth[1])
-        #     plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
         elif self.repository == 'citrix':
             plotly.offline.plot(fig, image_filename=title, image='png', image_height=1080, image_width=1920)
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)

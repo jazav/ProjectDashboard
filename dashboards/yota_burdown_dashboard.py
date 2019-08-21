@@ -9,43 +9,48 @@ import time
 
 
 class YotaBurndownDashboard(AbstractDashboard):
-    auto_open, repository, plotly_auth, dashboard_type, citrix_token, local_user = True, None, None, None, None, None
+    auto_open, repository, dashboard_type, citrix_token, local_user = True, None, None, None, None
     all_spent, all_remain = {}, {}
     pp_all_spent, pp_all_remain = {}, {}
     start_date, end_date, pp_end_date = datetime.date(2019, 2, 18), datetime.date(2020, 3, 1), datetime.date(2019, 11, 1)
-    estimates, readiness, pp_readiness = [], {'spent': 0, 'bulk estimate': 0, 'features': 0},\
-        {'spent': 0, 'bulk estimate': 0, 'features': 0}
+    readiness, pp_readiness = {'spent': 0, 'bulk estimate': 0, 'features': 0},\
+                              {'spent': 0, 'bulk estimate': 0, 'features': 0}
 
     def multi_prepare(self, data_spent, data_original):
         all_original, spent, original = {}, 0, 0
         pp_all_original, pp_spent, pp_original = {}, 0, 0
+        kk = []
+
         for i in range(len(data_spent['key'])):
             k = set()
             for j in range(len(data_spent['key'])):
                 if data_spent['key'][j] == data_spent['key'][i]:
                     k.add(data_spent['component'][j])
+            k = len(k)
+            kk.append(k)
             if data_spent['created'][i] < self.start_date:
-                spent += float(data_spent['spent'][i]) / len(k)
+                spent += float(data_spent['spent'][i]) / k
                 self.all_spent[self.start_date] = spent
                 if data_spent['pilot'][i]:
-                    pp_spent += float(data_spent['spent'][i]) / len(k)
+                    pp_spent += float(data_spent['spent'][i]) / k
                     self.pp_all_spent[self.start_date] = pp_spent
             else:
-                spent += float(data_spent['spent'][i]) / len(k)
+                spent += float(data_spent['spent'][i]) / k
                 self.all_spent[data_spent['created'][i]] = spent
                 if data_spent['pilot'][i]:
-                    pp_spent += float(data_spent['spent'][i]) / len(k)
+                    pp_spent += float(data_spent['spent'][i]) / k
                     self.pp_all_spent[data_spent['created'][i]] = pp_spent
-            if data_spent['status'][i] in ('Closed', 'Resolved', 'Done'):
-                self.readiness['spent'] += float(data_spent['spent'][i]) / len(k)
-                if data_spent['pilot'][i]:
-                    self.pp_readiness['spent'] += float(data_spent['spent'][i]) / len(k)
+            self.readiness['spent'] += float(data_spent['spent'][i]) / k
+            if data_spent['pilot'][i]:
+                self.pp_readiness['spent'] += float(data_spent['spent'][i]) / k
+
+        estimates = []
         for i in range(len(data_original['key'])):
             if data_original['issue type'][i] == 'User Story (L3)':
                 d = json.loads(data_original['estimate'][i])
                 d = {key: float(val) for key, val in d.items()}
                 d['Total'] = sum(list(d.values()))
-                self.estimates.append(d)
+                estimates.append(d)
                 original += float(d['Total']) if d.keys() else 0
                 all_original[self.start_date], self.readiness['bulk estimate'] = original, original
                 self.readiness['features'] += 1
@@ -54,32 +59,42 @@ class YotaBurndownDashboard(AbstractDashboard):
                     pp_all_original[self.start_date], self.pp_readiness['bulk estimate'] = pp_original, pp_original
                     self.pp_readiness['features'] += 1
             else:
-                if data_original['status'] == 'Closed' and data_original['resolution date'][i]\
+                if data_original['status'][i] == 'Closed' and data_original['resolution date'][i]\
                         and data_original['component'][i]:
                     try:
                         cmp_est = [est[data_original['component'][i]] for est, key
-                                   in zip(self.estimates, data_original['key']) if key == data_original['L3'][i]][0]
+                                   in zip(estimates, data_original['key']) if key == data_original['L3'][i]][0]
                         original -= cmp_est
-                        self.readiness['Spent'] += cmp_est
                         all_original[data_original['resolution date'][i]] = original
                         if data_original['pilot'][i]:
                             pp_original -= cmp_est
-                            self.pp_readiness['Spent'] += cmp_est
                             pp_all_original[data_original['resolution date'][i]] = pp_original
                     except KeyError:
                         pass
+
         for dt in self.all_spent.keys():
             if dt not in all_original.keys():
                 all_original[dt] = all_original[max([date for date in all_original.keys() if date < dt])]
         for dt in self.pp_all_spent.keys():
             if dt not in pp_all_original.keys():
                 pp_all_original[dt] = pp_all_original[max([date for date in pp_all_original.keys() if date < dt])]
-        self.all_remain = {dt: all_original[dt] - self.all_spent[dt] + float(sum(
-            [sp for sp, rd in zip(data_spent['spent'], data_spent['resolutiondate']) if rd is not None and rd < dt]))
-                           for dt in self.all_spent.keys()}
-        self.pp_all_remain = {dt: pp_all_original[dt] - self.pp_all_spent[dt] + float(sum(
-            [sp for sp, rd, pp in zip(data_spent['spent'], data_spent['resolutiondate'], data_spent['pilot'])
-             if rd is not None and rd < dt and pp])) for dt in self.pp_all_spent.keys()}
+
+        self.all_remain = {}
+        for dt in self.all_spent.keys():
+            sp = 0
+            for i, k in zip(range(len(data_spent['key'])), kk):
+                if data_spent['status'][i] in ('Closed', 'Resolved', 'Done') \
+                        and data_spent['resolutiondate'][i] and data_spent['resolutiondate'][i] <= dt:
+                    sp += float(data_spent['spent'][i]) / k
+            self.all_remain[dt] = all_original[dt] - (self.all_spent[dt] - sp)
+        self.pp_all_remain = {}
+        for dt in self.pp_all_spent.keys():
+            sp = 0
+            for i, k in zip(range(len(data_spent['key'])), kk):
+                if data_spent['pilot'][i] and data_spent['status'][i] in ('Closed', 'Resolved', 'Done') \
+                        and data_spent['resolutiondate'][i] and data_spent['resolutiondate'][i] <= dt:
+                    sp += float(data_spent['spent'][i]) / k
+            self.pp_all_remain[dt] = pp_all_original[dt] - (self.pp_all_spent[dt] - sp)
 
     def export_to_plotly(self):
         if len(self.all_spent.keys()) == 0:
@@ -254,9 +269,6 @@ class YotaBurndownDashboard(AbstractDashboard):
         fig = go.Figure(data=data, layout=layout)
         if self.repository == 'offline':
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
-        # elif self.repository == 'online':
-        #     plotly.tools.set_credentials_file(username=self.plotly_auth[0], api_key=self.plotly_auth[1])
-        #     plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
         elif self.repository == 'citrix':
             plotly.offline.plot(fig, image_filename=title, image='png', image_height=1080, image_width=1920)
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)

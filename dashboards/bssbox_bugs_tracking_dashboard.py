@@ -1,7 +1,6 @@
 from dashboards.dashboard import AbstractDashboard
 from adapters.issue_utils import get_domain_bssbox
 import datetime
-import textwrap
 import plotly
 import plotly.graph_objs as go
 from adapters.citrix_sharefile_adapter import CitrixShareFile
@@ -47,7 +46,7 @@ def deadline(fromdate, days):
 
 
 class BssboxBugsTrackingDashboard(AbstractDashboard):
-    auto_open, repository, plotly_auth, citrix_token, local_user = True, None, None, None, None
+    auto_open, repository, citrix_token, local_user = True, None, None, None
     tracking_data, pivot_data, all_bugs, overdue_data, created_dict, old_list = {}, {}, {}, {}, [], []
     jql_all = 'https://jira.billing.ru/issues/?jql=key in ('
 
@@ -254,9 +253,6 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
         fig = go.Figure(data=data, layout=layout)
         if self.repository == 'offline':
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
-        # elif self.repository == 'online':
-        #     plotly.tools.set_credentials_file(username=self.plotly_auth[0], api_key=self.plotly_auth[1])
-        #     plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
         elif self.repository == 'citrix':
             plotly.offline.plot(fig, image_filename=title, image='png', image_height=1080, image_width=1920)
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)

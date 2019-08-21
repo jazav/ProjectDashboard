@@ -8,23 +8,26 @@ import time
 
 
 class SprintBurndownDashboard(AbstractDashboard):
-    auto_open, repository, plotly_auth, dashboard_type, citrix_token, local_user = True, None, None, None, None, None
+    auto_open, repository, dashboard_type, citrix_token, local_user = True, None, None, None, None
     all_spent, all_remain = {}, {}
     pp_all_spent, pp_all_remain = {}, {}
-    start, end = datetime.date(2019, 7, 4), datetime.date(2019, 8, 14)
+    start_date, end_date = datetime.date(2019, 7, 4), datetime.date(2019, 8, 14)
     readiness, pp_readiness = {'spent': 0, 'original estimate': 0, 'features': 0},\
                               {'spent': 0, 'original estimate': 0, 'features': 0}
 
     def multi_prepare(self, data_spent, data_original):
-        all_original, spent, original = {}, 0, 0
-        pp_all_original, pp_spent, pp_original = {}, 0, 0
+        all_original, spent = {}, 0
+        pp_all_original, pp_spent = {}, 0
+        kk = []
+
         for i in range(len(data_spent['key'])):
             k = set()
             for j in range(len(data_spent['key'])):
                 if data_spent['key'][j] == data_spent['key'][i]:
                     k.add(data_spent['component'][j])
             k = len(k)
-            if data_spent['created'][i] < self.start:
+            kk.append(k)
+            if data_spent['created'][i] < self.start_date:
                 spent += float(data_spent['spent'][i]) / k
                 if data_spent['pilot'][i]:
                     pp_spent += float(data_spent['spent'][i]) / k
@@ -37,14 +40,22 @@ class SprintBurndownDashboard(AbstractDashboard):
             self.readiness['spent'] += float(data_spent['spent'][i]) / k
             if data_spent['pilot'][i]:
                 self.pp_readiness['spent'] += float(data_spent['spent'][i]) / k
-        original = sum([float(data_original['timeoriginalestimate'][i]) / data_original['key'].
-                       count(data_original['key'][i]) for i in range(len(data_original['key']))
-                        if data_original['issue type'][i] != 'User Story (L3)'])
-        self.readiness['original estimate'] = original
-        pp_original = sum([float(data_original['timeoriginalestimate'][i]) / data_original['key'].
-                          count(data_original['key'][i]) for i in range(len(data_original['key']))
-                           if data_original['issue type'][i] != 'User Story (L3)' and data_original['pilot'][i]])
-        self.pp_readiness['original estimate'] = pp_original
+
+        original, pp_original = 0, 0
+        for i in range(len(data_original['key'])):
+            if data_original['issue type'][i] != 'User Story (L3)':
+                k = data_original['key'].count(data_original['key'][i])
+                original += float(data_original['timeoriginalestimate'][i]) / k
+                all_original[self.start_date] = original
+                oe = float(data_original['timespent'][i]) / k \
+                    if data_original['timespent'][i] > data_original['timeoriginalestimate'][i] \
+                    or data_original['status'][i] in ('Closed', 'Resolved', 'Done') \
+                    else float(data_original['timeoriginalestimate'][i]) / k
+                self.readiness['original estimate'] += oe
+                if data_original['pilot'][i]:
+                    pp_original += float(data_original['timeoriginalestimate'][i]) / k
+                    pp_all_original[self.start_date] = pp_original
+                    self.pp_readiness['original estimate'] += oe
         for i in range(len(data_original['key'])):
             if data_original['issue type'][i] != 'User Story (L3)':
                 k = data_original['key'].count(data_original['key'][i])
@@ -58,18 +69,30 @@ class SprintBurndownDashboard(AbstractDashboard):
                 self.readiness['features'] += 1
                 if data_original['pilot'][i]:
                     self.pp_readiness['features'] += 1
+
         for dt in self.all_spent:
             if dt not in all_original.keys():
                 all_original[dt] = all_original[max([date for date in all_original.keys() if date < dt])]
         for dt in self.pp_all_spent:
             if dt not in pp_all_original.keys():
                 pp_all_original[dt] = pp_all_original[max([date for date in pp_all_original.keys() if date < dt])]
-        self.all_remain = {dt: all_original[dt] - self.all_spent[dt] + float(sum(
-            [sp for sp, rd in zip(data_spent['spent'], data_spent['resolutiondate']) if rd is not None and rd < dt]))
-                           for dt in self.all_spent.keys()}
-        self.pp_all_remain = {dt: pp_all_original[dt] - self.pp_all_spent[dt] + float(sum(
-            [sp for sp, rd, pp in zip(data_spent['spent'], data_spent['resolutiondate'], data_spent['pilot'])
-             if rd is not None and rd < dt and pp])) for dt in self.pp_all_spent.keys()}
+
+        self.all_remain = {}
+        for dt in self.all_spent.keys():
+            sp = 0
+            for i, k in zip(range(len(data_spent['key'])), kk):
+                if data_spent['status'][i] in ('Closed', 'Resolved', 'Done') \
+                        and data_spent['resolutiondate'][i] and data_spent['resolutiondate'][i] <= dt:
+                    sp += float(data_spent['spent'][i]) / k
+            self.all_remain[dt] = all_original[dt] - (self.all_spent[dt] - sp)
+        self.pp_all_remain = {}
+        for dt in self.pp_all_spent.keys():
+            sp = 0
+            for i, k in zip(range(len(data_spent['key'])), kk):
+                if data_spent['pilot'][i] and data_spent['status'][i] in ('Closed', 'Resolved', 'Done') \
+                        and data_spent['resolutiondate'][i] and data_spent['resolutiondate'][i] <= dt:
+                    sp += float(data_spent['spent'][i]) / k
+            self.pp_all_remain[dt] = pp_all_original[dt] - (self.pp_all_spent[dt] - sp)
 
     def export_to_plotly(self):
         if len(self.all_spent.keys()) == 0:
@@ -113,7 +136,7 @@ class SprintBurndownDashboard(AbstractDashboard):
                 color='rgb(31,119,180)',
             )
         ), go.Scatter(
-            x=[self.start, self.end],
+            x=[self.start_date, self.end_date],
             y=[max(self.all_remain.values()), 0],
             xaxis='x1',
             yaxis='y1',
@@ -162,7 +185,7 @@ class SprintBurndownDashboard(AbstractDashboard):
                 color='rgb(255,127,14)',
             )
         ), go.Scatter(
-            x=[self.start, self.end],
+            x=[self.start_date, self.end_date],
             y=[max(self.pp_all_remain.values()), 0],
             xaxis='x1',
             yaxis='y1',
@@ -197,7 +220,7 @@ class SprintBurndownDashboard(AbstractDashboard):
                 ),
                 tickangle=45,
                 showline=True,
-                range=[self.start - datetime.timedelta(days=1), self.end + datetime.timedelta(days=1)]
+                range=[self.start_date - datetime.timedelta(days=1), self.end_date + datetime.timedelta(days=1)]
             ),
             yaxis1=dict(
                 linecolor='black',
@@ -235,9 +258,6 @@ class SprintBurndownDashboard(AbstractDashboard):
         fig = go.Figure(data=data, layout=layout)
         if self.repository == 'offline':
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
-        # elif self.repository == 'online':
-        #     plotly.tools.set_credentials_file(username=self.plotly_auth[0], api_key=self.plotly_auth[1])
-        #     plotly.plotly.plot(fig, filename=title, fileopt='overwrite', sharing='public', auto_open=False)
         elif self.repository == 'citrix':
             plotly.offline.plot(fig, image_filename=title, image='png', image_height=1080, image_width=1920)
             plotly.offline.plot(fig, filename=html_file, auto_open=self.auto_open)
