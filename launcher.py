@@ -274,11 +274,11 @@ def main(argv):
 
         if name_space.name == "yota_burndown":
             dshc.dashboard_yota_burndown(auto_open=(name_space.auto_open.upper() == 'TRUE'),
-                                         repository=name_space.repository.lower(),
+                                         repository=name_space.repository.lower(), local_user=name_space.local_user,
                                          mssql_query_file=[mssql.lower().strip() for mssql in name_space.mssql.split(',')],
                                          dashboard_type=[dt.upper().strip() for dt in name_space.dashboard_type.split(',')],
                                          citrix_token=json.loads(name_space.citrix_token.replace('\'', '"')),
-                                         local_user=name_space.local_user)
+                                         labels=[lbl.strip() for lbl in name_space.labels.split(',')])
 
         if name_space.name == "ba_work_distribution":
             dshc.dashboard_ba_work_distribution(auto_open=(name_space.auto_open.upper() == 'TRUE'),

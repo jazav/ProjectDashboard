@@ -26,6 +26,7 @@ from dashboards.yota_burdown_dashboard import YotaBurndownDashboard  # By @alanb
 from dashboards.ba_work_distribution_dashboard import BaWorkDistributionDashboard  # By @alanbryn
 from dashboards.yota_domain_burndown_dashboard import YotaDomainBurndownDashboard  # By @alanbryn
 from dashboards.sprint_overview_dashboard import SprintOverviewDashboard  # By @alanbryn
+from dashboards.yota_works_burndown_dashboard import YotaWorksBurndownDashboard  # By @alanbryn
 from dashboards.issue_detail_dashboard import IssueDetailDashboard
 from dashboards.prepare_feature_data import *
 from data_controller import DataController
@@ -443,18 +444,25 @@ class DashboardController:
     # By @alanbryn
     @staticmethod
     def dashboard_yota_burndown(auto_open, repository, mssql_query_file, dashboard_type, citrix_token,
-                                local_user):
+                                local_user, labels):
         dc = DataController()
         data_spent = dc.get_issues_mssql(mssql_query_file=mssql_query_file[0])
         data_original = dc.get_issues_mssql(mssql_query_file=mssql_query_file[1])
 
+        dashboard = None
         for dt in dashboard_type:
-            dashboard = YotaBurndownDashboard() if dt == 'TOTAL' else YotaDomainBurndownDashboard()
+            if dt == 'TOTAL':
+                dashboard = YotaBurndownDashboard()
+            elif dt == 'DOMAIN':
+                dashboard = YotaDomainBurndownDashboard()
+            elif dt == 'WORKS':
+                dashboard = YotaWorksBurndownDashboard()
             dashboard.dashboard_name = 'Burndown for Yota'
             dashboard.auto_open = auto_open
             dashboard.repository = repository
             dashboard.citrix_token = citrix_token
             dashboard.local_user = local_user
+            dashboard.labels = labels
             dashboard.multi_prepare(data_spent=data_spent, data_original=data_original)
             dashboard.export_to_plot()
 

@@ -19,7 +19,7 @@ class YotaBurndownDashboard(AbstractDashboard):
     def multi_prepare(self, data_spent, data_original):
         all_original, spent, original = {}, 0, 0
         pp_all_original, pp_spent, pp_original = {}, 0, 0
-        kk = []
+        kk, estimates = [], []
 
         for i in range(len(data_spent['key'])):
             k = set()
@@ -44,7 +44,6 @@ class YotaBurndownDashboard(AbstractDashboard):
             if data_spent['pilot'][i]:
                 self.pp_readiness['spent'] += float(data_spent['spent'][i]) / k
 
-        estimates = []
         for i in range(len(data_original['key'])):
             if data_original['issue type'][i] == 'User Story (L3)':
                 d = json.loads(data_original['estimate'][i])
@@ -59,7 +58,8 @@ class YotaBurndownDashboard(AbstractDashboard):
                     pp_all_original[self.start_date], self.pp_readiness['bulk estimate'] = pp_original, pp_original
                     self.pp_readiness['features'] += 1
             else:
-                if data_original['status'][i] == 'Closed' and data_original['resolution date'][i]\
+                if data_original['status'][i] == 'Closed' \
+                        and data_original['resolution date'][i] \
                         and data_original['component'][i]:
                     try:
                         cmp_est = [est[data_original['component'][i]] for est, key
@@ -79,7 +79,6 @@ class YotaBurndownDashboard(AbstractDashboard):
             if dt not in pp_all_original.keys():
                 pp_all_original[dt] = pp_all_original[max([date for date in pp_all_original.keys() if date < dt])]
 
-        self.all_remain = {}
         for dt in self.all_spent.keys():
             sp = 0
             for i, k in zip(range(len(data_spent['key'])), kk):
@@ -87,7 +86,6 @@ class YotaBurndownDashboard(AbstractDashboard):
                         and data_spent['resolutiondate'][i] and data_spent['resolutiondate'][i] <= dt:
                     sp += float(data_spent['spent'][i]) / k
             self.all_remain[dt] = all_original[dt] - (self.all_spent[dt] - sp)
-        self.pp_all_remain = {}
         for dt in self.pp_all_spent.keys():
             sp = 0
             for i, k in zip(range(len(data_spent['key'])), kk):

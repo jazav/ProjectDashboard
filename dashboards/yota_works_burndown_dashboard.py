@@ -2,7 +2,6 @@ from dashboards.dashboard import AbstractDashboard
 import plotly
 import plotly.graph_objs as go
 import datetime
-from adapters.issue_utils import get_domain_bssbox
 import math
 from plotly import subplots
 from adapters.citrix_sharefile_adapter import CitrixShareFile
@@ -11,15 +10,17 @@ import time
 import json
 
 
-class YotaDomainBurndownDashboard(AbstractDashboard):
-    auto_open, repository, dashboard_type, citrix_token, local_user = True, None, None, None, None
+class YotaWorksBurndownDashboard(AbstractDashboard):
+    auto_open, repository, citrix_token, local_user, labels = True, None, None, None, None
     all_spent, all_remain = {}, {}
     start_date, end_date = datetime.date(2019, 2, 18), datetime.date(2020, 3, 1)
     estimates = []
 
     def multi_prepare(self, data_spent, data_original):
-        all_original, spent, original, kk = {}, {}, {}, []
+        all_original, spent, original, kk, estimates = {}, {}, {}, [], []
 
+        for label in self.labels:
+            self.all_spent[label], all_original[label], spent[label], original[label] = {}, {}, 0, 0
         for i in range(len(data_spent['key'])):
             k = set()
             for j in range(len(data_spent['key'])):
@@ -27,61 +28,59 @@ class YotaDomainBurndownDashboard(AbstractDashboard):
                     k.add(data_spent['component'][j])
             k = len(k)
             kk.append(k)
-            domain = get_domain_bssbox(data_spent['component'][i])
             if data_spent['created'][i] < self.start_date:
-                if domain not in spent.keys():
-                    spent[domain] = 0
-                    self.all_spent[domain] = {}
-                spent[domain] += float(data_spent['spent'][i]) / k
-                self.all_spent[domain][self.start_date] = spent[domain]
+                for label in self.labels:
+                    if data_spent[label][i]:
+                        spent[label] += float(data_spent['spent'][i]) / k
+                        self.all_spent[label][self.start_date] = spent[label]
             else:
-                if domain not in spent.keys():
-                    spent[domain] = 0
-                    self.all_spent[domain] = {}
-                spent[domain] += float(data_spent['spent'][i]) / k
-                self.all_spent[domain][data_spent['created'][i]] = spent[domain]
+                for label in self.labels:
+                    if data_spent[label][i]:
+                        spent[label] += float(data_spent['spent'][i]) / k
+                        self.all_spent[label][data_spent['created'][i]] = spent[label]
 
         for i in range(len(data_original['key'])):
             if data_original['issue type'][i] == 'User Story (L3)':
                 d = json.loads(data_original['estimate'][i])
                 d = {key: float(val) for key, val in d.items()}
-                self.estimates.append(d)
-                for cmp, est in d.items():
-                    domain = get_domain_bssbox(cmp)
-                    if domain not in original.keys():
-                        original[domain] = 0
-                        all_original[domain] = {}
-                    original[domain] += est
-                    all_original[domain][self.start_date] = original[domain]
+                d['Total'] = sum(list(d.values()))
+                estimates.append(d)
+                for label in self.labels:
+                    if data_original[label][i]:
+                        original[label] += float(d['Total']) if d.keys() else 0
+                        all_original[label][self.start_date] = original[label]
             else:
-                if data_original['status'][i] == 'Closed' and data_original['resolution date'][i] \
-                        and data_original['component'][i]:
-                    try:
-                        cmp = data_original['component'][i]
-                        original[cmp] -= [est[cmp] for est, key in zip(self.estimates, data_original['key'])
-                                          if key == data_original['L3'][i]][0]
-                        all_original[cmp][data_original['resolution date'][i]] = original[cmp]
-                    except KeyError:
-                        pass
+                for label in self.labels:
+                    if data_original[label][i]:
+                        if data_original['status'][i] == 'Closed' \
+                                and data_original['resolution date'][i] \
+                                and data_original['component'][i]:
+                            try:
+                                cmp_est = [est[data_original['component'][i]] for est, key
+                                           in zip(estimates, data_original['key']) if key == data_original['L3'][i]][0]
+                                original[label] -= cmp_est
+                                all_original[label][data_original['resolution date'][i]] = original[label]
+                            except KeyError:
+                                pass
 
-        for dmn, spents in self.all_spent.items():
-            if dmn not in all_original.keys():
-                all_original[dmn] = {dt: 0 for dt in spents.keys()}
+        for label, spents in self.all_spent.items():
+            if label not in all_original.keys():
+                all_original[label] = {dt: 0 for dt in spents.keys()}
             for dt in spents.keys():
-                if dt not in all_original[dmn].keys():
-                    all_original[dmn][dt] = all_original[dmn][max([date for date in all_original[dmn].keys() if date < dt])]
+                if dt not in all_original[label].keys():
+                    all_original[label][dt] = all_original[label][max([date for date in all_original[label].keys() if date < dt])]
 
-        for domain in self.all_spent.keys():
-            self.all_remain[domain] = {}
-            for dt in self.all_spent[domain].keys():
+        for label in self.all_spent.keys():
+            self.all_remain[label] = {}
+            for dt in self.all_spent[label].keys():
                 sp = 0
                 for i, k in zip(range(len(data_spent['key'])), kk):
-                    if domain == get_domain_bssbox(data_spent['component'][i]) \
+                    if data_spent[label][i] \
                             and data_spent['status'][i] in ('Closed', 'Resolved', 'Done') \
                             and data_spent['resolutiondate'][i] \
                             and data_spent['resolutiondate'][i] <= dt:
                         sp += float(data_spent['spent'][i]) / k
-                self.all_remain[domain][dt] = all_original[domain][dt] - (self.all_spent[domain][dt] - sp)
+                self.all_remain[label][dt] = all_original[label][dt] - (self.all_spent[label][dt] - sp)
 
     def export_to_plotly(self):
         trace_dict = {dmn: [] for dmn in self.all_spent.keys()}
@@ -154,7 +153,8 @@ class YotaDomainBurndownDashboard(AbstractDashboard):
         # html_file = self.png_dir + "{0}.html".format(title)
         html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 
-        fig['layout']['title'].update(text='{0} as of {1}'.format(title, datetime.datetime.now().strftime("%d.%m.%y %H:%M")), x=0.5)
+        fig['layout']['title'].update(
+            text='{0} as of {1}'.format(title, datetime.datetime.now().strftime("%d.%m.%y %H:%M")), x=0.5)
         fig["layout"].update(hovermode='closest', legend=dict(orientation='h'), plot_bgcolor='white')
         for annotation in fig['layout']['annotations']:
             annotation['font'] = dict(size=14)

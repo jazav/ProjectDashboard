@@ -77,7 +77,6 @@ class SprintBurndownDashboard(AbstractDashboard):
             if dt not in pp_all_original.keys():
                 pp_all_original[dt] = pp_all_original[max([date for date in pp_all_original.keys() if date < dt])]
 
-        self.all_remain = {}
         for dt in self.all_spent.keys():
             sp = 0
             for i, k in zip(range(len(data_spent['key'])), kk):
@@ -85,7 +84,6 @@ class SprintBurndownDashboard(AbstractDashboard):
                         and data_spent['resolutiondate'][i] and data_spent['resolutiondate'][i] <= dt:
                     sp += float(data_spent['spent'][i]) / k
             self.all_remain[dt] = all_original[dt] - (self.all_spent[dt] - sp)
-        self.pp_all_remain = {}
         for dt in self.pp_all_spent.keys():
             sp = 0
             for i, k in zip(range(len(data_spent['key'])), kk):
