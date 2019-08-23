@@ -234,7 +234,6 @@ class SprintOverviewDashboard(AbstractDashboard):
                 title='Sprint scope readiness, %',
                 showline=True,
                 anchor='x1',
-                range=[0, 100],
                 ticks='outside', ticklen=5, tickcolor='rgba(0,0,0,0)',
                 linecolor='black',
                 gridcolor='rgb(232,232,232)'
