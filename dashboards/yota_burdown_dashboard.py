@@ -31,17 +31,17 @@ class YotaBurndownDashboard(AbstractDashboard):
             if data_spent['created'][i] < self.start_date:
                 spent += float(data_spent['spent'][i]) / k
                 self.all_spent[self.start_date] = spent
-                if data_spent['pilot'][i]:
+                if data_spent['PilotPriority'][i]:
                     pp_spent += float(data_spent['spent'][i]) / k
                     self.pp_all_spent[self.start_date] = pp_spent
             else:
                 spent += float(data_spent['spent'][i]) / k
                 self.all_spent[data_spent['created'][i]] = spent
-                if data_spent['pilot'][i]:
+                if data_spent['PilotPriority'][i]:
                     pp_spent += float(data_spent['spent'][i]) / k
                     self.pp_all_spent[data_spent['created'][i]] = pp_spent
             self.readiness['spent'] += float(data_spent['spent'][i]) / k
-            if data_spent['pilot'][i]:
+            if data_spent['PilotPriority'][i]:
                 self.pp_readiness['spent'] += float(data_spent['spent'][i]) / k
 
         for i in range(len(data_original['key'])):
@@ -53,7 +53,7 @@ class YotaBurndownDashboard(AbstractDashboard):
                 original += float(d['Total']) if d.keys() else 0
                 all_original[self.start_date], self.readiness['bulk estimate'] = original, original
                 self.readiness['features'] += 1
-                if data_original['pilot'][i]:
+                if data_original['PilotPriority'][i]:
                     pp_original += float(d['Total']) if d.keys() else 0
                     pp_all_original[self.start_date], self.pp_readiness['bulk estimate'] = pp_original, pp_original
                     self.pp_readiness['features'] += 1
@@ -66,7 +66,7 @@ class YotaBurndownDashboard(AbstractDashboard):
                                    in zip(estimates, data_original['key']) if key == data_original['L3'][i]][0]
                         original -= cmp_est
                         all_original[data_original['resolution date'][i]] = original
-                        if data_original['pilot'][i]:
+                        if data_original['PilotPriority'][i]:
                             pp_original -= cmp_est
                             pp_all_original[data_original['resolution date'][i]] = pp_original
                     except KeyError:
@@ -89,7 +89,7 @@ class YotaBurndownDashboard(AbstractDashboard):
         for dt in self.pp_all_spent.keys():
             sp = 0
             for i, k in zip(range(len(data_spent['key'])), kk):
-                if data_spent['pilot'][i] and data_spent['status'][i] in ('Closed', 'Resolved', 'Done') \
+                if data_spent['PilotPriority'][i] and data_spent['status'][i] in ('Closed', 'Resolved', 'Done') \
                         and data_spent['resolutiondate'][i] and data_spent['resolutiondate'][i] <= dt:
                     sp += float(data_spent['spent'][i]) / k
             self.pp_all_remain[dt] = pp_all_original[dt] - (self.pp_all_spent[dt] - sp)
@@ -155,7 +155,7 @@ class YotaBurndownDashboard(AbstractDashboard):
             y=list(self.pp_all_spent.values()),
             xaxis='x1',
             yaxis='y1',
-            name='Spent (pilot)',
+            name='Spent (PilotPriority)',
             text=[str(round(sp, 1)) if not i % 10 else '' for i, sp in enumerate(self.pp_all_spent.values())],
             textposition='top left',
             textfont=dict(size=8),
@@ -174,7 +174,7 @@ class YotaBurndownDashboard(AbstractDashboard):
             y=list(self.pp_all_remain.values()),
             xaxis='x1',
             yaxis='y1',
-            name='Remain (pilot)',
+            name='Remain (PilotPriority)',
             text=[str(round(sp, 1)) if not i % 10 else '' for i, sp in enumerate(self.pp_all_remain.values())],
             textposition='top right',
             textfont=dict(size=8),

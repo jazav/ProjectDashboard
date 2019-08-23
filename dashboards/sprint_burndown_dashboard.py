@@ -29,16 +29,16 @@ class SprintBurndownDashboard(AbstractDashboard):
             kk.append(k)
             if data_spent['created'][i] < self.start_date:
                 spent += float(data_spent['spent'][i]) / k
-                if data_spent['pilot'][i]:
+                if data_spent['PilotPriority'][i]:
                     pp_spent += float(data_spent['spent'][i]) / k
             else:
                 spent += float(data_spent['spent'][i]) / k
                 self.all_spent[data_spent['created'][i]] = spent
-                if data_spent['pilot'][i]:
+                if data_spent['PilotPriority'][i]:
                     pp_spent += float(data_spent['spent'][i]) / k
                     self.pp_all_spent[data_spent['created'][i]] = pp_spent
             self.readiness['spent'] += float(data_spent['spent'][i]) / k
-            if data_spent['pilot'][i]:
+            if data_spent['PilotPriority'][i]:
                 self.pp_readiness['spent'] += float(data_spent['spent'][i]) / k
 
         original, pp_original = 0, 0
@@ -52,7 +52,7 @@ class SprintBurndownDashboard(AbstractDashboard):
                     or data_original['status'][i] in ('Closed', 'Resolved', 'Done') \
                     else float(data_original['timeoriginalestimate'][i]) / k
                 self.readiness['original estimate'] += oe
-                if data_original['pilot'][i]:
+                if data_original['PilotPriority'][i]:
                     pp_original += float(data_original['timeoriginalestimate'][i]) / k
                     pp_all_original[self.start_date] = pp_original
                     self.pp_readiness['original estimate'] += oe
@@ -62,12 +62,12 @@ class SprintBurndownDashboard(AbstractDashboard):
                 if data_original['status'][i] in ('Closed', 'Resolved', 'Done') and data_original['resolutiondate'][i]:
                     original -= float(data_original['timeoriginalestimate'][i]) / k
                     all_original[data_original['resolutiondate'][i]] = original
-                    if data_original['pilot'][i]:
+                    if data_original['PilotPriority'][i]:
                         pp_original -= float(data_original['timeoriginalestimate'][i]) / k
                         pp_all_original[data_original['resolutiondate'][i]] = pp_original
             else:
                 self.readiness['features'] += 1
-                if data_original['pilot'][i]:
+                if data_original['PilotPriority'][i]:
                     self.pp_readiness['features'] += 1
 
         for dt in self.all_spent:
@@ -87,7 +87,7 @@ class SprintBurndownDashboard(AbstractDashboard):
         for dt in self.pp_all_spent.keys():
             sp = 0
             for i, k in zip(range(len(data_spent['key'])), kk):
-                if data_spent['pilot'][i] and data_spent['status'][i] in ('Closed', 'Resolved', 'Done') \
+                if data_spent['PilotPriority'][i] and data_spent['status'][i] in ('Closed', 'Resolved', 'Done') \
                         and data_spent['resolutiondate'][i] and data_spent['resolutiondate'][i] <= dt:
                     sp += float(data_spent['spent'][i]) / k
             self.pp_all_remain[dt] = pp_all_original[dt] - (self.pp_all_spent[dt] - sp)
@@ -150,7 +150,7 @@ class SprintBurndownDashboard(AbstractDashboard):
             y=list(self.pp_all_spent.values()),
             xaxis='x1',
             yaxis='y1',
-            name='Spent (pilot)',
+            name='Spent (PilotPriority)',
             text=[str(round(sp, 1)) for sp in self.pp_all_spent.values()],
             textposition='top left',
             textfont=dict(size=8),
@@ -169,7 +169,7 @@ class SprintBurndownDashboard(AbstractDashboard):
             y=list(self.pp_all_remain.values()),
             xaxis='x1',
             yaxis='y1',
-            name='Remain (pilot)',
+            name='Remain (PilotPriority)',
             text=[str(round(sp, 1)) for sp in self.pp_all_remain.values()],
             textposition='top right',
             textfont=dict(size=8),

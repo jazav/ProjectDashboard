@@ -13,7 +13,9 @@ import json
 class YotaWorksBurndownDashboard(AbstractDashboard):
     auto_open, repository, citrix_token, local_user, labels = True, None, None, None, None
     all_spent, all_remain = {}, {}
-    start_date, end_date = datetime.date(2019, 2, 18), datetime.date(2020, 3, 1)
+    start_date = datetime.date(2019, 2, 18)
+    end_date = {'PilotPriority': datetime.date(2019, 11, 1), 'Core': datetime.date(2020, 3, 1),
+                'Custom': datetime.date(2020, 3, 1), 'Config': datetime.date(2020, 3, 1)}
     estimates = []
 
     def multi_prepare(self, data_spent, data_original):
@@ -83,11 +85,14 @@ class YotaWorksBurndownDashboard(AbstractDashboard):
                 self.all_remain[label][dt] = all_original[label][dt] - (self.all_spent[label][dt] - sp)
 
     def export_to_plotly(self):
-        trace_dict = {dmn: [] for dmn in self.all_spent.keys()}
-        for dmn in self.all_spent.keys():
-            trace_dict[dmn].append(go.Scatter(
-                x=list(self.all_spent[dmn].keys()),
-                y=list(self.all_spent[dmn].values()),
+        trace_dict, xticks = {label: [] for label in self.all_spent.keys()}, {}
+        for label in self.all_spent.keys():
+            xticks[label] = [self.start_date]
+            while xticks[label][-1] != self.end_date[label]:
+                xticks[label].append(xticks[label][-1] + datetime.timedelta(days=1))
+            trace_dict[label].append(go.Scatter(
+                x=list(self.all_spent[label].keys()),
+                y=list(self.all_spent[label].values()),
                 name='Spent',
                 mode='lines+markers',
                 line=dict(
@@ -98,11 +103,11 @@ class YotaWorksBurndownDashboard(AbstractDashboard):
                     size=1,
                     color='rgb(31,119,180)',
                 ),
-                showlegend=True if dmn == list(self.all_spent.keys())[0] else False
+                showlegend=True if label == list(self.all_spent.keys())[0] else False
             ))
-            trace_dict[dmn].append(go.Scatter(
-                x=list(self.all_remain[dmn].keys()),
-                y=list(self.all_remain[dmn].values()),
+            trace_dict[label].append(go.Scatter(
+                x=list(self.all_remain[label].keys()),
+                y=list(self.all_remain[label].values()),
                 name='Remain',
                 mode='lines+markers',
                 line=dict(
@@ -113,12 +118,12 @@ class YotaWorksBurndownDashboard(AbstractDashboard):
                     size=1,
                     color='rgb(255,127,14)',
                 ),
-                showlegend=True if dmn == list(self.all_spent.keys())[0] else False
+                showlegend=True if label == list(self.all_spent.keys())[0] else False
             ))
             try:
-                trace_dict[dmn].append(go.Scatter(
-                    x=[min(self.all_remain[dmn].keys()), self.end_date],
-                    y=[max([math.fabs(rmn) for rmn in self.all_remain[dmn].values()]), 0],
+                trace_dict[label].append(go.Scatter(
+                    x=[min(self.all_remain[label].keys()), self.end_date[label]],
+                    y=[max([math.fabs(rmn) for rmn in self.all_remain[label].values()]), 0],
                     name='',
                     mode='lines',
                     line=dict(
@@ -131,7 +136,7 @@ class YotaWorksBurndownDashboard(AbstractDashboard):
                 pass
         cols = math.ceil(len(self.all_spent.keys()) / 2)
         fig = subplots.make_subplots(rows=2, cols=cols, subplot_titles=list(self.all_spent.keys()))
-        for traces, i, dmn in zip(trace_dict.values(), range(len(trace_dict.keys())), trace_dict.keys()):
+        for traces, i, label in zip(trace_dict.values(), range(len(trace_dict.keys())), trace_dict.keys()):
             row, col = int(i // cols + 1), int(i % cols + 1)
             for trace in traces:
                 fig.append_trace(trace, row, col)
@@ -141,15 +146,20 @@ class YotaWorksBurndownDashboard(AbstractDashboard):
                 type='date',
                 dtick=86400000,
                 showline=True,
-                showticklabels=False,
-                showgrid=False
+                showticklabels=True,
+                showgrid=False,
+                tickvals=xticks[label],
+                ticktext=[xticks[label][i].strftime('%d.%m.%y') if not i % 10 else '' for i in range(len(xticks[label]))],
+                autorange=True
             )
             fig["layout"][yaxis].update(
                 linecolor='black',
-                showline=True
+                showline=True,
+                gridcolor='rgb(232,232,232)',
+                autorange=True
             )
 
-        title = '{} by domains'.format(self.dashboard_name)
+        title = '{} specific works'.format(self.dashboard_name)
         # html_file = self.png_dir + "{0}.html".format(title)
         html_file = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}.html".format(title)
 

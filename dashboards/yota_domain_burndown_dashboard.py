@@ -132,7 +132,7 @@ class YotaDomainBurndownDashboard(AbstractDashboard):
                 pass
         cols = math.ceil(len(self.all_spent.keys()) / 2)
         fig = subplots.make_subplots(rows=2, cols=cols, subplot_titles=list(self.all_spent.keys()))
-        for traces, i, dmn in zip(trace_dict.values(), range(len(trace_dict.keys())), trace_dict.keys()):
+        for traces, i in zip(trace_dict.values(), range(len(trace_dict.keys()))):
             row, col = int(i // cols + 1), int(i % cols + 1)
             for trace in traces:
                 fig.append_trace(trace, row, col)
@@ -147,7 +147,8 @@ class YotaDomainBurndownDashboard(AbstractDashboard):
             )
             fig["layout"][yaxis].update(
                 linecolor='black',
-                showline=True
+                showline=True,
+                gridcolor='rgb(232,232,232)'
             )
 
         title = '{} by domains'.format(self.dashboard_name)
