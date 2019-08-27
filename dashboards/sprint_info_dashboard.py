@@ -10,10 +10,13 @@ import shutil
 import time
 import textwrap
 import requests
+import re
 
 
-def load_capacity():
-    url = 'https://stash.billing.ru/projects/RNDQC/repos/super-sprints-config/raw/sprint/ss12.json'
+def load_capacity(dashboard_name):
+    sprint = re.search(r'\d+', dashboard_name)
+    url = 'https://stash.billing.ru/projects/RNDQC/repos/super-sprints-config/raw/sprint/{}.json'\
+        .format('ss{}'.format(sprint.group(0)) if sprint else 'pilot')
     r = requests.get(url=url)
     return r.json()['capacity']
 
@@ -38,7 +41,7 @@ class SprintInfoDashboard(AbstractDashboard):
     def prepare(self, data):
         spent, original = 0, 0
         capacity_dict = {}
-        for cap in load_capacity():
+        for cap in load_capacity(self.dashboard_name):
             try:
                 domain = domain_shortener[cap[0]]
                 if domain not in capacity_dict.keys():
