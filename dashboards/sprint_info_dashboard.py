@@ -13,7 +13,7 @@ import requests
 
 
 def load_capacity():
-    url = 'https://stash.billing.ru/projects/RNDQC/repos/super-sprints-config/raw/sprint/ss11.json'
+    url = 'https://stash.billing.ru/projects/RNDQC/repos/super-sprints-config/raw/sprint/ss12.json'
     r = requests.get(url=url)
     return r.json()['capacity']
 
@@ -37,25 +37,34 @@ class SprintInfoDashboard(AbstractDashboard):
 
     def prepare(self, data):
         spent, original = 0, 0
-        capacity_dict = {domain_shortener(cap[0]): cap[1] for cap in load_capacity()}
+        capacity_dict = {}
+        for cap in load_capacity():
+            try:
+                domain = domain_shortener[cap[0]]
+                if domain not in capacity_dict.keys():
+                    capacity_dict[domain] = cap[1]
+                else:
+                    capacity_dict[domain] += cap[1]
+            except KeyError:
+                print(cap[0])
         self.prj_est['Capacity'] = sum(capacity_dict.values())
         for i in range(len(data['Key'])):
             if data['Issue type'][i] != 'User Story (L3)':
                 k = data['Key'].count(data['Key'][i])
-                component = get_domain_bssbox(data['Component'][i])
-                if component not in self.est_dict.keys():
-                    self.est_dict[component] = {'Capacity': capacity_dict.get(component, 0), 'Bulk estimate': 0,
-                                                'Original estimate': 0, 'Spent time': 0}
-                    self.st_dict[component] = {'Open': 0, 'Dev': 0, 'Done': 0}
-                self.est_dict[component]['Original estimate'] += float(data['Estimate'][i]) / 28800
+                domain = get_domain_bssbox(data['Component'][i])
+                if domain not in self.est_dict.keys():
+                    self.est_dict[domain] = {'Capacity': capacity_dict.get(domain, 0), 'Bulk estimate': 0,
+                                             'Original estimate': 0, 'Spent time': 0}
+                    self.st_dict[domain] = {'Open': 0, 'Dev': 0, 'Done': 0}
+                self.est_dict[domain]['Original estimate'] += float(data['Estimate'][i]) / 28800
                 self.prj_est['Original estimate'] += float(data['Estimate'][i]) / 28800 / k
-                self.est_dict[component]['Spent time'] += float(data['Spent time'][i]) / 28800
+                self.est_dict[domain]['Spent time'] += float(data['Spent time'][i]) / 28800
                 self.prj_est['Spent time'] += float(data['Spent time'][i]) / 28800 / k
-                self.st_dict[component][data['Status'][i]] += 1
+                self.st_dict[domain][data['Status'][i]] += 1
                 self.prj_st[data['Status'][i]] += 1 / k
                 self.readiness[data['Status'][i]]['Spent'] += float(data['Spent time'][i]) / 28800 / k
                 self.readiness[data['Status'][i]]['Original'] += float(data['Estimate'][i]) / 28800 / k
-                if component not in ('QC', 'Doc'):
+                if domain not in ('QC', 'Doc'):
                     spent += float(data['Spent time'][i]) / 28800 / k
                     original += float(data['Spent time'][i]) / 28800 / k \
                         if float(data['Spent time'][i]) > float(data['Estimate'][i]) or data['Status'][i] == 'Done' \

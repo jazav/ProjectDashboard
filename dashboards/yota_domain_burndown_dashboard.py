@@ -12,9 +12,9 @@ import json
 
 
 class YotaDomainBurndownDashboard(AbstractDashboard):
-    auto_open, repository, dashboard_type, citrix_token, local_user = True, None, None, None, None
+    auto_open, repository, dashboard_type, citrix_token, local_user, start_date, end_date \
+        = True, None, None, None, None, None, None
     all_spent, all_remain = {}, {}
-    start_date, end_date = datetime.date(2019, 2, 18), datetime.date(2020, 3, 1)
     estimates = []
 
     def multi_prepare(self, data_spent, data_original):
@@ -118,7 +118,7 @@ class YotaDomainBurndownDashboard(AbstractDashboard):
             ))
             try:
                 trace_dict[dmn].append(go.Scatter(
-                    x=[min(self.all_remain[dmn].keys()), self.end_date],
+                    x=[min(self.all_remain[dmn].keys()), self.end_date['Scope']],
                     y=[max([math.fabs(rmn) for rmn in self.all_remain[dmn].values()]), 0],
                     name='',
                     mode='lines',

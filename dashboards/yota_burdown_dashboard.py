@@ -9,10 +9,10 @@ import time
 
 
 class YotaBurndownDashboard(AbstractDashboard):
-    auto_open, repository, dashboard_type, citrix_token, local_user = True, None, None, None, None
+    auto_open, repository, dashboard_type, citrix_token, local_user, start_date, end_date \
+        = True, None, None, None, None, None, None
     all_spent, all_remain = {}, {}
     pp_all_spent, pp_all_remain = {}, {}
-    start_date, end_date, pp_end_date = datetime.date(2019, 2, 18), datetime.date(2020, 3, 1), datetime.date(2019, 11, 1)
     readiness, pp_readiness = {'spent': 0, 'bulk estimate': 0, 'features': 0},\
                               {'spent': 0, 'bulk estimate': 0, 'features': 0}
 
@@ -99,7 +99,7 @@ class YotaBurndownDashboard(AbstractDashboard):
             raise ValueError('There is no issues to show')
 
         xaxis = [self.start_date]
-        while xaxis[-1] != self.end_date:
+        while xaxis[-1] != self.end_date['Scope']:
             xaxis.append(xaxis[-1] + datetime.timedelta(days=1))
         data = [go.Scatter(
             x=list(self.all_spent.keys()),
@@ -139,7 +139,7 @@ class YotaBurndownDashboard(AbstractDashboard):
                 color='rgb(31,119,180)',
             )
         ), go.Scatter(
-            x=[self.start_date, self.end_date],
+            x=[self.start_date, self.end_date['Scope']],
             y=[max(self.all_remain.values()), 0],
             xaxis='x1',
             yaxis='y1',
@@ -188,7 +188,7 @@ class YotaBurndownDashboard(AbstractDashboard):
                 color='rgb(255,127,14)',
             )
         ), go.Scatter(
-            x=[self.start_date, self.pp_end_date],
+            x=[self.start_date, self.end_date['PilotPriority']],
             y=[max(self.pp_all_remain.values()), 0],
             xaxis='x1',
             yaxis='y1',
@@ -222,7 +222,7 @@ class YotaBurndownDashboard(AbstractDashboard):
                 ),
                 tickangle=45,
                 showline=True,
-                range=[self.start_date - datetime.timedelta(days=1), self.end_date + datetime.timedelta(days=1)],
+                range=[self.start_date - datetime.timedelta(days=1), self.end_date['Scope'] + datetime.timedelta(days=1)],
                 tickvals=xaxis,
                 ticktext=[xaxis[i].strftime('%d.%m.%y') if not i % 5 else '' for i in range(len(xaxis))],
                 automargin=True,

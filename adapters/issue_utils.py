@@ -126,7 +126,7 @@ def get_domain(component):
 
 def get_domain_bssbox(component):
     return {
-        'Acceptance': 'Acceptance',
+        'Acceptance': 'Management',
         'Adapter Libraries': 'Common',
         'Analysis': 'Analysis',
         'API Management': 'Infra',
@@ -139,21 +139,22 @@ def get_domain_bssbox(component):
         'Charge Events Storage': 'CES',
         'Configuration Manager': 'Common',
         'CRM Arch & SA': 'Arch & SA',
+        'Custom Activation': 'Custom',
         'Custom Billing & Finances': 'Custom',
         'Custom CAM & Searching': 'Custom',
         'Custom CCM': 'Custom',
-        'Custom Components': 'Custom',
+        'Custom Components': 'CRM',
         'Custom CSRP': 'Custom',
-        'Custom DAPI': 'Custom',
+        'Custom DAPI': 'CRM',
         'Custom Datamarts': 'Custom',
         'Custom Documents': 'Custom',
         'Custom Infrastructure': 'Custom',
         'Custom Inventory': 'Custom',
         'Custom Lifecycle': 'Custom',
         'Custom OCS': 'Custom',
-        'Custom Ordering': 'Custom',
+        'Custom Ordering': 'Ordering & PRM',
         'Custom Payments': 'Custom',
-        'Custom Processes': 'Custom',
+        'Custom Processes': 'CRM',
         'Custom PSC': 'Custom',
         'Customer Order': 'Ordering & PRM',
         'Default Configuration': 'Common',
@@ -166,6 +167,9 @@ def get_domain_bssbox(component):
         'File Storage': 'Ordering & PRM',
         'FPM': 'Megafon',
         'GUS': 'Megafon',
+        'Infra': 'Megafon',
+        'Infrastructure': 'Infra',
+        'Integration': 'Integration',
         'Interaction Management': 'CRM',
         'Lifecycle': 'Common',
         'LIS': 'Megafon',
@@ -206,25 +210,45 @@ def get_domain_bssbox(component):
         'System Monitoring and Operation': 'Infra',
         'Task Engine': 'Infra',
         '': 'Empty',
-        'EPM, HEX, HAS': 'Megafon',
-        'Integration': 'Integration',
-        'Custom Activation': 'Custom',
-        'Infrastructure': 'Infra',
-        'Infra': 'Infra',
         None: 'Empty'
     }[component]
 
 
-def domain_shortener(domain):
-    return {
-        'Quality Control': 'QC', 'Custom': 'Custom', 'Megafon': 'Megafon', 'DevOps': 'DevOps',
-        'Charge Events Storage': 'CES', 'Order Management & Partner Management': 'Ordering & PRM',
-        'Documentation': 'Doc', 'Infra': 'Infra', 'DFE': 'DFE', 'System Architecture': 'System Architecture',
-        'Billing': 'Billing', 'SRS & PI Analysis': 'Analysis', 'Common': 'Common', 'Payment Management': 'Pays',
-        'Network Monetization': 'NWM', 'Arch & SA': 'Arch & SA', 'Design': 'Design',
-        'Product Instances': 'Product Instances', 'Integration & Acceptance': 'Acceptance', 'Product Management': 'PSC',
-        'CRM': 'CRM', 'Performance Testing': 'Performance Testing'
-    }[domain]
+domain_shortener = {
+    'Management': 'Management',
+    'Common': 'Common',
+    'SRS & PI Analysis': 'Analysis',
+    'Infra': 'Infra',
+    'Billing': 'Billing',
+    'Megafon': 'Megafon',
+    'CRM': 'CRM',
+    'Charge Events Storage': 'CES',
+    'Arch & SA': 'Arch & SA',
+    'Custom Activation': 'Custom',
+    'Custom Billing & Finances': 'Custom',
+    'Custom CAM & Searching': 'Custom',
+    'Custom CCM': 'Custom',
+    'Custom CSRP': 'Custom',
+    'Custom Documents/Datamarts': 'Custom',
+    'Custom Infrastructure': 'Custom',
+    'Custom Inventory': 'Custom',
+    'Custom': 'Custom',
+    'Custom OCS/PSC': 'Custom',
+    'Order Management & Partner Management': 'Ordering & PRM',
+    'Custom Payments': 'Custom',
+    'Design': 'Design',
+    'DevOps': 'DevOps',
+    'DFE': 'DFE',
+    'Documentation': 'Doc',
+    'Integration': 'Integration',
+    'Network Monetization': 'NWM',
+    'Payment Management': 'Pays',
+    'Performance Testing': 'Performance Testing',
+    'Product Instances': 'Product Instances',
+    'Quality Control': 'QC',
+    'Product Management': 'PSC',
+    'System Architecture': 'System Architecture'
+}
 
 
 def get_domain_by_project(project):

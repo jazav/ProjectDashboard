@@ -11,9 +11,8 @@ import time
 
 
 class DomainBurndownDashboard(AbstractDashboard):
-    auto_open, repository, dashboard_type, citrix_token, local_user = True, None, None, None, None
+    auto_open, repository, dashboard_type, citrix_token, local_user, end_date = True, None, None, None, None, None
     all_spent, all_remain = {}, {}
-    end_date = datetime.date(2019, 8, 14)
 
     def multi_prepare(self, data_spent, data_original):
         all_original, spent, original, kk = {}, {}, {}, []

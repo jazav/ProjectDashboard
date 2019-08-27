@@ -2,55 +2,43 @@ from dashboards.dashboard import AbstractDashboard
 import plotly
 import plotly.graph_objs as go
 from datetime import datetime
-from adapters.issue_utils import get_domain_bssbox
+from adapters.issue_utils import get_domain_bssbox, domain_shortener
 from adapters.citrix_sharefile_adapter import CitrixShareFile
 import shutil
 import time
 
 
-bulk_convert = {'Quality Control': 'QC', 'Custom': 'Custom', 'Megafon': 'Megafon', 'DevOps': 'DevOps',
-                'Charge Events Storage': 'CES', 'Order Management & Partner Management': 'Ordering & PRM',
-                'Documentation': 'Doc', 'Infra': 'Infra', 'DFE': 'DFE', 'System Architecture': 'System Architecture',
-                'Billing': 'Billing', 'SRS & PI Analysis': 'Analysis', 'Common': 'Common', 'Payment Management': 'Pays',
-                'Network Monetization': 'NWM', 'Arch & SA': 'Arch & SA', 'Design': 'Design',
-                'Product Instances': 'Product Instances', 'Integration & Acceptance': 'Acceptance',
-                'Product Management': 'PSC', 'CRM': 'CRM', 'Performance Testing': 'Performance Testing'}
-
-
 class FeatureInfoDashboard(AbstractDashboard):
-    auto_open, repository, citrix_token, local_user = True, None, None, None
+    auto_open, repository, citrix_token, local_user, end_date = True, None, None, None, None
     feature_dict, spent_dict, info, wrong_estimates, due_dates, readiness_dict, threat_list = {}, {}, [], {}, {}, {}, []
-    end_date = datetime(2019, 8, 14)
 
     def prepare(self, data):
         for i in range(len(data['Key'])):
             if data['Issue type'][i] == 'User Story (L3)':
                 if data['Key'][i] not in self.feature_dict.keys():
-                    self.feature_dict[data['Key'][i]] = {domain: 0 for domain in bulk_convert.values()
+                    self.feature_dict[data['Key'][i]] = {domain: 0 for domain in domain_shortener.values()
                                                          if domain != 'Common'}
-                    self.spent_dict[data['Key'][i]] = {domain: 0 for domain in bulk_convert.values()
+                    self.spent_dict[data['Key'][i]] = {domain: 0 for domain in domain_shortener.values()
                                                        if domain != 'Common'}
                     self.info.append(' ({})<br>{}<br>Due date: {}<br>Status: {}, '
                                      .format(data['FL'][i], data['Feature name'][i],
                                              data['Due date'][i], data['Status'][i]))
-                    self.due_dates[data['Key'][i]] = {domain: [] for domain in bulk_convert.values() if domain != 'Common'}
-                    self.readiness_dict[data['Key'][i]] = {domain: None for domain in bulk_convert.values() if domain != 'Common'}
+                    self.due_dates[data['Key'][i]] = {domain: [] for domain in domain_shortener.values() if domain != 'Common'}
+                    self.readiness_dict[data['Key'][i]] = {domain: None for domain in domain_shortener.values() if domain != 'Common'}
                     if data['Status'][i] not in ('Testing', 'Ready for Testing', 'Closed'):
-                        if datetime.now().date() > self.end_date.date():
+                        if datetime.now().date() > self.end_date:
                             self.threat_list.append(data['Key'][i])
                 # d = json.loads(data['Estimate'][i]) if data['Estimate'][i] is not None else {}
                 # for domain in [key for key in d.keys() if not key.isdigit() and key != 'Total']:
                 #     if bulk_convert[domain] != 'Common':
                 #         self.feature_dict[data['Key'][i]][bulk_convert[domain]] += float(d[domain]['v'])
             else:
-                try:
-                    if get_domain_bssbox(data['Component'][i]) not in ('Empty', 'Common'):
-                        self.spent_dict[data['Feature'][i]][get_domain_bssbox(data['Component'][i])] += float(data['Spent time'][i]) / 28800
-                        self.feature_dict[data['Feature'][i]][get_domain_bssbox(data['Component'][i])] += float(data['Original estimate'][i]) / 28800
-                        if data['Due date'][i] is not None:
-                            self.due_dates[data['Feature'][i]][get_domain_bssbox(data['Component'][i])].append(datetime.strptime(data['Due date'][i], '%d.%m.%Y'))
-                except KeyError:
-                    print(data['Component'][i])
+                domain = get_domain_bssbox(data['Component'][i])
+                if domain not in ('Empty', 'Common'):
+                    self.spent_dict[data['Feature'][i]][domain] += float(data['Spent time'][i]) / 28800
+                    self.feature_dict[data['Feature'][i]][domain] += float(data['Estimate'][i]) / 28800
+                    if data['Due date'][i] is not None:
+                        self.due_dates[data['Feature'][i]][domain].append(datetime.strptime(data['Due date'][i], '%d.%m.%Y').date())
         for ft, bulk in self.feature_dict.items():
             self.wrong_estimates[ft] = []
             for dmn in bulk.keys():
@@ -113,7 +101,7 @@ class FeatureInfoDashboard(AbstractDashboard):
                     else:
                         if max(d[dmn]) > self.end_date:
                             due_color.append('rgb(230,0,0)')
-                        elif max(d[dmn]) < datetime.now():
+                        elif max(d[dmn]) < datetime.now().date():
                             if readiness[ft][dmn] < 1:
                                 due_color.append('rgb(230,0,0)')
                             else:

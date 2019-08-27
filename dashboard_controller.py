@@ -394,17 +394,18 @@ class DashboardController:
     # By @alanbryn
     @staticmethod
     def dashboard_sprint_info(auto_open, repository, mssql_query_file, dashboard_type, citrix_token,
-                              local_user):
+                              local_user, dashboard_name, end_date):
         dc = DataController()
         data = dc.get_issues_mssql(mssql_query_file=mssql_query_file)
 
         for dt in dashboard_type:
             dashboard = SprintInfoDashboard() if dt == 'DOMAIN' else FeatureInfoDashboard()
-            dashboard.dashboard_name = 'Super Sprint 11'
+            dashboard.dashboard_name = dashboard_name
             dashboard.auto_open = auto_open
             dashboard.repository = repository
             dashboard.citrix_token = citrix_token
             dashboard.local_user = local_user
+            dashboard.end_date = datetime.datetime.strptime(end_date, '%d.%m.%y').date()
             dashboard.prepare(data=data)
             dashboard.export_to_plot()
 
@@ -426,25 +427,27 @@ class DashboardController:
     # By @alanbryn
     @staticmethod
     def dashboard_sprint_burndown(auto_open, repository, mssql_query_file, dashboard_type, citrix_token,
-                                  local_user):
+                                  local_user, dashboard_name, start_date, end_date):
         dc = DataController()
         data_spent = dc.get_issues_mssql(mssql_query_file=mssql_query_file[0])
         data_original = dc.get_issues_mssql(mssql_query_file=mssql_query_file[1])
 
         for dt in dashboard_type:
             dashboard = SprintBurndownDashboard() if dt == 'SPRINT' else DomainBurndownDashboard()
-            dashboard.dashboard_name = 'Burndown for Super Sprint 11'
+            dashboard.dashboard_name = dashboard_name
             dashboard.auto_open = auto_open
             dashboard.repository = repository
             dashboard.citrix_token = citrix_token
             dashboard.local_user = local_user
+            dashboard.start_date = datetime.datetime.strptime(start_date, '%d.%m.%y').date()
+            dashboard.end_date = datetime.datetime.strptime(end_date, '%d.%m.%y').date()
             dashboard.multi_prepare(data_spent=data_spent, data_original=data_original)
             dashboard.export_to_plot()
 
     # By @alanbryn
     @staticmethod
     def dashboard_yota_burndown(auto_open, repository, mssql_query_file, dashboard_type, citrix_token,
-                                local_user, labels):
+                                local_user, labels, dashboard_name, start_date, end_date):
         dc = DataController()
         data_spent = dc.get_issues_mssql(mssql_query_file=mssql_query_file[0])
         data_original = dc.get_issues_mssql(mssql_query_file=mssql_query_file[1])
@@ -457,12 +460,15 @@ class DashboardController:
                 dashboard = YotaDomainBurndownDashboard()
             elif dt == 'WORKS':
                 dashboard = YotaWorksBurndownDashboard()
-            dashboard.dashboard_name = 'Burndown for Yota'
+            dashboard.dashboard_name = dashboard_name
             dashboard.auto_open = auto_open
             dashboard.repository = repository
             dashboard.citrix_token = citrix_token
             dashboard.local_user = local_user
             dashboard.labels = labels
+            dashboard.start_date = datetime.datetime.strptime(start_date, '%d.%m.%y').date()
+            dashboard.end_date = {scope: datetime.datetime.strptime(date, '%d.%m.%y').date()
+                                  for scope, date in end_date.items()}
             dashboard.multi_prepare(data_spent=data_spent, data_original=data_original)
             dashboard.export_to_plot()
 
@@ -483,7 +489,8 @@ class DashboardController:
 
     # By @alanbryn
     @staticmethod
-    def dashboard_sprint_overview(auto_open, repository, citrix_token, local_user, user, password, sprint):
+    def dashboard_sprint_overview(auto_open, repository, citrix_token, local_user,
+                                  user, password, sprint, start_date, end_date):
         dashboard = SprintOverviewDashboard()
         dashboard.dashboard_name = '{} overview'.format(sprint)
         dashboard.auto_open = auto_open
@@ -493,6 +500,8 @@ class DashboardController:
         dashboard.user = user
         dashboard.password = password
         dashboard.sprint = sprint
+        dashboard.start_date = start_date
+        dashboard.end_date = end_date
         dashboard.export_to_plot()
 
     # @staticmethod
