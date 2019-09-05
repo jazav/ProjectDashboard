@@ -57,13 +57,14 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
     dashboard_format = DashboardFormat.HTML
     sprint = None
     jira_url = ""
+    labels = None
     components = None
 
     def prepare(self, data):
         if self.fixversion is None:
             raise ValueError('fixversion is undefined')
         self.open_list, self.dev_list, self.close_list, self.name_list, self.prj_list, self.domain_list, self.key_list, self.unplan_list = \
-            data.get_sum_by_projects(self.project, "", self.fixversion, 'domain' if self.dashboard_type == DashboardType.DOMAIN else 'summary, project, key', self.sprint, self.components)
+            data.get_sum_by_projects(self.project, self.labels, self.fixversion, 'domain' if self.dashboard_type == DashboardType.DOMAIN else 'summary, project, key', self.sprint, self.components)
 
     def get_name_list(self):
 
@@ -108,7 +109,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
                     width=1),
             ),
             insidetextfont=dict(family='Arial', size=12,
-                      color='white')
+                                color='white')
         )
         # was: brnamelist
         trace2 = go.Bar(
@@ -124,7 +125,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
                     width=1),
             ),
             insidetextfont=dict(family='Arial', size=12,
-                      color='black')
+                                color='black')
         )
         # was: brnamelist
         trace3 = go.Bar(
@@ -140,7 +141,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
                     width=1),
             ),
             insidetextfont=dict(family='Arial', size=12,
-                      color='white')
+                                color='white')
         )
         trace4 = go.Bar(
             x=self.get_name_list(),
@@ -155,7 +156,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
                     width=1),
             ),
             insidetextfont=dict(family='Arial', size=12,
-                      color='white')
+                                color='white')
         )
         traces.append(trace1)
         traces.append(trace2)
@@ -190,10 +191,7 @@ class FeatureProgressDomainDashboard(AbstractDashboard):
         if self.dashboard_type == DashboardType.FEATURE:
             file_name1 = self.project
         else:
-            file_name1 = self.dashboard_name + ' ' + (
-            "" if (self.dashboard_type == DashboardType.DOMAIN or self.project != "") else (
-            self.dashboard_type.name + " ")) \
-                         + plan_fact_str + (('_' + self.components) if self.components != "" else "")
+            file_name1 = self.dashboard_name.replace(')','_')
 
         file_name = self.png_dir + "{0}_{1}".format(file_name1, self.project)
         # file_name = '//billing.ru/dfs/incoming/ABryntsev/' + "{0}_{1}".format(file_name1, self.project)

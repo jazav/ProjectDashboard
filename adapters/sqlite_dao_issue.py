@@ -23,7 +23,7 @@ PROJECT_END_DOMAIN = '''CASE
                                             WHEN i.project ='BSSUFM' THEN  'Billing'
                                             WHEN i.project ='BSSORDER' THEN  'Ordering'
                                             WHEN i.project ='BSSCRMP' THEN  'DFE'
-                                            WHEN i.project ='BSSDAPI' THEN  'DFE'
+                                            WHEN i.project ='BSSDAPI' THEN  'CRM'
                                             WHEN i.project ='BSSSCP' THEN  'DFE'
                                             WHEN i.project ='UIKIT' THEN  'DFE'
                                             WHEN i.project ='RNDDOC' THEN  'Doc'
@@ -31,6 +31,8 @@ PROJECT_END_DOMAIN = '''CASE
                                             WHEN i.project ='BSSPRM' THEN  'PRM'
                                             WHEN i.project ='BSSPSC' THEN  'Catalog'
                                             WHEN i.project ='BSSPAY' THEN  'Billing'
+                                            WHEN i.project ='BSSPAY' THEN  'Billing'
+                                            WHEN i.project ='BSSPRORATE' THEN  'Billing'
                                             WHEN i.project ='BSSBOX' THEN  'BSSBOX'
                                             WHEN i.project ='NWMOCS' THEN  'NWM'
                                             ELSE '!'||i.project
@@ -122,9 +124,11 @@ class SqliteDaoIssue(DaoIssue):
                 for field_map_key in BULK_FIELD_MAPPER:
                     val_key = component_to_store_field(field_map_key)
                     if val_key in value:
-                        if value[val_key] != '?':
-                            bulk_values = bulk_values + ", "+value[val_key]
-                            sql_str = sql_str + "," + val_key
+                        if value[val_key] == '?':
+                            bulk_values = bulk_values + ", "+'999'
+                        else:
+                            bulk_values = bulk_values + ", " + value[val_key]
+                        sql_str = sql_str + "," + val_key
                 sql_str = sql_str + ')'
                 self.cursor.execute(sql_str + ''' VALUES (?,?,?,?,
                                                  ?,?,?,?,
@@ -169,149 +173,163 @@ class SqliteDaoIssue(DaoIssue):
         domain_list = []
         key_list =  []
         unplan_list = []
-        components_condition = '';
-        for component in components_filter.split(','):
-            if components_condition == '':
-                components_condition = '("' + component + '"'
-            else:
-                components_condition = components_condition+ ',"' + component+ '"'
-        if components_condition != '':
-            components_condition = components_condition + ')'
-        sql_str = ('''SELECT project,
-                           summary,
-                           SUM(CASE WHEN status IN ('Closed', 'Resolved') THEN timeoriginalestimate ELSE 0 END) close,
-                           SUM(CASE WHEN status IN ('Open','New') THEN timeoriginalestimate ELSE 0 END) open,
-                           SUM(CASE WHEN status IN ('Open','New','Closed', 'Resolved','Unplanned') THEN 0 ELSE timeoriginalestimate END) dev,
-                           domain,
-                           key,
-                           SUM(CASE WHEN status IN ('Unplanned') THEN timeoriginalestimate ELSE 0 END) unplan
-                      FROM (
-                               SELECT i.project,
-                                      e.summary,
-                                      e.key,
-                                      i.status,
-                                      i.timeoriginalestimate,
-                                          ''' + PROJECT_END_DOMAIN + '''
-                                 FROM issues l3
-                                      LEFT JOIN
-                                      issues e ON l3.issue_key = e.parent
-                                      LEFT JOIN
-                                      issues i ON e.issue_key = i.epiclink
-                                      LEFT OUTER JOIN
-                                      issues st ON i.issue_key = st.parent
-                                WHERE e.issuetype = "Epic" AND
-                                      i.labels NOT LIKE "%,off_ss7,%" AND 
-                                      st.parent IS NULL  ''')
-        if project_filter !='':
-            sql_str = sql_str + ' AND  i.project = "'''+project_filter+'" '
-        if label_filter !='':
-            sql_str = sql_str + ' AND e.labels LIKE "%,'+label_filter+',%"  '
-        if fixversions_filter != '':
-                sql_str = sql_str + ' AND e.fixversions LIKE "%,'+fixversions_filter+',%"  '
-        if sprint_filter != '':
-                sql_str = sql_str + ' AND l3.sprint = "'''+sprint_filter+'" '
-        if components_filter != '':
-            sql_str = sql_str + ' AND e.components in ' + components_condition
-        # add subtasks query with estimates in tasks
-        sql_str = sql_str + (''' UNION ALL
+        sql_str = '';
+        try:
+            components_condition = '';
+            for component in components_filter.split(','):
+                if components_condition == '':
+                    components_condition = '("' + component + '"'
+                else:
+                    components_condition = components_condition+ ',"' + component+ '"'
+            if components_condition != '':
+                components_condition = components_condition + ')'
+            sql_str = ('''SELECT project,
+                               summary,
+                               SUM(CASE WHEN status IN ('Closed', 'Resolved') THEN timeoriginalestimate ELSE 0 END) close,
+                               SUM(CASE WHEN status IN ('Open','New','Planning') THEN timeoriginalestimate ELSE 0 END) open,
+                               SUM(CASE WHEN status IN ('Open','New','Planning','Closed', 'Resolved','Unplanned') THEN 0 ELSE timeoriginalestimate END) dev,
+                               domain,
+                               key,
+                               SUM(CASE WHEN status IN ('Unplanned') THEN timeoriginalestimate ELSE 0 END) unplan
+                          FROM (
                                    SELECT i.project,
                                           e.summary,
                                           e.key,
                                           i.status,
                                           i.timeoriginalestimate,
-                                          ''' + PROJECT_END_DOMAIN + '''
+                                              ''' + PROJECT_END_DOMAIN + '''
                                      FROM issues l3
                                           LEFT JOIN
                                           issues e ON l3.issue_key = e.parent
                                           LEFT JOIN
                                           issues i ON e.issue_key = i.epiclink
-                                    WHERE e.issuetype = "Epic" AND 
-                                          i.labels NOT LIKE "%,off_ss7,%" AND
-                                          0= (Select sum(st2.timeoriginalestimate) from issues st2 where i.issue_key = st2.parent) ''')
-        if project_filter != '':
-            sql_str = sql_str + ' AND  i.project = "''' + project_filter + '" '
-        if label_filter != '':
-             sql_str = sql_str + ' AND e.labels LIKE "%,' + label_filter + ',%" AND e.labels NOT LIKE "%,' + 'off_ss7' + ',%" '
-        if fixversions_filter != '':
-             sql_str = sql_str + ' AND e.fixversions LIKE "%,' + fixversions_filter + ',%"  '
-        if sprint_filter != '':
-                sql_str = sql_str + ' AND l3.sprint = "'''+sprint_filter+'" '
-        if components_filter != '':
-            sql_str = sql_str + ' AND e.components in ' + components_condition
-        # add subtasks query with estimates in Subtasks
-        sql_str = sql_str + (''' UNION ALL
-                                   SELECT i.project,
-                                          e.summary,
-                                          e.key,
-                                          st.status,
-                                          st.timeoriginalestimate,
-                                          ''' + PROJECT_END_DOMAIN + '''
-                                     FROM issues l3
-                                          LEFT JOIN
-                                          issues e ON l3.issue_key = e.parent
-                                          LEFT JOIN
-                                          issues i ON e.issue_key = i.epiclink
-                                          LEFT JOIN
+                                          LEFT OUTER JOIN
                                           issues st ON i.issue_key = st.parent
                                     WHERE e.issuetype = "Epic" AND 
-                                          st.parent IS NOT NULL  AND 
-                                          i.labels NOT LIKE "%,off_ss7,%" AND
-                                          st.labels NOT LIKE "%,off_ss7,%" AND 
-                                          0< (Select sum(st2.timeoriginalestimate) from issues st2 where i.issue_key = st2.parent)''')
-        if project_filter != '':
-            sql_str = sql_str + ' AND  i.project = "''' + project_filter + '" '
-        if label_filter != '':
-             sql_str = sql_str + ' AND e.labels LIKE "%,' + label_filter + ',%"  '
-        if fixversions_filter != '':
-             sql_str = sql_str + ' AND e.fixversions LIKE "%,' + fixversions_filter + ',%"  '
-        if sprint_filter != '':
-            sql_str = sql_str + ' AND l3.sprint = "''' + sprint_filter + '" '
-        if components_filter != '':
-            sql_str = sql_str + ' AND e.components in ' + components_condition
-        if components_filter != '':
-        # add L3 query without epics
+                                          e.status != "Canceled" AND
+                                          i.labels NOT LIKE "%,off_ss7,%" AND 
+                                          st.parent IS NULL  ''')
+            if project_filter !='':
+                sql_str = sql_str + ' AND  i.project = "'''+project_filter+'" '
+            if label_filter !='':
+                sql_str = sql_str + ' AND l3.labels LIKE "%,' + label_filter + ',%" '
+            if fixversions_filter != '':
+                    sql_str = sql_str + ' AND e.fixversions LIKE "%,'+fixversions_filter+',%"  '
+            if sprint_filter != '':
+                    sql_str = sql_str + ' AND l3.sprint = "'''+sprint_filter+'" '
+            if components_filter != '':
+                sql_str = sql_str + ' AND e.components in ' + components_condition
+            # add subtasks query with estimates in tasks
+            sql_str = sql_str + (''' UNION ALL
+                                       SELECT i.project,
+                                              e.summary,
+                                              e.key,
+                                              i.status,
+                                              i.timeoriginalestimate,
+                                              ''' + PROJECT_END_DOMAIN + '''
+                                         FROM issues l3
+                                              LEFT JOIN
+                                              issues e ON l3.issue_key = e.parent
+                                              LEFT JOIN
+                                              issues i ON e.issue_key = i.epiclink
+                                        WHERE e.issuetype = "Epic" AND 
+                                              e.status != "Canceled" AND 
+                                              i.labels NOT LIKE "%,off_ss7,%" AND
+                                              0= (Select sum(st2.timeoriginalestimate) from issues st2 where i.issue_key = st2.parent) ''')
+            if project_filter != '':
+                sql_str = sql_str + ' AND  i.project = "''' + project_filter + '" '
+            if label_filter != '':
+                 sql_str = sql_str + ' AND l3.labels LIKE "%,' + label_filter + ',%" '
+            if fixversions_filter != '':
+                 sql_str = sql_str + ' AND e.fixversions LIKE "%,' + fixversions_filter + ',%"  '
+            if sprint_filter != '':
+                    sql_str = sql_str + ' AND l3.sprint = "'''+sprint_filter+'" '
+            if components_filter != '':
+                sql_str = sql_str + ' AND e.components in ' + components_condition
+            # add subtasks query with estimates in Subtasks
+            sql_str = sql_str + (''' UNION ALL
+                                       SELECT i.project,
+                                              e.summary,
+                                              e.key,
+                                              st.status,
+                                              st.timeoriginalestimate,
+                                              ''' + PROJECT_END_DOMAIN + '''
+                                         FROM issues l3
+                                              LEFT JOIN
+                                              issues e ON l3.issue_key = e.parent
+                                              LEFT JOIN
+                                              issues i ON e.issue_key = i.epiclink
+                                              LEFT JOIN
+                                              issues st ON i.issue_key = st.parent
+                                        WHERE e.issuetype = "Epic" AND 
+                                              e.status != "Canceled" AND 
+                                              st.parent IS NOT NULL  AND 
+                                              i.labels NOT LIKE "%,off_ss7,%" AND
+                                              st.labels NOT LIKE "%,off_ss7,%" AND 
+                                              0< (Select sum(st2.timeoriginalestimate) from issues st2 where i.issue_key = st2.parent)''')
+            if project_filter != '':
+                sql_str = sql_str + ' AND  i.project = "''' + project_filter + '" '
+            if label_filter != '':
+                 sql_str = sql_str + ' AND l3.labels LIKE "%,' + label_filter + ',%"  '
+            if fixversions_filter != '':
+                 sql_str = sql_str + ' AND e.fixversions LIKE "%,' + fixversions_filter + ',%"  '
+            if sprint_filter != '':
+                sql_str = sql_str + ' AND l3.sprint = "''' + sprint_filter + '" '
+            if components_filter != '':
+                sql_str = sql_str + ' AND e.components in ' + components_condition
+            # add L3 query without epics
             components_bulk_condition = ''
-            for component in components_filter.split(','):
-                if components_bulk_condition == '':
-                    components_bulk_condition = '(  l3.' + component_to_bulk_field(component)
-                else:
-                    components_bulk_condition = components_bulk_condition + ' + l3.' + component_to_bulk_field(component)
-            components_bulk_condition = components_bulk_condition + ')'
+            if components_filter != '':
+                for component in components_filter.split(','):
+                    if components_bulk_condition == '':
+                        components_bulk_condition = '(  l3.' + component_to_bulk_field(component)
+                    else:
+                        components_bulk_condition = components_bulk_condition + ' + l3.' + component_to_bulk_field(component)
+                components_bulk_condition = components_bulk_condition + ')'
             sql_str = sql_str + ''' UNION ALL
-                                           SELECT "''' + project_filter + '''" project,
-                                                  l3.summary,
-                                                  l3.key,
-                                                  "Unplanned" status,
-                                                  ''' + components_bulk_condition + ''' timeoriginalestimate,
-                                                  "''' + get_domain(components_filter) + '''" domain
-                                            FROM issues l3
-                                            LEFT JOIN
-                                                issues e ON l3.issue_key = e.parent AND 
-                       e.issuetype = "Epic" AND e.components in ''' + components_condition + ' WHERE e.issue_key IS NULL '
+                                               SELECT "''' + project_filter + '''" project,
+                                                      l3.summary,
+                                                      l3.key,
+                                                      "Unplanned" status,
+                                                      ''' + ('0' if components_bulk_condition == '' else components_bulk_condition) + ''' timeoriginalestimate,
+                                                      "''' + get_domain(components_filter) + '''" domain
+                                                FROM issues l3
+                                                LEFT JOIN
+                                                    issues e ON l3.issue_key = e.parent AND 
+                           e.issuetype = "Epic" AND 
+                           e.status != "Canceled"'''
+            if components_bulk_condition != '':
+                sql_str = sql_str + ' AND e.components in ''' + components_condition
+            sql_str = sql_str + ' WHERE e.issue_key IS NULL '
             if sprint_filter != '':
                 sql_str = sql_str + ' AND l3.sprint = "'''+sprint_filter+'" '
-            sql_str = sql_str + ' AND ' + components_bulk_condition +'>0 '
+            if components_bulk_condition != '':
+                sql_str = sql_str + ' AND ' + components_bulk_condition +'>0 '
+            if label_filter != '':
+                 sql_str = sql_str + ' AND l3.labels LIKE "%,' + label_filter + ',%"  '
 
-        sql_str = sql_str + ' ) GROUP BY ' + group_by + ' HAVING SUM(timeoriginalestimate) >= 0 '
+            sql_str = sql_str + ' ) GROUP BY ' + group_by + ' HAVING SUM(timeoriginalestimate) >= 0 '
 
-        for row in self.cursor.execute(sql_str):
-            prj_list.append(row[0] if row[0] is not None else "")
-            name_list.append(row[1])
-            close_list.append(round(row[2]))
-            open_list.append(round(row[3]))
-            dev_list.append(round(row[4]) if row[4] is not None else 0)
-            domain_list.append(row[5])
-            key_list.append(row[6])
-            unplan_list.append(row[7])
-        if len(prj_list) == 0:
-            prj_list.append("")
-            name_list.append("")
-            close_list.append(0)
-            open_list.append(0)
-            dev_list.append(0)
-            domain_list.append("")
-            key_list.append("")
-            unplan_list.append(0)
+            for row in self.cursor.execute(sql_str):
+                prj_list.append(row[0] if row[0] is not None else "")
+                name_list.append(row[1])
+                close_list.append(round(row[2]))
+                open_list.append(round(row[3]))
+                dev_list.append(round(row[4]) if row[4] is not None else 0)
+                domain_list.append(row[5])
+                key_list.append(row[6])
+                unplan_list.append(row[7])
+            if len(prj_list) == 0:
+                prj_list.append("")
+                name_list.append("")
+                close_list.append(0)
+                open_list.append(0)
+                dev_list.append(0)
+                domain_list.append("")
+                key_list.append("")
+                unplan_list.append(0)
+        except:
+                logging.error("Unexpected error:", sys.exc_info()[0]," on sql:", sql_str)
         return open_list, dev_list, close_list, name_list, prj_list, domain_list, key_list, unplan_list
 
     # By @alanbryn
