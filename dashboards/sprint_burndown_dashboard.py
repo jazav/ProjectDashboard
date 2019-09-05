@@ -8,10 +8,10 @@ import time
 
 
 class SprintBurndownDashboard(AbstractDashboard):
-    auto_open, repository, dashboard_type, citrix_token, local_user = True, None, None, None, None
+    auto_open, repository, dashboard_type, citrix_token, local_user, start_date, end_date \
+        = True, None, None, None, None, None, None
     all_spent, all_remain = {}, {}
     pp_all_spent, pp_all_remain = {}, {}
-    start_date, end_date = datetime.date(2019, 7, 4), datetime.date(2019, 8, 14)
     readiness, pp_readiness = {'spent': 0, 'original estimate': 0, 'features': 0},\
                               {'spent': 0, 'original estimate': 0, 'features': 0}
 

@@ -11,11 +11,9 @@ import json
 
 
 class YotaWorksBurndownDashboard(AbstractDashboard):
-    auto_open, repository, citrix_token, local_user, labels = True, None, None, None, None
+    auto_open, repository, citrix_token, local_user, labels, start_date, end_date \
+        = True, None, None, None, None, None, None
     all_spent, all_remain = {}, {}
-    start_date = datetime.date(2019, 2, 18)
-    end_date = {'PilotPriority': datetime.date(2019, 11, 1), 'Core': datetime.date(2020, 3, 1),
-                'Custom': datetime.date(2020, 3, 1), 'Config': datetime.date(2020, 3, 1)}
     estimates = []
 
     def multi_prepare(self, data_spent, data_original):

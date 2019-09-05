@@ -10,7 +10,7 @@ WITH user_stories AS (
 			FROM [srv-jira-prod-report].[dbo].[label] AS pp_lbl
 				INNER JOIN [srv-jira-prod-report].[dbo].[jiraissue] AS pp_ji ON pp_ji.ID = pp_lbl.ISSUE
 			WHERE pp_lbl.LABEL = 'PilotPriority') AS us_pp ON us_pp.ID = us_ji.ID
-	WHERE us_prj.pname = 'BSSBOX' AND us_it.pname = 'User Story (L3)' AND us_cfv.STRINGVALUE = '7199' AND us_is.pname != 'Canceled'),
+	WHERE us_prj.pname = 'BSSBOX' AND us_it.pname = 'User Story (L3)' AND us_cfv.STRINGVALUE = '7326' AND us_is.pname != 'Canceled'),
 epics AS (
 	SELECT e_ji.ID AS 'ID', (CASE WHEN epics_cmp.component IS NULL THEN '' ELSE epics_cmp.component END) AS 'component', user_stories.PilotPriority AS 'PilotPriority'
 	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS e_ji

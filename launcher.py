@@ -120,6 +120,15 @@ def get_command_namespace(argv):
     dashboard_parser.add_argument('--user', action='store', help='Jira username', required=False, default='')
 
     dashboard_parser.add_argument('--password', action='store', help='Jira password', required=False, default='')
+
+    dashboard_parser.add_argument('--dashboard_name', '-dn', action='store', help='Dashboard title', required=False,
+                                  default='')
+
+    dashboard_parser.add_argument('--start_date', '-sd', action='store', help='Start of work with format %d.%m.%y',
+                                  required=False, default='')
+
+    dashboard_parser.add_argument('--end_date', '-ed', action='store', help='End of work with format %d.%m.%y',
+                                  required=False, default='')
     # ------------------------------------------------------------------------------------------------------------------
     
     for subparser in [init_parser, update_parser, issue_parser, dashboard_parser]:
@@ -256,7 +265,8 @@ def main(argv):
                                        mssql_query_file=name_space.mssql.lower(),
                                        dashboard_type=[dt.upper().strip() for dt in name_space.dashboard_type.split(',')],
                                        citrix_token=json.loads(name_space.citrix_token.replace('\'', '"')),
-                                       local_user=name_space.local_user)
+                                       local_user=name_space.local_user, dashboard_name=name_space.dashboard_name,
+                                       end_date=name_space.end_date)
 
         if name_space.name == "iot":
             dshc.dashboard_iot(auto_open=(name_space.auto_open.upper() == 'TRUE'),
@@ -271,7 +281,8 @@ def main(argv):
                                            mssql_query_file=[mssql.lower().strip() for mssql in name_space.mssql.split(',')],
                                            dashboard_type=[dt.upper().strip() for dt in name_space.dashboard_type.split(',')],
                                            citrix_token=json.loads(name_space.citrix_token.replace('\'', '"')),
-                                           local_user=name_space.local_user)
+                                           local_user=name_space.local_user, dashboard_name=name_space.dashboard_name,
+                                           start_date=name_space.start_date, end_date=name_space.end_date)
 
         if name_space.name == "yota_burndown":
             dshc.dashboard_yota_burndown(auto_open=(name_space.auto_open.upper() == 'TRUE'),
@@ -279,7 +290,9 @@ def main(argv):
                                          mssql_query_file=[mssql.lower().strip() for mssql in name_space.mssql.split(',')],
                                          dashboard_type=[dt.upper().strip() for dt in name_space.dashboard_type.split(',')],
                                          citrix_token=json.loads(name_space.citrix_token.replace('\'', '"')),
-                                         labels=[lbl.strip() for lbl in name_space.labels.split(',')])
+                                         labels=[lbl.strip() for lbl in name_space.labels.split(',')],
+                                         dashboard_name=name_space.dashboard_name, start_date=name_space.start_date,
+                                         end_date=json.loads(name_space.end_date.replace('\'', '"')))
 
         if name_space.name == "ba_work_distribution":
             dshc.dashboard_ba_work_distribution(auto_open=(name_space.auto_open.upper() == 'TRUE'),
@@ -292,7 +305,8 @@ def main(argv):
             dshc.dashboard_sprint_overview(auto_open=(name_space.auto_open.upper() == 'TRUE'),
                                            repository=name_space.repository.lower(), local_user=name_space.local_user,
                                            citrix_token=json.loads(name_space.citrix_token.replace('\'', '"')),
-                                           user=name_space.user, password=name_space.password, sprint=name_space.sprint)
+                                           user=name_space.user, password=name_space.password, sprint=name_space.sprint,
+                                           start_date=name_space.start_date, end_date=name_space.end_date)
         # --------------------------------------------------------------------------------------------------------------
         # if name_space.name == "bugs_density":
         #     dshc.dashboard_bugs_density(auto_open=(name_space.auto_open.upper() == 'TRUE'),

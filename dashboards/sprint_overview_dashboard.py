@@ -10,7 +10,8 @@ import time
 
 
 class SprintOverviewDashboard(AbstractDashboard):
-    auto_open, repository, citrix_token, local_user, user, password, sprint = True, None, None, None, None, None, None
+    auto_open, repository, citrix_token, local_user, user, password, sprint, start_date, end_date \
+        = True, None, None, None, None, None, None, None, None
 
     @staticmethod
     def upload_sprint(jira, sprint, dates):
@@ -87,9 +88,12 @@ class SprintOverviewDashboard(AbstractDashboard):
     def export_to_plotly(self):
         jira = JIRA(server='https://jira.billing.ru', basic_auth=(self.user, self.password))
 
-        date, dates = datetime.date(2019, 7, 5), []
-        while date <= datetime.datetime.now().date():
-            dates.append(date)
+        date, end, dates, xaxis = datetime.datetime.strptime(self.start_date, '%d.%m.%y').date(),\
+            datetime.datetime.strptime(self.end_date, '%d.%m.%y').date(), [], []
+        while date <= end:
+            if date <= datetime.datetime.now().date():
+                dates.append(date)
+            xaxis.append(date)
             date += datetime.timedelta(days=7)
 
         bugs = self.upload_bugs(jira=jira, dates=dates)
@@ -180,9 +184,9 @@ class SprintOverviewDashboard(AbstractDashboard):
                 type='date',
                 dtick=604800000,
                 title='Dates',
-                range=[dates[0] - timedelta(days=2), dates[-1] + timedelta(days=2)],
-                tickvals=dates,
-                ticktext=[datetime.datetime.strftime(tick, '%d.%m.%y') for tick in dates],
+                range=[xaxis[0] - timedelta(days=3), xaxis[-1] + timedelta(days=3)],
+                tickvals=xaxis,
+                ticktext=[datetime.datetime.strftime(tick, '%d.%m.%y') for tick in xaxis],
                 ticks='outside', ticklen=5, tickcolor='rgba(0,0,0,0)',
                 linecolor='black',
                 gridcolor='rgb(232,232,232)'
@@ -194,9 +198,9 @@ class SprintOverviewDashboard(AbstractDashboard):
                 type='date',
                 dtick=604800000,
                 title='Dates',
-                range=[dates[0] - timedelta(days=7), dates[-1] + timedelta(days=7)],
-                tickvals=dates,
-                ticktext=[datetime.datetime.strftime(tick, '%d.%m.%y') for tick in dates],
+                range=[xaxis[0] - timedelta(days=7), xaxis[-1] + timedelta(days=7)],
+                tickvals=xaxis,
+                ticktext=[datetime.datetime.strftime(tick, '%d.%m.%y') for tick in xaxis],
                 ticks='outside', ticklen=5, tickcolor='rgba(0,0,0,0)',
                 linecolor='black',
                 gridcolor='rgb(232,232,232)'
@@ -208,9 +212,9 @@ class SprintOverviewDashboard(AbstractDashboard):
                 type='date',
                 dtick=604800000,
                 title='Dates',
-                range=[dates[0] - timedelta(days=7), dates[-1] + timedelta(days=7)],
-                tickvals=dates,
-                ticktext=[datetime.datetime.strftime(tick, '%d.%m.%y') for tick in dates],
+                range=[xaxis[0] - timedelta(days=7), xaxis[-1] + timedelta(days=7)],
+                tickvals=xaxis,
+                ticktext=[datetime.datetime.strftime(tick, '%d.%m.%y') for tick in xaxis],
                 ticks='outside', ticklen=5, tickcolor='rgba(0,0,0,0)',
                 linecolor='black',
                 gridcolor='rgb(232,232,232)'
@@ -222,9 +226,9 @@ class SprintOverviewDashboard(AbstractDashboard):
                 type='date',
                 dtick=604800000,
                 title='Dates',
-                range=[dates[0] - timedelta(days=2), dates[-1] + timedelta(days=2)],
-                tickvals=dates,
-                ticktext=[datetime.datetime.strftime(tick, '%d.%m.%y') for tick in dates],
+                range=[xaxis[0] - timedelta(days=3), xaxis[-1] + timedelta(days=3)],
+                tickvals=xaxis,
+                ticktext=[datetime.datetime.strftime(tick, '%d.%m.%y') for tick in xaxis],
                 ticks='outside', ticklen=5, tickcolor='rgba(0,0,0,0)',
                 linecolor='black',
                 gridcolor='rgb(232,232,232)'
@@ -236,7 +240,8 @@ class SprintOverviewDashboard(AbstractDashboard):
                 anchor='x1',
                 ticks='outside', ticklen=5, tickcolor='rgba(0,0,0,0)',
                 linecolor='black',
-                gridcolor='rgb(232,232,232)'
+                gridcolor='rgb(232,232,232)',
+                range=[0, 105]
             ),
             yaxis2=dict(
                 domain=[0.55, 1],
