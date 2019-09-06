@@ -243,10 +243,10 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
             )],
             xaxis1=dict(axis, **dict(showline=True, domain=[0.02, 0.86], anchor='y1', linecolor='black', showgrid=False)),
             yaxis1=dict(axis, **dict(showline=True, domain=[0.65, 0.97], anchor='x1', gridcolor='rgb(232,232,232)',
-                                     ticks='outside', ticklen=5, tickcolor='rgba(0,0,0,0)'), range=[0, max_dmn+50]),
+                                     ticks='outside', ticklen=5, tickcolor='rgba(0,0,0,0)'), range=[0, 1.1 * max_dmn]),
             xaxis2=dict(axis, **dict(showline=True, domain=[0.91, 0.98], anchor='y2', linecolor='black', showgrid=False)),
             yaxis2=dict(axis, **dict(showline=True, domain=[0.65, 0.97], anchor='x2', gridcolor='rgb(232,232,232)',
-                                     ticks='outside', ticklen=5, tickcolor='rgba(0,0,0,0)'), range=[0, max_all+50]),
+                                     ticks='outside', ticklen=5, tickcolor='rgba(0,0,0,0)'), range=[0, 1.1 * max_all]),
             barmode='stack'
         )
 

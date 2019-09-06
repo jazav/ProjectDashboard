@@ -256,7 +256,8 @@ def main(argv):
                                                 repository=name_space.repository.lower(),
                                                 mssql_query_file=name_space.mssql.lower(),
                                                 citrix_token=json.loads(name_space.citrix_token.replace('\'', '"')),
-                                                local_user=name_space.local_user)
+                                                local_user=name_space.local_user,
+                                                dashboard_name=name_space.dashboard_name)
 
         if name_space.name == "sprint_info":
             dshc.dashboard_sprint_info(auto_open=(name_space.auto_open.upper() == 'TRUE'),
