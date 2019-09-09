@@ -209,6 +209,9 @@ def get_domain_bssbox(component):
         'System Log': 'Infra',
         'System Monitoring and Operation': 'Infra',
         'Task Engine': 'Infra',
+        'Custom NWM_OCS': 'Custom',
+        'Principal Systems Architect': 'System Architecture',
+        'SLS': 'Megafon',
         '': 'Empty',
         None: 'Empty'
     }[component]
@@ -247,7 +250,9 @@ domain_shortener = {
     'Product Instances': 'Product Instances',
     'Quality Control': 'QC',
     'Product Management': 'PSC',
-    'System Architecture': 'System Architecture'
+    'System Architecture': 'System Architecture',
+    'Custom NWM/PSC': 'Custom',
+    'Principal Systems Architect': 'System Architecture'
 }
 
 
