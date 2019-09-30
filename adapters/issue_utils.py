@@ -212,6 +212,10 @@ def get_domain_bssbox(component):
         'Custom NWM_OCS': 'Custom',
         'Principal Systems Architect': 'System Architecture',
         'SLS': 'Megafon',
+        'Bulk Operations': 'Megafon',
+        'Custom Bulk Operations': 'Custom Bulk Operations',
+        'Pays_OFD': 'Megafon',
+        'UNIBLP': 'Megafon',
         '': 'Empty',
         None: 'Empty'
     }[component]
@@ -252,7 +256,8 @@ domain_shortener = {
     'Product Management': 'PSC',
     'System Architecture': 'System Architecture',
     'Custom NWM/PSC': 'Custom',
-    'Principal Systems Architect': 'System Architecture'
+    'Principal Systems Architect': 'System Architecture',
+    'Custom Bulk Operations': 'Custom'
 }
 
 
