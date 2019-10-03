@@ -10,7 +10,7 @@ class MssqlAdapter:
                                         "Database=srv-jira-prod-report;"
                                         "uid=rndview;pwd=V2f6A8Uf")
 
-        path = os.path.abspath('./SQL_queries/{}.txt'.format(mssql_query_file))
+        path = os.path.abspath('./SQL_queries/{}.sql'.format(mssql_query_file))
         with open(path, 'r') as query:
             sql_str = query.read()
             cursor = mssql_database.cursor()
