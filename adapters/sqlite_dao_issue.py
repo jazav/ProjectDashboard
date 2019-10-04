@@ -183,6 +183,7 @@ class SqliteDaoIssue(DaoIssue):
                     components_condition = components_condition+ ',"' + component+ '"'
             if components_condition != '':
                 components_condition = components_condition + ')'
+            # add tasks query with estimates in tasks
             sql_str = ('''SELECT project,
                                summary,
                                SUM(CASE WHEN status IN ('Closed', 'Resolved') THEN timeoriginalestimate ELSE 0 END) close,
@@ -282,9 +283,9 @@ class SqliteDaoIssue(DaoIssue):
             if components_filter != '':
                 for component in components_filter.split(','):
                     if components_bulk_condition == '':
-                        components_bulk_condition = '(  l3.' + component_to_bulk_field(component)
+                        components_bulk_condition = '(  ifnull(l3.' + component_to_bulk_field(component)+',0)'
                     else:
-                        components_bulk_condition = components_bulk_condition + ' + l3.' + component_to_bulk_field(component)
+                        components_bulk_condition = components_bulk_condition + ' + ifnull(l3.' + component_to_bulk_field(component)+',0)'
                 components_bulk_condition = components_bulk_condition + ')'
             sql_str = sql_str + ''' UNION ALL
                                                SELECT "''' + project_filter + '''" project,
