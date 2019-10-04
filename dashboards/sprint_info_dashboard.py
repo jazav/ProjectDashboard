@@ -14,11 +14,10 @@ import re
 
 
 def load_capacity(dashboard_name):
-    sprint = re.search(r'\d+', dashboard_name)
-    url = 'https://stash.billing.ru/projects/RNDQC/repos/super-sprints-config/raw/sprint/{}.json'\
-        .format('ss{}'.format(sprint.group(0)) if sprint else 'pilot')
+    scope = re.search(r'Super Sprint \d+|Pilot .+', dashboard_name).group(0)
+    url = 'https://stash.billing.ru/users/aleksey.bryntsev/repos/super-sprint-capacity/raw/{}.json'.format(scope)
     r = requests.get(url=url)
-    return r.json()['capacity']
+    return r.json()
 
 
 def color_for_status(status):
@@ -41,15 +40,15 @@ class SprintInfoDashboard(AbstractDashboard):
     def prepare(self, data):
         spent, original = 0, 0
         capacity_dict = {}
-        for cap in load_capacity(self.dashboard_name):
+        for dmn, cap in load_capacity(self.dashboard_name).items():
             try:
-                domain = domain_shortener[cap[0]]
+                domain = domain_shortener[dmn]
                 if domain not in capacity_dict.keys():
-                    capacity_dict[domain] = cap[1]
+                    capacity_dict[domain] = cap
                 else:
-                    capacity_dict[domain] += cap[1]
+                    capacity_dict[domain] += cap
             except KeyError:
-                print(cap[0])
+                print(dmn)
         self.prj_est['Capacity'] = sum(capacity_dict.values())
         for i in range(len(data['Key'])):
             if data['Issue type'][i] != 'User Story (L3)':

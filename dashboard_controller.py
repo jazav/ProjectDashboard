@@ -379,12 +379,12 @@ class DashboardController:
 
     # By @alanbryn
     @staticmethod
-    def dashboard_bssbox_bugs_tracking(auto_open, repository, mssql_query_file, citrix_token, local_user):
+    def dashboard_bssbox_bugs_tracking(auto_open, repository, mssql_query_file, citrix_token, local_user, dashboard_name):
         dc = DataController()
         data = dc.get_issues_mssql(mssql_query_file=mssql_query_file)
 
         dashboard = BssboxBugsTrackingDashboard()
-        dashboard.dashboard_name = 'BSSBox bugs tracking'
+        dashboard.dashboard_name = dashboard_name
         dashboard.auto_open = auto_open
         dashboard.repository = repository
         dashboard.citrix_token = citrix_token

@@ -1,7 +1,7 @@
 WITH user_stories AS (
 	SELECT us_ji.ID AS 'id', CONCAT_WS('-', us_prj.pkey, us_ji.issuenum) AS 'key', us_it.pname AS 'issue type', us_is.pname AS 'status', NULL AS 'resolution date',
 		NULL AS 'component', NULL AS 'L3', (CASE WHEN bulks.Estimate IS NULL THEN '' ELSE CONCAT('"', bulks.Component, '": "', bulks.Estimate, '"') END) AS 'estimate',
-		(CASE WHEN us_pp.ID IS NOT NULL THEN 'PilotPriority' ELSE NULL END) AS 'PilotPriority', (CASE WHEN us_core.ID IS NOT NULL THEN 'Core' ELSE NULL END) AS 'Core',
+		(CASE WHEN us_pp.ID IS NOT NULL THEN 'Pilot 1.0' ELSE NULL END) AS 'Pilot 1.0', (CASE WHEN us_core.ID IS NOT NULL THEN 'Core' ELSE NULL END) AS 'Core',
 		(CASE WHEN us_custom.ID IS NOT NULL THEN 'Custom' ELSE NULL END) AS 'Custom', (CASE WHEN us_config.ID IS NOT NULL THEN 'Config' ELSE NULL END) AS 'Config'
 	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS us_ji
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuetype] AS us_it ON us_it.ID = us_ji.issuetype
@@ -20,10 +20,10 @@ WITH user_stories AS (
 			INNER JOIN [srv-jira-prod-report].[dbo].[jiraissue] AS custom_ji ON custom_ji.ID = custom_lbl.ISSUE WHERE custom_lbl.LABEL = 'Custom') AS us_custom ON us_custom.ID = us_ji.ID
 		LEFT JOIN (SELECT config_ji.ID FROM [srv-jira-prod-report].[dbo].[label] AS config_lbl
 			INNER JOIN [srv-jira-prod-report].[dbo].[jiraissue] AS config_ji ON config_ji.ID = config_lbl.ISSUE WHERE config_lbl.LABEL = 'Config') AS us_config ON us_config.ID = us_ji.ID
-	WHERE us_prj.pname = 'BSSBOX' AND us_it.pname = 'User Story (L3)' AND us_is.pname != 'Canceled' AND us_lbl.LABEL IN ('Swap', 'swap')),
+	WHERE us_prj.pname = 'BSSBOX' AND us_it.pname = 'User Story (L3)' AND us_is.pname != 'Canceled' AND us_lbl.LABEL = 'PilotPriority'),
 epics AS (
 	SELECT DISTINCT e_ji.ID AS 'id', CONCAT_WS('-', e_prj.pkey, e_ji.issuenum) AS 'key', e_it.pname AS 'issue type', e_is.pname AS 'status', CONVERT(date, e_ji.RESOLUTIONDATE) AS 'resolution date',
-		epics_cmp.Component AS 'component', user_stories.[key] AS 'L3', NULL AS 'estimate', user_stories.PilotPriority AS 'PilotPriority', user_stories.Core AS 'Core', user_stories.[Custom] AS 'Custom', user_stories.Config AS 'Config'
+		epics_cmp.Component AS 'component', user_stories.[key] AS 'L3', NULL AS 'estimate', user_stories.[Pilot 1.0] AS 'Pilot 1.0', user_stories.Core AS 'Core', user_stories.[Custom] AS 'Custom', user_stories.Config AS 'Config'
 	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS e_ji
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuelink] AS e_il ON e_il.DESTINATION = e_ji.ID
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuelinktype] AS e_ilt ON e_ilt.ID = e_il.LINKTYPE
@@ -41,9 +41,9 @@ epics AS (
 			WHERE ec_ilt.LINKNAME = 'nexign_hierarchy_link' AND ec_il.SOURCE IN (SELECT ID FROM user_stories) AND ec_na.ASSOCIATION_TYPE = 'IssueComponent') AS epics_cmp ON epics_cmp.ID = e_ji.ID
 	WHERE e_ilt.LINKNAME = 'nexign_hierarchy_link' AND e_il.SOURCE IN (SELECT ID FROM user_stories) AND e_is.pname != 'Canceled')
 
-SELECT id, [key], [issue type], [status], [resolution date], component, L3, CONCAT('{', STRING_AGG(estimate, ', '), '}') AS 'estimate', PilotPriority, Core, [Custom], Config
+SELECT id, [key], [issue type], [status], [resolution date], component, L3, CONCAT('{', STRING_AGG(estimate, ', '), '}') AS 'estimate', [Pilot 1.0], Core, [Custom], Config
 FROM user_stories
-GROUP BY id, [key], [issue type], [status], [resolution date], component, L3, PilotPriority, Core, [Custom], Config
+GROUP BY id, [key], [issue type], [status], [resolution date], component, L3, [Pilot 1.0], Core, [Custom], Config
 UNION ALL
 SELECT * FROM epics
 ORDER  BY [Issue type] DESC, [Resolution date]

@@ -1,5 +1,5 @@
 WITH user_stories AS (
-	SELECT us_ji.ID AS 'ID', (CASE WHEN us_pp.ID IS NOT NULL THEN 'PilotPriority' ELSE NULL END) AS 'PilotPriority', (CASE WHEN us_core.ID IS NOT NULL THEN 'Core' ELSE NULL END) AS 'Core',
+	SELECT us_ji.ID AS 'ID', (CASE WHEN us_pp.ID IS NOT NULL THEN 'Pilot 2.0' ELSE NULL END) AS 'Pilot 2.0', (CASE WHEN us_core.ID IS NOT NULL THEN 'Core' ELSE NULL END) AS 'Core',
 		(CASE WHEN us_custom.ID IS NOT NULL THEN 'Custom' ELSE NULL END) AS 'Custom', (CASE WHEN us_config.ID IS NOT NULL THEN 'Config' ELSE NULL END) AS 'Config'
 	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS us_ji
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuetype] AS us_it ON us_it.ID = us_ji.issuetype
@@ -7,17 +7,17 @@ WITH user_stories AS (
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuestatus] AS us_is ON us_is.ID = us_ji.issuestatus
 		INNER JOIN [srv-jira-prod-report].[dbo].[label] AS us_lbl ON us_lbl.ISSUE = us_ji.ID
 		LEFT JOIN (SELECT pp_ji.ID FROM [srv-jira-prod-report].[dbo].[label] AS pp_lbl
-			INNER JOIN [srv-jira-prod-report].[dbo].[jiraissue] AS pp_ji ON pp_ji.ID = pp_lbl.ISSUE WHERE pp_lbl.LABEL = 'PilotPriority') AS us_pp ON us_pp.ID = us_ji.ID
+			INNER JOIN [srv-jira-prod-report].[dbo].[jiraissue] AS pp_ji ON pp_ji.ID = pp_lbl.ISSUE WHERE pp_lbl.LABEL = 'Pilot2.0') AS us_pp ON us_pp.ID = us_ji.ID
 		LEFT JOIN (SELECT core_ji.ID FROM [srv-jira-prod-report].[dbo].[label] AS core_lbl
 			INNER JOIN [srv-jira-prod-report].[dbo].[jiraissue] AS core_ji ON core_ji.ID = core_lbl.ISSUE WHERE core_lbl.LABEL = 'Core') AS us_core ON us_core.ID = us_ji.ID
 		LEFT JOIN (SELECT custom_ji.ID FROM [srv-jira-prod-report].[dbo].[label] AS custom_lbl
 			INNER JOIN [srv-jira-prod-report].[dbo].[jiraissue] AS custom_ji ON custom_ji.ID = custom_lbl.ISSUE WHERE custom_lbl.LABEL = 'Custom') AS us_custom ON us_custom.ID = us_ji.ID
 		LEFT JOIN (SELECT config_ji.ID FROM [srv-jira-prod-report].[dbo].[label] AS config_lbl
 			INNER JOIN [srv-jira-prod-report].[dbo].[jiraissue] AS config_ji ON config_ji.ID = config_lbl.ISSUE WHERE config_lbl.LABEL = 'Config') AS us_config ON us_config.ID = us_ji.ID
-	WHERE us_prj.pname = 'BSSBOX' AND us_it.pname = 'User Story (L3)' AND us_is.pname != 'Canceled' AND us_lbl.LABEL = 'PilotPriority'),
+	WHERE us_prj.pname = 'BSSBOX' AND us_it.pname = 'User Story (L3)' AND us_is.pname != 'Canceled' AND us_lbl.LABEL = 'Pilot2.0'),
 epics AS (
 	SELECT e_ji.ID AS 'ID', (CASE WHEN epics_cmp.component IS NULL THEN '' ELSE epics_cmp.component END) AS 'component',
-		user_stories.PilotPriority AS 'PilotPriority', user_stories.Core AS 'Core', user_stories.[Custom] AS 'Custom', user_stories.Config AS 'Config'
+		user_stories.[Pilot 2.0] AS 'Pilot 2.0', user_stories.Core AS 'Core', user_stories.[Custom] AS 'Custom', user_stories.Config AS 'Config'
 	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS e_ji
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuelink] AS e_il ON e_il.DESTINATION = e_ji.ID
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuelinktype] AS e_ilt ON e_ilt.ID = e_il.LINKTYPE
@@ -34,7 +34,7 @@ epics AS (
 	WHERE e_ilt.LINKNAME = 'nexign_hierarchy_link' AND e_il.SOURCE IN (SELECT ID FROM user_stories) AND e_ist.pname != 'Canceled'),
 tasks AS (
 	SELECT t_ji.ID AS 'ID', epics.component AS 'component',
-		epics.PilotPriority AS 'PilotPriority', epics.Core AS 'Core', epics.[Custom] AS 'Custom', epics.Config AS 'Config'
+		epics.[Pilot 2.0] AS 'Pilot 2.0', epics.Core AS 'Core', epics.[Custom] AS 'Custom', epics.Config AS 'Config'
 	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS t_ji
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuetype] AS t_it ON t_it.ID = t_ji.issuetype
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuelink] AS t_il ON t_il.DESTINATION = t_ji.ID
@@ -43,7 +43,7 @@ tasks AS (
 	WHERE t_it.pname != 'Bug' AND t_ilt.LINKNAME = 'Epic-Story Link' AND t_il.SOURCE IN (SELECT ID FROM epics)),
 subtasks AS (
 	SELECT st_ji.ID AS 'ID', tasks.component AS 'component',
-		tasks.PilotPriority AS 'PilotPriority', tasks.Core AS 'Core', tasks.[Custom] AS 'Custom', tasks.Config AS 'Config'
+		tasks.[Pilot 2.0] AS 'Pilot 2.0', tasks.Core AS 'Core', tasks.[Custom] AS 'Custom', tasks.Config AS 'Config'
 	FROM [srv-jira-prod-report].[dbo].[jiraissue] AS st_ji
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuetype] AS st_it ON st_it.ID = st_ji.issuetype
 		INNER JOIN [srv-jira-prod-report].[dbo].[issuelink] AS st_il ON st_il.DESTINATION = st_ji.ID
@@ -52,7 +52,7 @@ subtasks AS (
 	WHERE st_it.pname != 'Sub-bug' AND st_ilt.LINKNAME = 'jira_subtask_link' AND st_il.SOURCE IN (SELECT ID FROM tasks))
 
 SELECT CONCAT_WS('-', prj.pkey, ji.issuenum) AS 'key', issues.component AS 'component', CONVERT(date, wl.STARTDATE) AS 'created', CONVERT(date, ji.RESOLUTIONDATE) AS 'resolutiondate', wl.timeworked / 28800 AS 'spent', ist.pname AS 'status',
-	issues.PilotPriority AS 'PilotPriority', issues.Core AS 'Core', issues.[Custom] AS 'Custom', issues.Config AS 'Config'
+	issues.[Pilot 2.0] AS 'Pilot 2.0', issues.Core AS 'Core', issues.[Custom] AS 'Custom', issues.Config AS 'Config'
 FROM [srv-jira-prod-report].[dbo].[worklog] AS wl
 	INNER JOIN [srv-jira-prod-report].[dbo].[jiraissue] AS ji ON ji.ID = wl.issueid
 	INNER JOIN [srv-jira-prod-report].[dbo].[project] AS prj ON prj.ID = ji.PROJECT
