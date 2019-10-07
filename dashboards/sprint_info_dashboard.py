@@ -15,7 +15,7 @@ import re
 
 def load_capacity(dashboard_name):
     scope = re.search(r'Super Sprint \d+|Pilot .+', dashboard_name).group(0)
-    url = 'https://stash.billing.ru/users/aleksey.bryntsev/repos/super-sprint-capacity/raw/{}.json'.format(scope)
+    url = 'https://stash.billing.ru/projects/DBSS_TRACKING/repos/super-sprint-capacity/raw/{}.json'.format(scope)
     r = requests.get(url=url)
     return r.json()
 
