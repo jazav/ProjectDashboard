@@ -211,7 +211,8 @@ def main(argv):
                                                    dashboard_format=DashboardFormat[name_space.dashboard_format.upper()],
                                                    sprint=name_space.sprint,
                                                    components=name_space.components,
-                                                   upload_to_file=(name_space.upload_to_file.upper() == 'TRUE'))
+                                                   upload_to_file=(name_space.upload_to_file.upper() == 'TRUE'),
+                                                   labels=name_space.labels)
         
         # By @alanbryn -------------------------------------------------------------------------------------------------
         if name_space.name == "bugs_duration":

@@ -198,6 +198,8 @@ class ConfigController:
     def read_supersprint_start(self, supersprint):
         if self.config_controller is None:
             return None
+        if supersprint == "":
+            return None
         section = supersprint.upper()
         start = None
         if section in self.config_controller:
