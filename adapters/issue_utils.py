@@ -217,6 +217,10 @@ def get_domain_bssbox(component):
         'Custom Bulk Operations': 'Custom Bulk Operations',
         'Pays_OFD': 'Megafon',
         'UNIBLP': 'Megafon',
+        'Billing UI': 'Billing',
+        'CRAB': 'Custom',
+        'HEX': 'Custom',
+        'OM Arch & SA': 'Ordering & PRM',
         '': 'Empty',
         None: 'Empty'
     }[component]
