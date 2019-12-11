@@ -509,12 +509,14 @@ BULK_FIELD_MAPPER = {
 "40036": "Design",
 "41807": "Custom Documents",
 "42349": "QC Design",
-"41403": "QC Testing"
+"41403": "QC Testing",
+"43213": "Billing UI"
 }
 
 COMPONENT_FIELD_MAPPER = {
   "Logical Resource Inventory": "CRM1 (Customer Relationship Management)", 
-  "Billing": "Billing", 
+  "Billing": "Billing",
+  "Billing UI": "Billing UI",
   "Ordering": "Ordering", 
   "Interaction Management": "CRM1 (Customer Relationship Management)", 
   "DevOps": "DevOps", 

@@ -50,7 +50,7 @@ class ConfigController:
 
         self.config_controller = configparser.ConfigParser()
         self.config_controller.sections()
-        self.config_controller.read(ini_path)
+        self.config_controller.read(ini_path,"utf8")
 
     @staticmethod
     def create_dir(directory):
