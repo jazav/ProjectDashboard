@@ -111,7 +111,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
         data = [go.Table(
             domain=dict(
                 x=[0, 1],
-                y=[0, 0.6]
+                y=[0, 0.7]
             ),
             columnorder=[1, 2, 3, 4, 5, 6, 7, 8, 9],
             columnwidth=[3, 10, 3, 2, 2, 2, 2, 2, 2.5],
@@ -221,7 +221,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                 xref='paper',
                 yref='paper',
                 x0=0,
-                y0=0.62,
+                y0=0.72,
                 x1=0.88,
                 y1=1,
                 line=dict(
@@ -233,7 +233,7 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                 xref='paper',
                 yref='paper',
                 x0=0.89,
-                y0=0.62,
+                y0=0.72,
                 x1=1,
                 y1=1,
                 line=dict(
@@ -242,10 +242,10 @@ class BssboxBugsTrackingDashboard(AbstractDashboard):
                 )
             )],
             xaxis1=dict(axis, **dict(showline=True, domain=[0.02, 0.86], anchor='y1', linecolor='black', showgrid=False)),
-            yaxis1=dict(axis, **dict(showline=True, domain=[0.65, 0.97], anchor='x1', gridcolor='rgb(232,232,232)',
+            yaxis1=dict(axis, **dict(showline=True, domain=[0.75, 0.97], anchor='x1', gridcolor='rgb(232,232,232)',
                                      ticks='outside', ticklen=5, tickcolor='rgba(0,0,0,0)'), range=[0, 1.1 * max_dmn]),
             xaxis2=dict(axis, **dict(showline=True, domain=[0.91, 0.98], anchor='y2', linecolor='black', showgrid=False)),
-            yaxis2=dict(axis, **dict(showline=True, domain=[0.65, 0.97], anchor='x2', gridcolor='rgb(232,232,232)',
+            yaxis2=dict(axis, **dict(showline=True, domain=[0.75, 0.97], anchor='x2', gridcolor='rgb(232,232,232)',
                                      ticks='outside', ticklen=5, tickcolor='rgba(0,0,0,0)'), range=[0, 1.1 * max_all]),
             barmode='stack'
         )
