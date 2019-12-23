@@ -31,6 +31,7 @@ def stringDivider(strval, width, spaceReplacer):
         while ((p > 0) and (strval[p] != ' ')):
             p = p - 1
         if (p == 0):
+            p = 1
             while (p < len(strval) and (strval[p] != ' ')):
                 p = p + 1
         if (p > 0):

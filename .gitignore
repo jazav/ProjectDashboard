@@ -13,6 +13,12 @@ workspace.xml
 modules.xml
 misc.xml
 vcs.xml
+*.sql
+*.txt
+files
+log
+*.ini
+*.bat
 out
 gen### Python template
 # Byte-compiled / optimized / DLL files

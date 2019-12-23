@@ -41,15 +41,15 @@ PROJECT_END_DOMAIN = '''CASE
 __SqliteDaoIssue__ = None
 
 
-def get_sqlite_dao():
+def get_sqlite_dao(upload_to_file):
     global __SqliteDaoIssue__
     if __SqliteDaoIssue__ == None:
-        __SqliteDaoIssue__ = SqliteDaoIssue()
+        __SqliteDaoIssue__ = SqliteDaoIssue(upload_to_file)
     return __SqliteDaoIssue__
 
 
 class SqliteDaoIssue(DaoIssue):
-    def __init__(self):
+    def __init__(self, upload_to_file):
         self.connection = sqlite3.connect(":memory:")
         self.cursor = self.connection.cursor()
         # "UIKIT-233": {
@@ -97,9 +97,13 @@ class SqliteDaoIssue(DaoIssue):
         for field_map_key in BULK_FIELD_MAPPER:
             create_text = create_text + ", " + component_to_store_field(field_map_key) + ' REAL'
         create_text = create_text + ')'
+        if upload_to_file:  # for debug
+           handle_create = open("sql_create_table_issues.sql", "w", encoding="utf-8")
+           handle_create.write(create_text)
+           handle_create.close()
         self.cursor.execute(create_text)
         self.connection.commit()
-
+        
     def insert_issues(self, issues, upload_to_file):
         if len(issues) == 0:
             return
@@ -186,9 +190,9 @@ class SqliteDaoIssue(DaoIssue):
             # add tasks query with estimates in tasks
             sql_str = ('''SELECT project,
                                summary,
-                               SUM(CASE WHEN status IN ('Closed', 'Resolved') THEN timeoriginalestimate ELSE 0 END) close,
+                               SUM(CASE WHEN status IN ('Closed', 'Resolved', 'Done') THEN timeoriginalestimate ELSE 0 END) close,
                                SUM(CASE WHEN status IN ('Open','New','Planning') THEN timeoriginalestimate ELSE 0 END) open,
-                               SUM(CASE WHEN status IN ('Open','New','Planning','Closed', 'Resolved','Unplanned') THEN 0 ELSE timeoriginalestimate END) dev,
+                               SUM(CASE WHEN status IN ('Open','New','Planning','Closed', 'Resolved', 'Done','Unplanned') THEN 0 ELSE timeoriginalestimate END) dev,
                                domain,
                                key,
                                SUM(CASE WHEN status IN ('Unplanned') THEN timeoriginalestimate ELSE 0 END) unplan
